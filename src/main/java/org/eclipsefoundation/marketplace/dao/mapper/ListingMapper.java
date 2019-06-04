@@ -9,6 +9,7 @@
 */
 package org.eclipsefoundation.marketplace.dao.mapper;
 
+import static org.eclipsefoundation.marketplace.helper.SolrHelper.addInputField;
 import static org.eclipsefoundation.marketplace.helper.SolrHelper.setListField;
 
 import java.util.Date;
@@ -18,7 +19,6 @@ import java.util.Map;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.SolrInputField;
-import org.eclipsefoundation.marketplace.helper.SolrHelper;
 import org.eclipsefoundation.marketplace.model.Listing;
 import org.eclipsefoundation.marketplace.namespace.SolrFieldNames;
 
@@ -88,32 +88,32 @@ public class ListingMapper implements SolrBeanMapper<Listing> {
 	@Override
 	public SolrInputDocument toDocument(Listing document) {
 		Map<String, SolrInputField> fields = new HashMap<>();
-		SolrHelper.addInputField(SolrFieldNames.DOCID, document.getDocid(), fields);
-		SolrHelper.addInputField(SolrFieldNames.LISTING_ID, document.getListingId(), fields);
-		SolrHelper.addInputField(SolrFieldNames.LISTING_TITLE, document.getTitle(), fields);
-		SolrHelper.addInputField(SolrFieldNames.LISTING_URL, document.getUrl(), fields);
-		SolrHelper.addInputField(SolrFieldNames.SUPPORT_PAGE_URL, document.getSupportUrl(), fields);
-		SolrHelper.addInputField(SolrFieldNames.HOME_PAGE_URL, document.getHomePageUrl(), fields);
-		SolrHelper.addInputField(SolrFieldNames.LISTING_VERSION, document.getVersion(), fields);
-		SolrHelper.addInputField(SolrFieldNames.LISTING_ECLIPSE_VERSION, document.getEclipseVersion(), fields);
-		SolrHelper.addInputField(SolrFieldNames.LISTING_BODY, document.getTeaser(), fields);
-		SolrHelper.addInputField(SolrFieldNames.LISTING_TEASER, document.getBody(), fields);
-		SolrHelper.addInputField(SolrFieldNames.MARKETPLACE_FAVORITES, document.getFavoriteCount(), fields);
-		SolrHelper.addInputField(SolrFieldNames.RECENT_NSTALLS, document.getInstallsRecent(), fields);
-		SolrHelper.addInputField(SolrFieldNames.TOTAL_NSTALLS, document.getInstallsTotal(), fields);
-		SolrHelper.addInputField(SolrFieldNames.LICENSE_TYPE, document.getLicenseType(), fields);
-		SolrHelper.addInputField(SolrFieldNames.PLATFORMS, document.getPlatforms(), fields);
-		SolrHelper.addInputField(SolrFieldNames.INSTALLABLE_UNITS, document.getInstallableUnits(), fields);
-		SolrHelper.addInputField(SolrFieldNames.LISTING_OWNER, document.getOwner(), fields);
-		SolrHelper.addInputField(SolrFieldNames.LISTING_STATUS, document.getStatus(), fields);
-		SolrHelper.addInputField(SolrFieldNames.LISTING_COMPANY_NAME, document.getCompanyName(), fields);
+		addInputField(SolrFieldNames.DOCID, document.getDocid(), fields);
+		addInputField(SolrFieldNames.LISTING_ID, document.getListingId(), fields);
+		addInputField(SolrFieldNames.LISTING_TITLE, document.getTitle(), fields);
+		addInputField(SolrFieldNames.LISTING_URL, document.getUrl(), fields);
+		addInputField(SolrFieldNames.SUPPORT_PAGE_URL, document.getSupportUrl(), fields);
+		addInputField(SolrFieldNames.HOME_PAGE_URL, document.getHomePageUrl(), fields);
+		addInputField(SolrFieldNames.LISTING_VERSION, document.getVersion(), fields);
+		addInputField(SolrFieldNames.LISTING_ECLIPSE_VERSION, document.getEclipseVersion(), fields);
+		addInputField(SolrFieldNames.LISTING_BODY, document.getTeaser(), fields);
+		addInputField(SolrFieldNames.LISTING_TEASER, document.getBody(), fields);
+		addInputField(SolrFieldNames.MARKETPLACE_FAVORITES, document.getFavoriteCount(), fields);
+		addInputField(SolrFieldNames.RECENT_NSTALLS, document.getInstallsRecent(), fields);
+		addInputField(SolrFieldNames.TOTAL_NSTALLS, document.getInstallsTotal(), fields);
+		addInputField(SolrFieldNames.LICENSE_TYPE, document.getLicenseType(), fields);
+		addInputField(SolrFieldNames.PLATFORMS, document.getPlatforms(), fields);
+		addInputField(SolrFieldNames.INSTALLABLE_UNITS, document.getInstallableUnits(), fields);
+		addInputField(SolrFieldNames.LISTING_OWNER, document.getOwner(), fields);
+		addInputField(SolrFieldNames.LISTING_STATUS, document.getStatus(), fields);
+		addInputField(SolrFieldNames.LISTING_COMPANY_NAME, document.getCompanyName(), fields);
 
 		// convert epoch milli to date
-		SolrHelper.addInputField(SolrFieldNames.UPDATE_DATE, new Date(document.getUpdateDate()), fields);
-		SolrHelper.addInputField(SolrFieldNames.CREATION_DATE, new Date(document.getCreationDate()), fields);
+		addInputField(SolrFieldNames.UPDATE_DATE, new Date(document.getUpdateDate()), fields);
+		addInputField(SolrFieldNames.CREATION_DATE, new Date(document.getCreationDate()), fields);
 
 		// handle boolean to int conversion, where 1 is true
-		SolrHelper.addInputField(SolrFieldNames.FOUNDATION_MEMBER_FLAG, document.isFoundationMember() ? 1 : 0, fields);
+		addInputField(SolrFieldNames.FOUNDATION_MEMBER_FLAG, document.isFoundationMember() ? 1 : 0, fields);
 
 		return new SolrInputDocument(fields);
 	}

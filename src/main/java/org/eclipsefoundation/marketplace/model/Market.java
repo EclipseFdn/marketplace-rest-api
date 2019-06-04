@@ -9,11 +9,10 @@
 */
 package org.eclipsefoundation.marketplace.model;
 
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.eclipsefoundation.marketplace.exceptions.InvalidParameterException;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -115,12 +114,12 @@ public class Market {
 	 * Add a category to the market definition.
 	 * 
 	 * @param c the category to add
-	 * @throws InvalidParameterException if the passed category is an illegal value
+	 * @throws IllegalArgumentException if the passed category is an illegal value
 	 *                                   (i.e. null)
 	 */
 	public void addCategory(Category c) {
 		if (c == null) {
-			throw new InvalidParameterException("Cannot add a null category to list");
+			throw new IllegalArgumentException("Cannot add a null category to list");
 		}
 		this.categories.add(c);
 	}

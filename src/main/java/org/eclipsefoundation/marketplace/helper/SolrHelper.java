@@ -11,13 +11,17 @@
 package org.eclipsefoundation.marketplace.helper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.SortClause;
 import org.apache.solr.common.SolrInputField;
+import org.eclipsefoundation.marketplace.model.QueryParams;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,28 +31,37 @@ import org.slf4j.LoggerFactory;
  * like generating base queries from parameter maps for more convenient usage.
  * 
  * @author Martin Lowe
- *
  */
 public final class SolrHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SolrHelper.class);
 
+	/**
+	 * Default number on entries to include in a response
+	 */
 	public static final int DEFAULT_PAGE_SIZE = 10;
 
+	/**
+	 * Creates a simple SolrQuery object with default values set to be overridden
+	 * later if needed.
+	 * 
+	 * @return a basic SolrQuery object with no query string that retrieves the
+	 *         default number of documents ({@link SolrHelper#DEFAULT_PAGE_SIZE}).
+	 */
 	public static SolrQuery createQuery() {
-		return createQuery(null, 0, DEFAULT_PAGE_SIZE);
+		return createQuery(null, 1, DEFAULT_PAGE_SIZE);
 	}
 
-	public static SolrQuery createQuery(int page, int pageSize) {
-		return createQuery(null, page, pageSize);
-	}
-
-	public static SolrQuery createQuery(String queryString) {
-		return createQuery(queryString, 0, DEFAULT_PAGE_SIZE);
-	}
-
+	/**
+	 * Returns a query object with the given basic parameters.
+	 * 
+	 * @param queryString the Solr query string to use to retrieve data
+	 * @param page        the page to retrieve documents for
+	 * @param pageSize    the number of documents per page of results
+	 * @return a query populated with the given values
+	 */
 	public static SolrQuery createQuery(String queryString, int page, int pageSize) {
 		SolrQuery q = new SolrQuery(queryString);
-		q.setStart((page - 1) * pageSize);
+		q.setStart(getDocumentStart(page, pageSize));
 		q.setRows(pageSize);
 
 		return q;
@@ -61,31 +74,40 @@ public final class SolrHelper {
 	 * @param params map containing parameter values for the Solr query
 	 * @return a Solr query populated by values from the parameter map
 	 */
-	public static SolrQuery createQuery(Map<String, List<String>> params) {
+	public static SolrQuery createQuery(QueryParams params) {
 		// retrieve the necessary values from the param map
-
-		String queryString = ParamHelper.getFirstParam(params, UrlParameterNames.SOLR_QUERY_STRING);
-		String pageVal = ParamHelper.getFirstParam(params, UrlParameterNames.SOLR_CURRENT_PAGE);
-		String pageSizeVal = ParamHelper.getFirstParam(params, UrlParameterNames.SOLR_PAGE_SIZE);
+		List<String> queryStrings = params.getParams(UrlParameterNames.SOLR_QUERY_STRING);
+		Optional<String> pageVal = params.getFirstParam(UrlParameterNames.SOLR_CURRENT_PAGE);
+		Optional<String> pageSizeVal = params.getFirstParam(UrlParameterNames.SOLR_PAGE_SIZE);
+		Optional<String> sortVal = params.getFirstParam(UrlParameterNames.SOLR_SORT);
 
 		// convert the values if they are numeric, or else use defaults
-		Integer page = StringUtils.isNumeric(pageVal) ? Integer.valueOf(pageVal) : null;
-		Integer pageSize = StringUtils.isNumeric(pageSizeVal) ? Integer.valueOf(pageSizeVal) : DEFAULT_PAGE_SIZE;
+		Integer page = 0;
+		if (pageVal.isPresent() && StringUtils.isNumeric(pageVal.get())) {
+			page = Integer.valueOf(pageVal.get());
+		}
+		Integer pageSize = DEFAULT_PAGE_SIZE;
+		if (pageSizeVal.isPresent() && StringUtils.isNumeric(pageSizeVal.get())) {
+			pageSize = Integer.valueOf(pageSizeVal.get());
+		}
 
 		// create the query object based on the querystring
-		SolrQuery q = new SolrQuery(queryString);
+		SolrQuery q = new SolrQuery(StringUtils.join(queryStrings, " and "));
 
 		// add params for page size and count
-		if (page != null) {
-			q.setStart((page - 1) * pageSize);
-		}
+		q.setStart(getDocumentStart(page, pageSize));
 		q.setRows(pageSize);
+		
+		// set sort clauses if present
+		if (sortVal.isPresent() && StringUtils.isNotBlank(sortVal.get())) {
+			q.setSorts(getSortClauses(sortVal.get()));
+		}
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Generated query: {}", q.toQueryString());
 		}
 
-		// return the complete solrquery object
+		// return the complete solr query object
 		return q;
 	}
 
@@ -130,6 +152,77 @@ public final class SolrHelper {
 
 		// add the new input value to the map of fields
 		fields.put(key, field);
+	}
+
+	/**
+	 * Calculates the document start index given a positive, non-zero page and page
+	 * size.
+	 * 
+	 * @param page     the page to start from
+	 * @param pageSize the size of result pages
+	 * @return the start index for the given page and page size.
+	 */
+	public static int getDocumentStart(int page, int pageSize) {
+		if (page < 0) {
+			throw new IllegalArgumentException("Cannot generate a document start point with a page less than 0");
+		}
+		if (pageSize < 1) {
+			throw new IllegalArgumentException("Cannot generate a document start point with a pageSize less than 1");
+		}
+
+		return Math.max(0, page - 1) * pageSize;
+	}
+
+	/**
+	 * <p>
+	 * Converts a comma-delimited list of string sort clauses into a form usable by
+	 * Solr. This method takes a string in the following form:
+	 * </p>
+	 * <code>
+	 * [indexed_field_name] [asc|desc], ...
+	 * </code>
+	 * 
+	 * <p>
+	 * e.g. entity_id asc
+	 * </p>
+	 * <p>
+	 * The field name passed into the sort clause must be indexed by Solr, or the
+	 * query will fail. Additionally, if the sort order is not set to either asc or
+	 * desc, the clause will be skipped, allowing the query to continue.
+	 * </p>
+	 * 
+	 * @param sortVal the comma-delimited list of sort clause values
+	 * @return a list of Solr sort clauses
+	 */
+	private static List<SortClause> getSortClauses(String sortVal) {
+		// if empty, return immediately
+		if (StringUtils.isBlank(sortVal)) {
+			return Collections.emptyList();
+		}
+
+		// separate multiple sort clauses by comma
+		String[] sorts = sortVal.split(",");
+		List<SortClause> clauses = new ArrayList<>(sorts.length);
+		for (String sort : sorts) {
+			// split the sort string into its parts, splitting on whitespace
+			String[] sortParts = sort.split(" ");
+
+			// validate the sort parts
+			if (sortParts.length != 2) {
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Following sort string is malformed: '{}'", sort);
+				}
+			} else if (!"asc".equalsIgnoreCase(sortParts[1]) && !"desc".equalsIgnoreCase(sortParts[1])) {
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Order part in sort clause must be asc or desc, case sensitive, found: {}",
+							sortParts[1]);
+				}
+			} else {
+				// add the clause after checking it
+				clauses.add(new SortClause(sortParts[0], sortParts[1].toLowerCase()));
+			}
+		}
+		return clauses;
 	}
 
 	/**

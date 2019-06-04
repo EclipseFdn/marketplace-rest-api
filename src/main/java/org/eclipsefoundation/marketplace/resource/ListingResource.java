@@ -9,9 +9,7 @@
 */
 package org.eclipsefoundation.marketplace.resource;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -24,13 +22,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipsefoundation.marketplace.dao.impl.DefaultSolrDao;
 import org.eclipsefoundation.marketplace.dao.mapper.ListingMapper;
-import org.eclipsefoundation.marketplace.helper.ParamHelper;
 import org.eclipsefoundation.marketplace.helper.SolrHelper;
-import org.eclipsefoundation.marketplace.model.EnhancedResponse;
 import org.eclipsefoundation.marketplace.model.Error;
 import org.eclipsefoundation.marketplace.model.Listing;
+import org.eclipsefoundation.marketplace.model.QueryParams;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 
@@ -51,28 +49,49 @@ public class ListingResource {
 	@Context
 	private UriInfo uriInfo;
 
+	/**
+	 * Endpoint for /listing/ to retrieve all listings from the database along with
+	 * the given query string parameters.
+	 * 
+	 * @param listingId string version of the listing ID. This is used as a string
+	 *                  as using an integer with bad input is handled before the
+	 *                  resource, meaning we have no input to its look and feel.
+	 * @return response for the browser
+	 */
 	@GET
 	public Response select() {
 		// retrieve the query parameters, and add to a modifiable map
-		Map<String, List<String>> params = new HashMap<>(uriInfo.getQueryParameters());
+		QueryParams params = new QueryParams(uriInfo.getQueryParameters());
+		// TODO we should add this in a way that doesn't override existing q params
+		params.addParam(UrlParameterNames.SOLR_QUERY_STRING, "entity_type:node");
 
 		// retrieve the results for the parameters
 		List<Listing> results = dao.get(SolrHelper.createQuery(params), ListingMapper.INSTANCE);
-		
-		// build an enhanced response object to help contain data
-		EnhancedResponse resp = new EnhancedResponse();
-		resp.setData(results);
-		resp.setSize(results.size());
-		
-		return Response.ok(resp).build();
+
+		return Response.ok(results).build();
 	}
 
+	/**
+	 * Endpoint for /listing/\<listingId\> to retrieve a specific listing from the
+	 * database.
+	 * 
+	 * @param listingId string version of the listing ID. This is used as a string
+	 *                  as using an integer with bad input is handled before the
+	 *                  resource, meaning we have no input to its look and feel.
+	 * @return response for the browser
+	 */
 	@GET
 	@Path("/{listingId}")
 	public Response select(@PathParam("listingId") String listingId) {
+		// Numeric check used instead of int param as it blocks unfriendly error screens
+		if (!StringUtils.isNumeric(listingId)) {
+			return new Error(Status.BAD_REQUEST, "Passed parameter was not a number").asResponse();
+		}
+
 		// retrieve the query parameters, and add to a modifiable map
-		Map<String, List<String>> params = new HashMap<>(uriInfo.getQueryParameters());
-		ParamHelper.setParam(params, UrlParameterNames.SOLR_QUERY_STRING, "entity_id:" + listingId);
+		QueryParams params = new QueryParams(uriInfo.getQueryParameters());
+		// TODO we should add this in a way that doesn't override existing q params
+		params.addParam(UrlParameterNames.SOLR_QUERY_STRING, "entity_id:" + listingId);
 
 		// retrieve the results for the parameters, and check that a listing was found
 		List<Listing> results = dao.get(SolrHelper.createQuery(params), ListingMapper.INSTANCE);
@@ -80,12 +99,7 @@ public class ListingResource {
 			return new Error(Status.NOT_FOUND, "No listing was found for ID '" + listingId + '\'').asResponse();
 		}
 
-		// build an enhanced response object to help contain data
-		EnhancedResponse resp = new EnhancedResponse();
-		resp.setData(results.get(0));
-		resp.setSize(results.size());
-		
 		// return the results as a response
-		return Response.ok(resp).build();
+		return Response.ok(results.get(0)).build();
 	}
 }

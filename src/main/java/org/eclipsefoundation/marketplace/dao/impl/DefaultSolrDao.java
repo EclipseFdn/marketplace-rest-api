@@ -10,9 +10,9 @@
 package org.eclipsefoundation.marketplace.dao.impl;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -38,7 +38,6 @@ import org.slf4j.LoggerFactory;
  * object to maintain sessions and latches to a single Solr core.
  * 
  * @author Martin Lowe
- *
  */
 @ApplicationScoped
 public class DefaultSolrDao implements SolrDao {
@@ -66,8 +65,7 @@ public class DefaultSolrDao implements SolrDao {
 	}
 
 	@Override
-	public <T, T1 extends SolrBeanMapper<T>> List<T> get(SolrQuery q, T1 mapper) {
-		List<T> beans = new LinkedList<>();
+	public <T, M extends SolrBeanMapper<T>> List<T> get(SolrQuery q, M mapper) {
 		try {
 			// query solr for documents using the below query
 			QueryResponse r = client.query(q);
@@ -78,11 +76,8 @@ public class DefaultSolrDao implements SolrDao {
 				LOGGER.trace("Found {} results for query {}", docs.size(), q.toQueryString());
 			}
 
-			// convert the solr documents using the bean mappers
-			for (SolrDocument doc : docs) {
-				beans.add(mapper.toBean(doc));
-			}
-			return beans;
+			// convert the solr documents using the bean mappers and return
+			return docs.stream().map(mapper::toBean).collect(Collectors.toList());
 		} catch (SolrServerException e) {
 			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Error communicating with Solr ", e);
 		} catch (IOException e) {
@@ -92,17 +87,10 @@ public class DefaultSolrDao implements SolrDao {
 	}
 
 	@Override
-	public <T, T1 extends SolrBeanMapper<T>> void add(List<T> beans, T1 mapper) {
+	public <T, M extends SolrBeanMapper<T>> void add(List<T> beans, M mapper) {
 		// create a list of documents to upload to Solr
-		List<SolrInputDocument> solrDocuments = new ArrayList<>(beans.size());
-		for (T bean : beans) {
-			// generate the Solr document from the current bean
-			SolrInputDocument solrDoc = mapper.toDocument(bean);
-			if (solrDoc != null) {
-				solrDocuments.add(solrDoc);
-			}
-		}
-
+		List<SolrInputDocument> solrDocuments = beans.stream().map(mapper::toDocument).filter(Objects::nonNull)
+				.collect(Collectors.toList());
 		try {
 			// update or add the given records
 			UpdateResponse response = client.add(solrDocuments);
@@ -111,12 +99,12 @@ public class DefaultSolrDao implements SolrDao {
 			// if there was an error that didn't cause an exception, throw one
 			if (responseFields.get("error") != null) {
 				throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
-						"Error encountered while adding documents: "+ responseFields.get("message"));
+						"Error encountered while adding documents: " + responseFields.get("message"));
 			}
-			
+
 			// trace time taken + number of entries updated
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Operation took {}ms to add/update {} record(s)",response.getElapsedTime(), beans.size());
+				LOGGER.trace("Operation took {}ms to add/update {} record(s)", response.getElapsedTime(), beans.size());
 			}
 		} catch (SolrServerException e) {
 			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Error communicating with Solr ", e);

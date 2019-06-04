@@ -32,6 +32,6 @@ public class SolrMapper implements ExceptionMapper<SolrException> {
 	@Override
 	public Response toResponse(SolrException exception) {
 		LOGGER.error(exception.getMessage(), exception);
-		return new Error(Status.INTERNAL_SERVER_ERROR, "Passed parameter was not a number").asResponse();
+		return new Error(Status.INTERNAL_SERVER_ERROR, "Error while contacting Solr database").asResponse();
 	}
 }

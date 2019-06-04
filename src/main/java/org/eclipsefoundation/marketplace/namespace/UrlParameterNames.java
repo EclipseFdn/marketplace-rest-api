@@ -14,6 +14,7 @@ public final class UrlParameterNames {
 	public static final String SOLR_QUERY_STRING = "q";
 	public static final String SOLR_CURRENT_PAGE = "page";
 	public static final String SOLR_PAGE_SIZE = "pageSize";
+	public static final String SOLR_SORT = "sort";
 
 	private UrlParameterNames() {
 	}
