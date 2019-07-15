@@ -19,7 +19,7 @@ import java.util.Map;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.SolrInputField;
-import org.eclipsefoundation.marketplace.model.Listing;
+import org.eclipsefoundation.marketplace.dto.Listing;
 import org.eclipsefoundation.marketplace.namespace.SolrFieldNames;
 
 /**
@@ -29,19 +29,12 @@ import org.eclipsefoundation.marketplace.namespace.SolrFieldNames;
  * @author Martin Lowe
  */
 public class ListingMapper implements SolrBeanMapper<Listing> {
-	public static final ListingMapper INSTANCE = new ListingMapper();
-
-	/**
-	 * Hide the constructor as it shouldn't be used.
-	 */
-	private ListingMapper() {
-	}
 
 	@Override
 	public Listing toBean(SolrDocument doc) {
 		Listing out = new Listing();
 
-		out.setDocid((String) doc.getFieldValue(SolrFieldNames.DOCID));
+		out.setId((String) doc.getFieldValue(SolrFieldNames.DOCID));
 		out.setListingId((long) doc.getFieldValue(SolrFieldNames.LISTING_ID));
 		out.setTitle((String) doc.getFieldValue(SolrFieldNames.LISTING_TITLE));
 		out.setUrl((String) doc.getFieldValue(SolrFieldNames.LISTING_URL));
@@ -88,7 +81,7 @@ public class ListingMapper implements SolrBeanMapper<Listing> {
 	@Override
 	public SolrInputDocument toDocument(Listing document) {
 		Map<String, SolrInputField> fields = new HashMap<>();
-		addInputField(SolrFieldNames.DOCID, document.getDocid(), fields);
+		addInputField(SolrFieldNames.DOCID, document.getId(), fields);
 		addInputField(SolrFieldNames.LISTING_ID, document.getListingId(), fields);
 		addInputField(SolrFieldNames.LISTING_TITLE, document.getTitle(), fields);
 		addInputField(SolrFieldNames.LISTING_URL, document.getUrl(), fields);

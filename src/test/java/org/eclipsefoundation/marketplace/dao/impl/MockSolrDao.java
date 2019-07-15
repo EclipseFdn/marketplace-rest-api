@@ -16,7 +16,7 @@ import javax.enterprise.inject.Alternative;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.eclipsefoundation.marketplace.dao.mapper.ListingMapper;
 import org.eclipsefoundation.marketplace.dao.mapper.SolrBeanMapper;
-import org.eclipsefoundation.marketplace.model.Listing;
+import org.eclipsefoundation.marketplace.dto.Listing;
 
 /**
  * Used to pass fake data back to test classes.

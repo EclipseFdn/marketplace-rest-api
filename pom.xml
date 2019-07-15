@@ -68,6 +68,13 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
+		
+		<!-- Caching -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -80,6 +87,9 @@
 						<goals>
 							<goal>build</goal>
 						</goals>
+						<configuration>
+						  <additionalBuildArgs>-H:IncludeResources=.*/.ccf</additionalBuildArgs>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

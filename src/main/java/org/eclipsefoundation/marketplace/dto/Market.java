@@ -7,12 +7,13 @@
  * 
  * SPDX-License-Identifier: EPL-2.0
 */
-package org.eclipsefoundation.marketplace.model;
+package org.eclipsefoundation.marketplace.dto;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -118,9 +119,7 @@ public class Market {
 	 *                                   (i.e. null)
 	 */
 	public void addCategory(Category c) {
-		if (c == null) {
-			throw new IllegalArgumentException("Cannot add a null category to list");
-		}
+		Objects.requireNonNull(c);
 		this.categories.add(c);
 	}
 }

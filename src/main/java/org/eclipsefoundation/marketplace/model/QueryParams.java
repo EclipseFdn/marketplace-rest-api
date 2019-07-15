@@ -94,9 +94,7 @@ public class QueryParams {
 		if (StringUtils.isBlank(key)) {
 			throw new IllegalArgumentException(EMPTY_KEY_MESSAGE);
 		}
-		if (value == null) {
-			throw new NullPointerException("Value must not be null");
-		}
+		Objects.requireNonNull(value);
 		this.params.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
 	}
 
@@ -112,4 +110,12 @@ public class QueryParams {
 		this.params.remove(key);
 	}
 
+	/**
+	 * Returns this QueryParams object as a Map of param values indexed by the param name.
+	 * 
+	 * @return a copy of the internal param map
+	 */
+	public Map<String, List<String>> asMap() {
+		return new HashMap<>(params);
+	}
 }

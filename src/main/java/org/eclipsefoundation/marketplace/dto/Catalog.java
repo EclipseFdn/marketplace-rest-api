@@ -7,7 +7,7 @@
  * 
  * SPDX-License-Identifier: EPL-2.0
 */
-package org.eclipsefoundation.marketplace.model;
+package org.eclipsefoundation.marketplace.dto;
 
 public class Catalog {
 	private int id;
@@ -17,7 +17,10 @@ public class Catalog {
 	private String icon;
 	private String description;
 	private String dependenciesRepository;
-	private Wizard wizard;
+	private boolean searchEnabled;
+	private boolean popularEnabled;
+	private boolean recentEnabled;
+	private boolean newsEnabled;
 
 	/**
 	 * @return the id
@@ -118,17 +121,59 @@ public class Catalog {
 	}
 
 	/**
-	 * @return the wizard
+	 * @return the searchEnabled
 	 */
-	public Wizard getWizard() {
-		return wizard;
+	public boolean isSearchEnabled() {
+		return searchEnabled;
 	}
 
 	/**
-	 * @param wizard the wizard to set
+	 * @param searchEnabled the searchEnabled to set
 	 */
-	public void setWizard(Wizard wizard) {
-		this.wizard = wizard;
+	public void setSearchEnabled(boolean searchEnabled) {
+		this.searchEnabled = searchEnabled;
+	}
+
+	/**
+	 * @return the popularEnabled
+	 */
+	public boolean isPopularEnabled() {
+		return popularEnabled;
+	}
+
+	/**
+	 * @param popularEnabled the popularEnabled to set
+	 */
+	public void setPopularEnabled(boolean popularEnabled) {
+		this.popularEnabled = popularEnabled;
+	}
+
+	/**
+	 * @return the recentEnabled
+	 */
+	public boolean isRecentEnabled() {
+		return recentEnabled;
+	}
+
+	/**
+	 * @param recentEnabled the recentEnabled to set
+	 */
+	public void setRecentEnabled(boolean recentEnabled) {
+		this.recentEnabled = recentEnabled;
+	}
+
+	/**
+	 * @return the newsEnabled
+	 */
+	public boolean isNewsEnabled() {
+		return newsEnabled;
+	}
+
+	/**
+	 * @param newsEnabled the newsEnabled to set
+	 */
+	public void setNewsEnabled(boolean newsEnabled) {
+		this.newsEnabled = newsEnabled;
 	}
 
 }

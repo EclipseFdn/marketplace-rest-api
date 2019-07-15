@@ -95,13 +95,16 @@ public class DefaultSolrDao implements SolrDao {
 			// update or add the given records
 			UpdateResponse response = client.add(solrDocuments);
 			NamedList<Object> responseFields = response.getResponse();
-
+			
 			// if there was an error that didn't cause an exception, throw one
 			if (responseFields.get("error") != null) {
 				throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
 						"Error encountered while adding documents: " + responseFields.get("message"));
 			}
 
+			// commit the documents to be indexed
+			client.commit();
+			
 			// trace time taken + number of entries updated
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Operation took {}ms to add/update {} record(s)", response.getElapsedTime(), beans.size());
@@ -110,6 +113,24 @@ public class DefaultSolrDao implements SolrDao {
 			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Error communicating with Solr ", e);
 		} catch (IOException e) {
 			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Error while streaming data to Solr", e);
+		}
+	}
+
+	@Override
+	public long count(SolrQuery q) {
+		try {
+			// override the row count to 0. Result counts are included as metadata, and shrinks the payload
+			q.setRows(0);
+			
+			// query solr for documents using the below query
+			QueryResponse r = client.query(q);
+			// return the count of 
+			return r.getResults().getNumFound();
+		} catch (SolrServerException e) {
+			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Error communicating with Solr ", e);
+		} catch (IOException e) {
+			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
+					"Error while streaming results for current query: " + q.toString(), e);
 		}
 	}
 
@@ -145,5 +166,4 @@ public class DefaultSolrDao implements SolrDao {
 	public void setCore(String core) {
 		this.core = core;
 	}
-
 }

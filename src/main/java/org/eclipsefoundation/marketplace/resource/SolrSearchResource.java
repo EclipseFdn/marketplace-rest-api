@@ -9,7 +9,9 @@
 */
 package org.eclipsefoundation.marketplace.resource;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -25,7 +27,6 @@ import org.eclipsefoundation.marketplace.dao.impl.DefaultSolrDao;
 import org.eclipsefoundation.marketplace.dao.mapper.RawSolrResultMapper;
 import org.eclipsefoundation.marketplace.helper.SolrHelper;
 import org.eclipsefoundation.marketplace.model.QueryParams;
-import org.eclipsefoundation.marketplace.model.RawSolrResult;
 
 @Path("/solr")
 @Produces(MediaType.APPLICATION_JSON)
@@ -42,7 +43,7 @@ public class SolrSearchResource {
 	public Response select() {
 		QueryParams params = new QueryParams(uriInfo.getQueryParameters());
 
-		List<RawSolrResult> results = dao.get(SolrHelper.createQuery(params), RawSolrResultMapper.INSTANCE);
+		List<Map<String, Collection<Object>>> results = dao.get(SolrHelper.createQuery(params), new RawSolrResultMapper());
 		return Response.ok(results).build();
 	}
 }

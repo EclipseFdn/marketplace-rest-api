@@ -110,7 +110,7 @@ public class SolrHelperTest {
 		List<SortClause> sc = q.getSorts();
 		Assertions.assertEquals(expectedStart, q.getStart());
 		Assertions.assertEquals(Integer.valueOf(pageSizeVal), q.getRows());
-		Assertions.assertEquals(null, q.getQuery());
+		Assertions.assertEquals("", q.getQuery());
 		Assertions.assertEquals(1, sc.size());
 		Assertions.assertEquals(SolrFieldNames.LISTING_ID, sc.get(0).getItem());
 		Assertions.assertEquals(ORDER.asc, sc.get(0).getOrder());

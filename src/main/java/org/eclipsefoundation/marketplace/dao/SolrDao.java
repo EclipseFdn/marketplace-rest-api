@@ -50,4 +50,12 @@ public interface SolrDao {
 	 * @return the number of documents affected by the deletion request
 	 */
 	int delete(SolrQuery q);
+	
+	/**
+	 * Counts documents available within Solr by query.
+	 * 
+	 * @param q the query identifying documents to be deleted from Solr
+	 * @return the number of documents available for a given request
+	 */
+	long count(SolrQuery q);
 }

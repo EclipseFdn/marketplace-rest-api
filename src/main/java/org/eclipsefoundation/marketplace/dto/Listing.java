@@ -7,7 +7,7 @@
  * 
  * SPDX-License-Identifier: EPL-2.0
 */
-package org.eclipsefoundation.marketplace.model;
+package org.eclipsefoundation.marketplace.dto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +16,9 @@ import java.util.Objects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
-public class Listing extends SolrBean {
+public class Listing {
 
+	private String id;
 	private long listingId;
 	private String title;
 	private String url;
@@ -48,6 +49,20 @@ public class Listing extends SolrBean {
 		this.platforms = new ArrayList<>();
 		this.licenseType = new ArrayList<>();
 		this.installableUnits = new ArrayList<>();
+	}
+
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	/**

@@ -7,7 +7,7 @@
  * 
  * SPDX-License-Identifier: EPL-2.0
 */
-package org.eclipsefoundation.marketplace.model;
+package org.eclipsefoundation.marketplace.dto;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 

@@ -9,9 +9,14 @@
 */
 package org.eclipsefoundation.marketplace.dao.mapper;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
-import org.eclipsefoundation.marketplace.model.RawSolrResult;
 
 /**
  * Mapping class for handling the transform between the RawSolrResult class and
@@ -19,30 +24,22 @@ import org.eclipsefoundation.marketplace.model.RawSolrResult;
  * 
  * @author Martin Lowe
  */
-public class RawSolrResultMapper implements SolrBeanMapper<RawSolrResult> {
-	public static final RawSolrResultMapper INSTANCE = new RawSolrResultMapper();
-
-	private RawSolrResultMapper() {
-	}
+public class RawSolrResultMapper implements SolrBeanMapper<Map<String, Collection<Object>>> {
 
 	@Override
-	public RawSolrResult toBean(SolrDocument doc) {
-		RawSolrResult result = new RawSolrResult();
-		if (doc.getFieldValueMap().isEmpty()) {
-			return result;
+	public Map<String, Collection<Object>> toBean(SolrDocument doc) {
+		if (doc.getFieldValuesMap().isEmpty()) {
+			return Collections.emptyMap();
 		}
 
 		// due to Solr implementation of getFieldValuesMap, the values must be iterated
 		// over using keyset to pick up all fields, otherwise unsupported operation
 		// exception is thrown.
-		for (String key : doc.getFieldValuesMap().keySet()) {
-			result.setField(key, doc.getFieldValue(key));
-		}
-		return result;
+		return doc.getFieldValuesMap().keySet().stream().collect(Collectors.toMap(Function.identity(), doc::getFieldValues));
 	}
 
 	@Override
-	public SolrInputDocument toDocument(RawSolrResult document) {
+	public SolrInputDocument toDocument(Map<String, Collection<Object>> doc) {
 		throw new UnsupportedOperationException("Solr documents should never be directly inserted into the index");
 	}
 }
