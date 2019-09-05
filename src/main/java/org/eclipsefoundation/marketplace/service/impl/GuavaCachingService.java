@@ -8,6 +8,7 @@ package org.eclipsefoundation.marketplace.service.impl;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -69,9 +70,10 @@ public class GuavaCachingService<T> implements CachingService<T> {
 	@Override
 	public Optional<T> get(String id, QueryParams params, Callable<? extends T> callable) {
 		Objects.requireNonNull(id);
+		Objects.requireNonNull(params);
 		Objects.requireNonNull(callable);
 		
-		String cacheKey = getCacheKey(id, Optional.ofNullable(params));		
+		String cacheKey = getCacheKey(id, params);		
 		try {
 			return Optional.of(cache.get(cacheKey, callable));
 		} catch (ExecutionException e) {
@@ -82,10 +84,19 @@ public class GuavaCachingService<T> implements CachingService<T> {
 		return Optional.empty();
 	}
 
-	/**
-	 * Used to clear out results in cache.
-	 */
-	void clear() {
+	@Override
+	public Set<String> getCacheKeys() {
+		return cache.asMap().keySet();
+	}
+
+	@Override
+	public void remove(String key) {
+		cache.invalidate(key);
+	}
+
+	@Override
+	public void removeAll() {
 		cache.invalidateAll();
 	}
+
 }

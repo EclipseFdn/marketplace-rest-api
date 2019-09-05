@@ -13,42 +13,70 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
+
+import org.eclipsefoundation.marketplace.model.SortableField;
+import org.eclipsefoundation.marketplace.namespace.MongoFieldNames;
+
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+/**
+ * Domain object representing a marketplace listing.
+ * 
+ * @author Martin Lowe
+ */
 @RegisterForReflection
 public class Listing {
 
+	@JsonbTransient
 	private String id;
+	@SortableField(name = "listing_id")
 	private long listingId;
+	@SortableField
 	private String title;
 	private String url;
 	private String supportUrl;
-	private String homePageUrl;
-	private String updateUrl;
-	private String version;
-	private String eclipseVersion;
+	private String homepageUrl;
 	private String teaser;
 	private String body;
-	private String owner;
 	private String status;
-	private String companyName;
+	private String logo;
 	private boolean foundationMember;
+
+	@SortableField(name = "installs_count")
+	@JsonbProperty("installs_count")
 	private long installsTotal;
+
+	@SortableField(name = "installs_count_recent")
+	@JsonbProperty("installs_count_recent")
 	private long installsRecent;
+
+	@SortableField
 	private long favoriteCount;
+
+	@SortableField(name = MongoFieldNames.CREATION_DATE)
+	@JsonbProperty(MongoFieldNames.CREATION_DATE)
 	private long creationDate;
+
+	@SortableField(name = MongoFieldNames.UPDATE_DATE)
+	@JsonbProperty(MongoFieldNames.UPDATE_DATE)
 	private long updateDate;
-	private List<String> licenseType;
-	private List<String> platforms;
-	private List<String> installableUnits;
+	@JsonbProperty(MongoFieldNames.LICENSE_TYPE)
+	private String license;
+	private List<Organization> organizations;
+	private List<Author> authors;
+	private List<Tag> tags;
+	private List<SolutionVersion> versions;
 
 	/**
 	 * Default constructor, sets lists to empty lists to stop null pointers
 	 */
 	public Listing() {
-		this.platforms = new ArrayList<>();
-		this.licenseType = new ArrayList<>();
-		this.installableUnits = new ArrayList<>();
+		this.authors = new ArrayList<>();
+		this.organizations = new ArrayList<>();
+		this.tags = new ArrayList<>();
+		this.versions = new ArrayList<>();
 	}
 
 	/**
@@ -122,59 +150,17 @@ public class Listing {
 	}
 
 	/**
-	 * @return the homePageUrl
+	 * @return the homepageUrl
 	 */
-	public String getHomePageUrl() {
-		return homePageUrl;
+	public String getHomepageUrl() {
+		return homepageUrl;
 	}
 
 	/**
-	 * @param homePageUrl the homePageUrl to set
+	 * @param homepageUrl the homepageUrl to set
 	 */
-	public void setHomePageUrl(String homePageUrl) {
-		this.homePageUrl = homePageUrl;
-	}
-
-	/**
-	 * @return the updateUrl
-	 */
-	public String getUpdateUrl() {
-		return updateUrl;
-	}
-
-	/**
-	 * @param updateUrl the updateUrl to set
-	 */
-	public void setUpdateUrl(String updateUrl) {
-		this.updateUrl = updateUrl;
-	}
-
-	/**
-	 * @return the version
-	 */
-	public String getVersion() {
-		return version;
-	}
-
-	/**
-	 * @param version the version to set
-	 */
-	public void setVersion(String version) {
-		this.version = version;
-	}
-
-	/**
-	 * @return the eclipseVersion
-	 */
-	public String getEclipseVersion() {
-		return eclipseVersion;
-	}
-
-	/**
-	 * @param eclipseVersion the eclipseVersion to set
-	 */
-	public void setEclipseVersion(String eclipseVersion) {
-		this.eclipseVersion = eclipseVersion;
+	public void setHomepageUrl(String homepageUrl) {
+		this.homepageUrl = homepageUrl;
 	}
 
 	/**
@@ -206,20 +192,6 @@ public class Listing {
 	}
 
 	/**
-	 * @return the owner
-	 */
-	public String getOwner() {
-		return owner;
-	}
-
-	/**
-	 * @param owner the owner to set
-	 */
-	public void setOwner(String owner) {
-		this.owner = owner;
-	}
-
-	/**
 	 * @return the status
 	 */
 	public String getStatus() {
@@ -234,17 +206,17 @@ public class Listing {
 	}
 
 	/**
-	 * @return the companyName
+	 * @return the logo
 	 */
-	public String getCompanyName() {
-		return companyName;
+	public String getLogo() {
+		return logo;
 	}
 
 	/**
-	 * @param companyName the companyName to set
+	 * @param logo the logo to set
 	 */
-	public void setCompanyName(String companyName) {
-		this.companyName = companyName;
+	public void setLogo(String logo) {
+		this.logo = logo;
 	}
 
 	/**
@@ -299,6 +271,7 @@ public class Listing {
 	/**
 	 * @param favoriteCount the favoriteCount to set
 	 */
+	@JsonbTransient
 	public void setFavoriteCount(long favoriteCount) {
 		this.favoriteCount = favoriteCount;
 	}
@@ -332,48 +305,103 @@ public class Listing {
 	}
 
 	/**
-	 * @return the licenseType
+	 * @return the license
 	 */
-	public List<String> getLicenseType() {
-		return new ArrayList<>(licenseType);
+	public String getLicense() {
+		return license;
 	}
 
 	/**
-	 * @param licenseType the licenseType to set
+	 * @param license the license to set
 	 */
-	public void setLicenseType(List<String> licenseType) {
-		Objects.requireNonNull(licenseType);
-		this.licenseType = new ArrayList<>(licenseType);
+	public void setLicense(String license) {
+		this.license = license;
 	}
 
 	/**
-	 * @return the platforms
+	 * @return the organizations
 	 */
-	public List<String> getPlatforms() {
-		return new ArrayList<>(platforms);
+	public List<Organization> getOrganizations() {
+		return new ArrayList<>(organizations);
 	}
 
 	/**
-	 * @param platforms the platforms to set
+	 * @param organizations the organizations to set
 	 */
-	public void setPlatforms(List<String> platforms) {
-		Objects.requireNonNull(platforms);
-		this.platforms = new ArrayList<>(platforms);
+	public void setOrganizations(List<Organization> organizations) {
+		Objects.requireNonNull(organizations);
+		this.organizations = new ArrayList<>(organizations);
 	}
 
 	/**
-	 * @return the installableUnits
+	 * @return the authors
 	 */
-	public List<String> getInstallableUnits() {
-		return new ArrayList<>(installableUnits);
+	public List<Author> getAuthors() {
+		return new ArrayList<>(authors);
 	}
 
 	/**
-	 * @param installableUnits the installableUnits to set
+	 * @param authors the authors to set
 	 */
-	public void setInstallableUnits(List<String> installableUnits) {
-		Objects.requireNonNull(installableUnits);
-		this.installableUnits = new ArrayList<>(installableUnits);
+	public void setAuthors(List<Author> authors) {
+		Objects.requireNonNull(authors);
+		this.authors = new ArrayList<>(authors);
 	}
 
+	/**
+	 * @return the tags
+	 */
+	public List<Tag> getTags() {
+		return new ArrayList<>(tags);
+	}
+
+	/**
+	 * @param tags the tags to set
+	 */
+	public void setTags(List<Tag> tags) {
+		Objects.requireNonNull(tags);
+		this.tags = new ArrayList<>(tags);
+	}
+
+	/**
+	 * @return the versions
+	 */
+	public List<SolutionVersion> getVersions() {
+		return new ArrayList<>(versions);
+	}
+
+	/**
+	 * @param versions the versions to set
+	 */
+	public void setVersions(List<SolutionVersion> versions) {
+		Objects.requireNonNull(versions);
+		this.versions = new ArrayList<>(versions);
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(", id=").append(id);
+		sb.append(", listingId=").append(listingId);
+		sb.append(", title=").append(title);
+		sb.append(", url=").append(url);
+		sb.append(", supportUrl=").append(supportUrl);
+		sb.append(", homepageUrl=").append(homepageUrl);
+		sb.append(", teaser=").append(teaser);
+		sb.append(", body=").append(body);
+		sb.append(", status=").append(status);
+		sb.append(", logo=").append(logo);
+		sb.append(", foundationMember=").append(foundationMember);
+		sb.append(", installsTotal=").append(installsTotal);
+		sb.append(", installsRecent=").append(installsRecent);
+		sb.append(", favoriteCount=").append(favoriteCount);
+		sb.append(", creationDate=").append(creationDate);
+		sb.append(", updateDate=").append(updateDate);
+		sb.append(", license=").append(license);
+		sb.append(", organizations=").append(organizations);
+		sb.append(", authors=").append(authors);
+		sb.append(", tags=").append(tags);
+		sb.append(", versions=").append(versions);
+		return sb.toString();
+	}
 }

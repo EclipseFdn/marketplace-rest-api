@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.ws.rs.core.UriInfo;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -28,20 +30,20 @@ import org.apache.commons.lang3.StringUtils;
 public class QueryParams {
 	private static final String EMPTY_KEY_MESSAGE = "Key must not be null or blank";
 
+	private String endpoint;
 	private Map<String, List<String>> params;
 
 	/**
-	 * Builds the internal map using a copy of the data of the passed parameter map.
-	 * The map must exist to be properly set.
-	 * 
-	 * @param params list of parameters to use in the query map.
+	 * Generates a wrapper around the 
+	 * @param uriInfo
 	 */
-	public QueryParams(Map<String, List<String>> params) {
-		Objects.requireNonNull(params);
+	public QueryParams(UriInfo uriInfo) {
+		Objects.requireNonNull(uriInfo);
 
-		this.params = new HashMap<>(params);
+		this.endpoint = uriInfo.getPath();
+		this.params = new HashMap<>(uriInfo.getQueryParameters(false));
 	}
-
+	
 	/**
 	 * Retrieves the first value set in a list from the map for a given key.
 	 * 
@@ -117,5 +119,13 @@ public class QueryParams {
 	 */
 	public Map<String, List<String>> asMap() {
 		return new HashMap<>(params);
+	}
+	
+	/**
+	 * Returns the endpoint for the current call
+	 * @return
+	 */
+	public String getEndpoint() {
+		return this.endpoint;
 	}
 }

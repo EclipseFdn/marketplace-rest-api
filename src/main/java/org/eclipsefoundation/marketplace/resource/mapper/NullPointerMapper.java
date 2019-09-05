@@ -14,24 +14,21 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-import org.apache.solr.common.SolrException;
 import org.eclipsefoundation.marketplace.model.Error;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Creates human legible error responses in the case of Solr exceptions.
  * 
  * @author Martin Lowe
- *
  */
 @Provider
-public class SolrMapper implements ExceptionMapper<SolrException> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(SolrMapper.class);
+public class NullPointerMapper implements ExceptionMapper<RuntimeException> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(NullPointerMapper.class);
 
 	@Override
-	public Response toResponse(SolrException exception) {
+	public Response toResponse(RuntimeException exception) {
 		LOGGER.error(exception.getMessage(), exception);
-		return new Error(Status.INTERNAL_SERVER_ERROR, "Error while contacting Solr database").asResponse();
+		return new Error(Status.INTERNAL_SERVER_ERROR, "Internal  server error while processing request").asResponse();
 	}
 }

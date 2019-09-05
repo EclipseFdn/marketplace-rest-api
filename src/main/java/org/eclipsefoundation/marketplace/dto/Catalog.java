@@ -9,6 +9,11 @@
 */
 package org.eclipsefoundation.marketplace.dto;
 
+/**
+ * Represents a listing catalog.
+ * 
+ * @author Martin Lowe
+ */
 public class Catalog {
 	private int id;
 	private String title;
