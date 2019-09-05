@@ -11,10 +11,15 @@ package org.eclipsefoundation.marketplace.namespace;
 
 public final class UrlParameterNames {
 
-	public static final String SOLR_QUERY_STRING = "q";
-	public static final String SOLR_CURRENT_PAGE = "page";
-	public static final String SOLR_PAGE_SIZE = "pageSize";
-	public static final String SOLR_SORT = "sort";
+	public static final String QUERY_STRING = "q";
+	public static final String LAST_SEEN = "last";
+	public static final String LIMIT = "limit";
+	public static final String SORT = "sort";
+	public static final String OS = "os";
+	public static final String ECLIPSE_VERSION = "eclipse_version";
+	public static final String JAVA_VERSION = "min_java_version";
+	public static final String IDS = "ids";
+	public static final String TAGS = "tags";
 
 	private UrlParameterNames() {
 	}

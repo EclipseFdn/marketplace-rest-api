@@ -8,9 +8,6 @@ package org.eclipsefoundation.marketplace.resource;
 
 import static io.restassured.RestAssured.given;
 
-import javax.inject.Inject;
-
-import org.eclipsefoundation.marketplace.dao.impl.MockSolrDao;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.junit.QuarkusTest;
@@ -23,9 +20,6 @@ import io.quarkus.test.junit.QuarkusTest;
  */
 @QuarkusTest
 public class ListingResourceTest {
-	
-	@Inject
-	MockSolrDao dao;
 
 	@Test
 	public void testListingIdEndpointBadId() {

@@ -7,6 +7,7 @@
 package org.eclipsefoundation.marketplace.service;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +34,25 @@ public interface CachingService<T> {
 	Optional<T> get(String id, QueryParams params, Callable<? extends T> callable);
 
 	/**
+	 * Retrieves a set of cache keys available to the current cache.
+	 * 
+	 * @return unmodifiable set of cache entry keys.
+	 */
+	Set<String> getCacheKeys();
+
+	/**
+	 * Removes cache entry for given cache entry key.
+	 * 
+	 * @param key cache entry key
+	 */
+	void remove(String key);
+
+	/**
+	 * Removes all cache entries.
+	 */
+	void removeAll();
+
+	/**
 	 * Generates a unique key based on the id of the item/set of items to be stored,
 	 * as well as any passed parameters.
 	 * 
@@ -40,18 +60,17 @@ public interface CachingService<T> {
 	 * @param qps parameters associated with the request for information
 	 * @return the unique cache key for the request.
 	 */
-	default String getCacheKey(String id, Optional<QueryParams> qps) {
+	default String getCacheKey(String id, QueryParams qps) {
 		StringBuilder sb = new StringBuilder();
+		sb.append('[').append(qps.getEndpoint()).append(']');
 		sb.append("id:").append(id);
 
 		// join all the non-empty params to the key to create distinct entries for
 		// filtered values
-		if (qps.isPresent()) {
-			qps.get().asMap().entrySet().stream()
-				.filter(e -> !e.getValue().isEmpty())
+		qps.asMap().entrySet().stream().filter(e -> !e.getValue().isEmpty())
 				.map(e -> e.getKey() + '=' + StringUtils.join(e.getValue(), ','))
 				.forEach(s -> sb.append('|').append(s));
-		}
+
 		return sb.toString();
 	}
 }

@@ -33,3 +33,10 @@ pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
 release.properties
+
+# Secrets config
+src/main/resources/secret.properties
+test/main/resources/secret.properties
+
+#NodeJS
+node_modules/

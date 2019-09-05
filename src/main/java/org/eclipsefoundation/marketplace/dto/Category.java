@@ -11,6 +11,12 @@ package org.eclipsefoundation.marketplace.dto;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+/**
+ * Represents a listing category in the marketplace
+ * 
+ * @author Martin Lowe
+ *
+ */
 @RegisterForReflection
 public class Category {
 	private int id;
