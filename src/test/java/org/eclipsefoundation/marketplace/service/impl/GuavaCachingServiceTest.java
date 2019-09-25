@@ -10,24 +10,26 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
-import org.eclipsefoundation.marketplace.model.QueryParams;
-import org.jboss.resteasy.specimpl.ResteasyUriInfo;
+import org.eclipsefoundation.marketplace.model.RequestWrapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import io.quarkus.test.junit.DisabledOnSubstrate;
 import io.quarkus.test.junit.QuarkusTest;
 
 /**
  * @author martin
  *
  */
+@DisabledOnSubstrate
 @QuarkusTest
 public class GuavaCachingServiceTest {
 
 	@Inject
 	GuavaCachingService<Object> gcs;
-	private QueryParams sample = new QueryParams(new ResteasyUriInfo("",""));
+	@Inject
+	RequestWrapper sample;
 
 	/**
 	 * Clear the cache before every test

@@ -19,8 +19,11 @@ const lic_types = ["EPL-2.0","EPL-1.0","GPL"];
 const platforms = ["windows","macos","linux"];
 const eclipseVs = ["4.6","4.7","4.8","4.9","4.10","4.11","4.12"];
 const javaVs = ["1.5", "1.6", "1.7", "1.8", "1.9", "1.10"];
+const categoryIds = [...Array(20).keys()];
+const marketIds = [...Array(5).keys()];
 
-createEntry(0);
+createListing(0);
+createCategory(0);
 
 function shuff(arr) {
   var out = Array.from(arr);
@@ -44,16 +47,25 @@ function splice(arr) {
   return out;
 }
 
-function createEntry(count) {
+function createListing(count) {
   if (count >= max) {
     return;
   }
 
   axios.post(argv.s+"/listings/", generateJSON(count++))
-    .then(createEntry(count))
+    .then(createListing(count))
     .catch(err => console.log(err));
 }
 
+function createCategory(count) {
+  if (count >= 20) {
+    return;
+  }
+
+  axios.post(argv.s+"/categories/", generateCategoryJSON(count++))
+    .then(createCategory(count))
+    .catch(err => console.log(err));
+}
 
 function generateJSON(id) {
   var solutions = [];
@@ -100,6 +112,16 @@ function generateJSON(id) {
   			"url": ""
   		}
   	],
-  	"versions": solutions
+  	"versions": solutions,
+  	"category_ids": splice(categoryIds)
+  };
+}
+
+function generateCategoryJSON(id) {
+  return {
+    "id": id,
+    "name": randomWords({exactly:1, wordsPerString:Math.ceil(Math.random()*4)})[0],
+    "url": "https://www.eclipse.org",
+    "market_ids": [splice(marketIds)[0]]
   };
 }

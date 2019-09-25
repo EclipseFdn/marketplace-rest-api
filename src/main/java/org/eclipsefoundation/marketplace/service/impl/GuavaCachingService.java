@@ -17,7 +17,7 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipsefoundation.marketplace.model.QueryParams;
+import org.eclipsefoundation.marketplace.model.RequestWrapper;
 import org.eclipsefoundation.marketplace.service.CachingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +68,7 @@ public class GuavaCachingService<T> implements CachingService<T> {
 	}
 
 	@Override
-	public Optional<T> get(String id, QueryParams params, Callable<? extends T> callable) {
+	public Optional<T> get(String id, RequestWrapper params, Callable<? extends T> callable) {
 		Objects.requireNonNull(id);
 		Objects.requireNonNull(params);
 		Objects.requireNonNull(callable);

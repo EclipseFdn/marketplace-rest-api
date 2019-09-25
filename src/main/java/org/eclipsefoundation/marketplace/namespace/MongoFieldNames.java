@@ -39,7 +39,24 @@ public final class MongoFieldNames {
 	public static final String SUPPORT_PAGE_URL = "support_url";
 	public static final String LISTING_VERSIONS = "versions";
 	public static final String LISTING_TAGS = "tags";
+	public static final String CATEGORY_IDS = "category_ids";
+	public static final String LISTING_CATEGORIES = "categories";
 
+	// catalog fields
+	public static final String CATALOG_TABS = "tabs";
+	public static final String CATALOG_SELF_CONTAINED = "self_contained";
+	public static final String CATALOG_SEARCH_ENABLED = "search_enabled";
+	public static final String CATALOG_ICON = "icon";
+	public static final String CATALOG_URL = "url";
+	public static final String CATALOG_DESCRIPTION = "description";
+	public static final String CATALOG_TITLE = "title";
+	public static final String CATALOG_DEPENDENCIES_REPOSITORY = "dependencies_repository";
+	
+	// category fields
+	public static final String MARKET_IDS = "market_ids";
+	public static final String CATEGORY_NAME = "name";
+	public static final String CATEGORY_URL = "url";
+	
 	private MongoFieldNames() {
 	}
 }

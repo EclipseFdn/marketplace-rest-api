@@ -21,6 +21,7 @@ import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.eclipsefoundation.marketplace.dto.Listing;
 import org.eclipsefoundation.marketplace.dto.converters.AuthorConverter;
+import org.eclipsefoundation.marketplace.dto.converters.CategoryConverter;
 import org.eclipsefoundation.marketplace.dto.converters.OrganizationConverter;
 import org.eclipsefoundation.marketplace.dto.converters.SolutionVersionConverter;
 import org.eclipsefoundation.marketplace.dto.converters.TagConverter;
@@ -43,6 +44,7 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 	private final OrganizationConverter organizationConverter;
 	private final TagConverter tagConverter;
 	private final SolutionVersionConverter versionConverter;
+	private final CategoryConverter categoryConverter;
 
 	/**
 	 * Creates the codec and initializes the codecs and converters needed to create
@@ -54,6 +56,7 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		this.organizationConverter = new OrganizationConverter();
 		this.tagConverter = new TagConverter();
 		this.versionConverter = new SolutionVersionConverter();
+		this.categoryConverter = new CategoryConverter();
 	}
 
 	@Override
@@ -77,6 +80,7 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		doc.put(MongoFieldNames.UPDATE_DATE, new Date(value.getUpdateDate()));
 		doc.put(MongoFieldNames.CREATION_DATE, new Date(value.getCreationDate()));
 		doc.put(MongoFieldNames.FOUNDATION_MEMBER_FLAG, value.isFoundationMember());
+		doc.put(MongoFieldNames.CATEGORY_IDS, value.getCategoryIds());
 
 		// for nested document types, use the converters to safely transform into BSON
 		// documents
@@ -116,6 +120,7 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		out.setLicense(document.getString(MongoFieldNames.LICENSE_TYPE));
 		out.setFavoriteCount(document.getLong(MongoFieldNames.MARKETPLACE_FAVORITES));
 		out.setFoundationMember(document.getBoolean(MongoFieldNames.FOUNDATION_MEMBER_FLAG));
+		out.setCategoryIds(document.getList(MongoFieldNames.CATEGORY_IDS, Integer.class));
 
 		// for nested document types, use the converters to safely transform into POJO
 		out.setAuthors(document.getList(MongoFieldNames.LISTING_AUTHORS, Document.class).stream()
@@ -126,7 +131,9 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 				.collect(Collectors.toList()));
 		out.setVersions(document.getList(MongoFieldNames.LISTING_VERSIONS, Document.class).stream()
 				.map(versionConverter::convert).collect(Collectors.toList()));
-
+		out.setCategories(document.getList(MongoFieldNames.LISTING_CATEGORIES, Document.class).stream()
+				.map(categoryConverter::convert).collect(Collectors.toList()));
+		
 		// convert date to epoch milli
 		out.setCreationDate(document.getDate(MongoFieldNames.CREATION_DATE).toInstant().toEpochMilli());
 		out.setUpdateDate(document.getDate(MongoFieldNames.UPDATE_DATE).toInstant().toEpochMilli());

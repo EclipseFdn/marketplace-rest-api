@@ -20,6 +20,7 @@ public final class UrlParameterNames {
 	public static final String JAVA_VERSION = "min_java_version";
 	public static final String IDS = "ids";
 	public static final String TAGS = "tags";
+	public static final String MARKET_IDS = "market_ids";
 
 	private UrlParameterNames() {
 	}

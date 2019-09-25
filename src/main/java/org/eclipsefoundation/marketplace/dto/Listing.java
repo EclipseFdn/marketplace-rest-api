@@ -64,6 +64,8 @@ public class Listing {
 	private long updateDate;
 	@JsonbProperty(MongoFieldNames.LICENSE_TYPE)
 	private String license;
+	private List<Integer> categoryIds;
+	private List<Category> categories;
 	private List<Organization> organizations;
 	private List<Author> authors;
 	private List<Tag> tags;
@@ -77,6 +79,8 @@ public class Listing {
 		this.organizations = new ArrayList<>();
 		this.tags = new ArrayList<>();
 		this.versions = new ArrayList<>();
+		this.categoryIds = new ArrayList<>();
+		this.categories = new ArrayList<>();
 	}
 
 	/**
@@ -316,6 +320,35 @@ public class Listing {
 	 */
 	public void setLicense(String license) {
 		this.license = license;
+	}
+
+	/**
+	 * @return the categoryIds
+	 */
+	public List<Integer> getCategoryIds() {
+		return categoryIds;
+	}
+
+	/**
+	 * @param categoryIds the categoryIds to set
+	 */
+	public void setCategoryIds(List<Integer> categoryIds) {
+		this.categoryIds = new ArrayList<>(categoryIds);
+	}
+
+	/**
+	 * @return the categories
+	 */
+	public List<Category> getCategories() {
+		return new ArrayList<>(categories);
+	}
+
+	/**
+	 * @param categories the categories to set
+	 */
+	@JsonbTransient
+	public void setCategories(List<Category> categories) {
+		this.categories = new ArrayList<>(categories);
 	}
 
 	/**
