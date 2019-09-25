@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipsefoundation.marketplace.model.QueryParams;
+import org.eclipsefoundation.marketplace.model.RequestWrapper;
 
 /**
  * Interface defining the caching service to be used within the application.
@@ -31,7 +31,7 @@ public interface CachingService<T> {
 	 * @param callable a runnable that returns an object of type T
 	 * @return the cached result
 	 */
-	Optional<T> get(String id, QueryParams params, Callable<? extends T> callable);
+	Optional<T> get(String id, RequestWrapper params, Callable<? extends T> callable);
 
 	/**
 	 * Retrieves a set of cache keys available to the current cache.
@@ -60,7 +60,7 @@ public interface CachingService<T> {
 	 * @param qps parameters associated with the request for information
 	 * @return the unique cache key for the request.
 	 */
-	default String getCacheKey(String id, QueryParams qps) {
+	default String getCacheKey(String id, RequestWrapper qps) {
 		StringBuilder sb = new StringBuilder();
 		sb.append('[').append(qps.getEndpoint()).append(']');
 		sb.append("id:").append(id);

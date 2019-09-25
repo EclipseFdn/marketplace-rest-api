@@ -6,6 +6,8 @@
  */
 package org.eclipsefoundation.marketplace.namespace;
 
+import org.eclipsefoundation.marketplace.dto.Catalog;
+import org.eclipsefoundation.marketplace.dto.Category;
 import org.eclipsefoundation.marketplace.dto.Listing;
 
 /**
@@ -15,7 +17,9 @@ import org.eclipsefoundation.marketplace.dto.Listing;
  *
  */
 public enum DtoTableNames {
-	LISTING(Listing.class, "listings");
+	LISTING(Listing.class, "listings"),
+	CATEGORY(Category.class, "categories"),
+	CATALOG(Catalog.class, "catalogs");
 
 	private Class<?> baseClass;
 	private String tableName;
@@ -32,5 +36,9 @@ public enum DtoTableNames {
 			}
 		}
 		return null;
+	}
+	
+	public String getTableName() {
+		return this.tableName;
 	}
 }

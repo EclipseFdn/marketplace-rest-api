@@ -4,12 +4,12 @@
  * which is available at http://www.eclipse.org/legal/epl-v20.html,
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.eclipsefoundation.marketplace.model.filter;
+package org.eclipsefoundation.marketplace.dto.filter;
 
 import java.util.List;
 
 import org.bson.conversions.Bson;
-import org.eclipsefoundation.marketplace.model.QueryParams;
+import org.eclipsefoundation.marketplace.model.RequestWrapper;
 
 /**
  * @author martin
@@ -17,7 +17,9 @@ import org.eclipsefoundation.marketplace.model.QueryParams;
  */
 public interface DtoFilter<T> {
 
-	List<Bson> getFilters(QueryParams qps);
+	List<Bson> getFilters(RequestWrapper wrap);
+	
+	List<Bson> getAggregates(RequestWrapper wrap);
 	
 	Class<T> getType();
 }

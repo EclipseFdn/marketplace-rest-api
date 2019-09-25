@@ -10,12 +10,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ServiceLoader;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,30 +33,32 @@ import org.slf4j.LoggerFactory;
 public class SecretConfigSource implements ConfigSource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SecretConfigSource.class);
 
+	private String secretPath;
+	
 	private Map<String, String> secrets;
 
 	@Override
 	public Map<String, String> getProperties() {
 		if (secrets == null) {
 			this.secrets = new HashMap<>();
-			// use the class loader to get the secret.properties file path
-			URL fURL = getClass().getClassLoader().getResource("secret.properties");
-			if (fURL == null) {
+			this.secretPath = System.getProperty("config.secret.path");
+			if (StringUtils.isEmpty(secretPath)) {
+				LOGGER.error("Configuration 'config.secret.path' not set, cannot generate secret properties");
 				return this.secrets;
 			}
-
 			// load the secrets file in
-			File f = new File(fURL.getFile());
+			File f = new File(secretPath);
 			if (!f.exists() || !f.canRead()) {
+				LOGGER.error("File at path {} either does not exist or cannot be read", secretPath);
 				return this.secrets;
 			}
 
 			// read each of the lines of secret config that should be added
-			try (FileReader reader = new FileReader(f); BufferedReader br = new BufferedReader(reader)) {
+			try (BufferedReader br = new BufferedReader(new FileReader(f))) {
 				Properties p = new Properties();
 				p.load(br);
 				secrets.putAll((Map) p);
-				
+
 			} catch (IOException e) {
 				LOGGER.error("Error while reading in secrets configuration file.", e);
 			}
@@ -71,10 +73,7 @@ public class SecretConfigSource implements ConfigSource {
 
 	@Override
 	public String getValue(String propertyName) {
-		// if secrets not found, retrieve them
-		if (secrets == null)
-			this.getProperties();
-		return secrets.get(propertyName);
+		return getProperties().get(propertyName);
 	}
 
 	@Override

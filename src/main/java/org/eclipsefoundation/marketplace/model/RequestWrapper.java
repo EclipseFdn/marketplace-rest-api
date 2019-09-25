@@ -14,9 +14,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.enterprise.context.RequestScoped;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.resteasy.core.ResteasyContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Wrapper class for query parameter functionality, wrapping a Map of String to
@@ -25,23 +30,24 @@ import org.apache.commons.lang3.StringUtils;
  * entered.
  * 
  * @author Martin Lowe
- *
  */
-public class QueryParams {
+@RequestScoped
+public class RequestWrapper {
+	private static final Logger LOGGER = LoggerFactory.getLogger(RequestWrapper.class);
 	private static final String EMPTY_KEY_MESSAGE = "Key must not be null or blank";
 
-	private String endpoint;
 	private Map<String, List<String>> params;
+	
+	private UriInfo uriInfo;
+	private HttpServletRequest request;
 
 	/**
 	 * Generates a wrapper around the 
 	 * @param uriInfo
 	 */
-	public QueryParams(UriInfo uriInfo) {
-		Objects.requireNonNull(uriInfo);
-
-		this.endpoint = uriInfo.getPath();
-		this.params = new HashMap<>(uriInfo.getQueryParameters(false));
+	RequestWrapper() {
+		this.uriInfo = ResteasyContext.getContextData(UriInfo.class);
+		this.request = ResteasyContext.getContextData(HttpServletRequest.class);
 	}
 	
 	/**
@@ -57,7 +63,7 @@ public class QueryParams {
 			throw new IllegalArgumentException(EMPTY_KEY_MESSAGE);
 		}
 
-		List<String> vals = this.params.get(key);
+		List<String> vals = getParams().get(key);
 		if (vals == null || vals.isEmpty()) {
 			return Optional.empty();
 		}
@@ -77,13 +83,13 @@ public class QueryParams {
 			throw new IllegalArgumentException(EMPTY_KEY_MESSAGE);
 		}
 
-		List<String> vals = this.params.get(key);
+		List<String> vals = getParams().get(key);
 		if (vals == null || vals.isEmpty()) {
 			return Collections.emptyList();
 		}
 		return vals;
 	}
-
+	
 	/**
 	 * Adds the given value for the given key, preserving previous values if they
 	 * exist.
@@ -97,19 +103,7 @@ public class QueryParams {
 			throw new IllegalArgumentException(EMPTY_KEY_MESSAGE);
 		}
 		Objects.requireNonNull(value);
-		this.params.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
-	}
-
-	/**
-	 * Removes the value for the given key.
-	 * 
-	 * @param key string key to add the value to, must not be null
-	 */
-	public void unsetParam(String key) {
-		if (StringUtils.isBlank(key)) {
-			throw new IllegalArgumentException(EMPTY_KEY_MESSAGE);
-		}
-		this.params.remove(key);
+		getParams().computeIfAbsent(key, k -> new ArrayList<>()).add(value);
 	}
 
 	/**
@@ -118,7 +112,17 @@ public class QueryParams {
 	 * @return a copy of the internal param map
 	 */
 	public Map<String, List<String>> asMap() {
-		return new HashMap<>(params);
+		return new HashMap<>(getParams());
+	}
+	
+	private Map<String, List<String>> getParams() {
+		if (params == null) {
+			params = new HashMap<>();
+			if (uriInfo != null) {
+				params.putAll(uriInfo.getQueryParameters());
+			}
+		}
+		return this.params;
 	}
 	
 	/**
@@ -126,6 +130,10 @@ public class QueryParams {
 	 * @return
 	 */
 	public String getEndpoint() {
-		return this.endpoint;
+		return uriInfo.getPath();
+	}
+	
+	public Object getAttribute(String key) {
+		return request.getAttribute(key);
 	}
 }

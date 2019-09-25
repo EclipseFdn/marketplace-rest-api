@@ -35,8 +35,8 @@ pom.xml.versionsBackup
 release.properties
 
 # Secrets config
-src/main/resources/secret.properties
-test/main/resources/secret.properties
+secret.properties
+secret.properties
 
 #NodeJS
 node_modules/

@@ -13,24 +13,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import org.eclipsefoundation.marketplace.dao.MongoDao;
 import org.eclipsefoundation.marketplace.dto.Install;
 import org.eclipsefoundation.marketplace.dto.Listing;
+import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
-import org.eclipsefoundation.marketplace.model.QueryParams;
+import org.eclipsefoundation.marketplace.model.RequestWrapper;
+import org.eclipsefoundation.marketplace.model.ResourceDataType;
 import org.eclipsefoundation.marketplace.namespace.MongoFieldNames;
 import org.eclipsefoundation.marketplace.service.CachingService;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
@@ -42,22 +42,22 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martin Lowe
  */
+@ResourceDataType(Listing.class)
 @Path("/listings")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@RequestScoped
 public class ListingResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ListingResource.class);
 
 	@Inject
 	MongoDao dao;
-
 	@Inject
 	CachingService<List<Listing>> cachingService;
-
-	@Context
-	private UriInfo uriInfo;
-	@Context 
-	private HttpHeaders headers;
+	@Inject
+	RequestWrapper params;
+	@Inject
+	DtoFilter<Listing> dtoFilter;
 
 	/**
 	 * Endpoint for /listing/ to retrieve all listings from the database along with
@@ -68,10 +68,7 @@ public class ListingResource {
 	 */
 	@GET
 	public Response select() {
-		// retrieve the query parameters, and add to a modifiable map
-		QueryParams params = new QueryParams(uriInfo);
-		
-		MongoQuery<Listing> q = new MongoQuery<>(Listing.class, params);
+		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// retrieve the possible cached object
 		Optional<List<Listing>> cachedResults = cachingService.get("all", params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
@@ -92,12 +89,10 @@ public class ListingResource {
 	 */
 	@POST
 	public Response postListing(Listing listing) {
-		// retrieve the query parameters, and add to a modifiable map
-		QueryParams params = new QueryParams(uriInfo);
+		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter,cachingService);
 
 		// add the object, and await the result
-		StreamHelper
-				.awaitCompletionStage(dao.add(new MongoQuery<Listing>(Listing.class, params), Arrays.asList(listing)));
+		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(listing)));
 
 		// return the results as a response
 		return Response.ok().build();
@@ -113,14 +108,12 @@ public class ListingResource {
 	@GET
 	@Path("/{listingId}")
 	public Response select(@PathParam("listingId") int listingId) {
-
-		// retrieve the query parameters, and add to a modifiable map
-		QueryParams params = new QueryParams(uriInfo);
 		params.addParam(MongoFieldNames.LISTING_ID, Integer.toString(listingId));
 
+		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// retrieve a cached version of the value for the current listing
 		Optional<List<Listing>> cachedResults = cachingService.get(Integer.toString(listingId), params,
-				() -> StreamHelper.awaitCompletionStage(dao.get(new MongoQuery<Listing>(Listing.class, params))));
+				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listing for ID {}", listingId);
 			return Response.serverError().build();
@@ -144,7 +137,7 @@ public class ListingResource {
 	}
 
 	/**
-		
+	 * 
 	 * Endpoint for /listing/\<listingId\>/installs/\<version\> to retrieve install
 	 * metrics for a specific listing version from the database.
 	 * 

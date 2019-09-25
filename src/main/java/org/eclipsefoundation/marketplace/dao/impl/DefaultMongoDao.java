@@ -61,14 +61,11 @@ public class DefaultMongoDao implements MongoDao {
 			LOGGER.debug("Querying MongoDB using the following query: {}", q);
 		}
 
-		// when looking for random data, use aggregate pipeline data rather than filter
-		if (q.isAggregate()) {
-			LOGGER.debug("Getting aggregate results");
-			return getCollection(q.getDocType()).aggregate(q.getPipeline(getLimit(q)), q.getDocType()).distinct()
-					.toList().run();
-		}
-		LOGGER.debug("Getting find results");
-		return getCollection(q.getDocType()).find(q.getFindOptions().limit(getLimit(q))).toList().run();
+		LOGGER.error("{}", q);
+		
+		LOGGER.debug("Getting aggregate results");
+		return getCollection(q.getDocType()).aggregate(q.getPipeline(getLimit(q)), q.getDocType()).limit(getLimit(q))
+				.distinct().toList().run();
 	}
 
 	@Override

@@ -9,35 +9,36 @@
 */
 package org.eclipsefoundation.marketplace.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents a listing catalog.
  * 
  * @author Martin Lowe
  */
 public class Catalog {
-	private int id;
+	private String id;
 	private String title;
 	private String url;
 	private boolean selfContained;
+	private boolean searchEnabled;
 	private String icon;
 	private String description;
 	private String dependenciesRepository;
-	private boolean searchEnabled;
-	private boolean popularEnabled;
-	private boolean recentEnabled;
-	private boolean newsEnabled;
+	private List<Tab> tabs;
 
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public String getId() {
 		return id;
 	}
 
 	/**
 	 * @param id the id to set
 	 */
-	public void setId(int id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -140,45 +141,17 @@ public class Catalog {
 	}
 
 	/**
-	 * @return the popularEnabled
+	 * @return the tabs
 	 */
-	public boolean isPopularEnabled() {
-		return popularEnabled;
+	public List<Tab> getTabs() {
+		return new ArrayList<>(tabs);
 	}
 
 	/**
-	 * @param popularEnabled the popularEnabled to set
+	 * @param tabs the tabs to set
 	 */
-	public void setPopularEnabled(boolean popularEnabled) {
-		this.popularEnabled = popularEnabled;
-	}
-
-	/**
-	 * @return the recentEnabled
-	 */
-	public boolean isRecentEnabled() {
-		return recentEnabled;
-	}
-
-	/**
-	 * @param recentEnabled the recentEnabled to set
-	 */
-	public void setRecentEnabled(boolean recentEnabled) {
-		this.recentEnabled = recentEnabled;
-	}
-
-	/**
-	 * @return the newsEnabled
-	 */
-	public boolean isNewsEnabled() {
-		return newsEnabled;
-	}
-
-	/**
-	 * @param newsEnabled the newsEnabled to set
-	 */
-	public void setNewsEnabled(boolean newsEnabled) {
-		this.newsEnabled = newsEnabled;
+	public void setTabs(List<Tab> tabs) {
+		this.tabs = new ArrayList<>(tabs);
 	}
 
 }
