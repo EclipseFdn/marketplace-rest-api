@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.eclipsefoundation</groupId>
 	<artifactId>marketplace-rest-api</artifactId>
-	<version>0.1-ALPHA</version>
+	<version>0.2-BETA</version>
 	<properties>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<surefire-plugin.version>2.22.0</surefire-plugin.version>

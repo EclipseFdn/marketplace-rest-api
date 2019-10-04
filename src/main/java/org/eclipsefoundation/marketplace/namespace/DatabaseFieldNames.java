@@ -15,12 +15,14 @@ package org.eclipsefoundation.marketplace.namespace;
  * @author Martin Lowe
  *
  */
-public final class MongoFieldNames {
+public final class DatabaseFieldNames {
 
-	public static final String DOCID = "id";
-	public static final String LISTING_ID = "listing_id";
+	// base fields
+	public static final String DOCID = "_id";
+	public static final String URL = "url";
+	
+	// listing fields
 	public static final String LISTING_TITLE = "title";
-	public static final String LISTING_URL = "url";
 	public static final String LISTING_TEASER = "teaser";
 	public static final String LISTING_BODY = "body";
 	public static final String LISTING_AUTHORS = "authors";
@@ -57,6 +59,8 @@ public final class MongoFieldNames {
 	public static final String CATEGORY_NAME = "name";
 	public static final String CATEGORY_URL = "url";
 	
-	private MongoFieldNames() {
+	public static final String MARKET_NAME = "name";
+	
+	private DatabaseFieldNames() {
 	}
 }

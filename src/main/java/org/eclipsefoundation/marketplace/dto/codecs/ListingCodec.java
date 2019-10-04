@@ -25,7 +25,7 @@ import org.eclipsefoundation.marketplace.dto.converters.CategoryConverter;
 import org.eclipsefoundation.marketplace.dto.converters.OrganizationConverter;
 import org.eclipsefoundation.marketplace.dto.converters.SolutionVersionConverter;
 import org.eclipsefoundation.marketplace.dto.converters.TagConverter;
-import org.eclipsefoundation.marketplace.namespace.MongoFieldNames;
+import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 
 import com.mongodb.MongoClient;
 
@@ -64,33 +64,32 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		Document doc = new Document();
 
 		// for each of the fields, get the value from the unencoded object and set it
-		doc.put(MongoFieldNames.DOCID, value.getId());
-		doc.put(MongoFieldNames.LISTING_ID, value.getListingId());
-		doc.put(MongoFieldNames.LISTING_TITLE, value.getTitle());
-		doc.put(MongoFieldNames.LISTING_URL, value.getUrl());
-		doc.put(MongoFieldNames.SUPPORT_PAGE_URL, value.getSupportUrl());
-		doc.put(MongoFieldNames.HOME_PAGE_URL, value.getHomepageUrl());
-		doc.put(MongoFieldNames.LISTING_BODY, value.getTeaser());
-		doc.put(MongoFieldNames.LISTING_TEASER, value.getBody());
-		doc.put(MongoFieldNames.MARKETPLACE_FAVORITES, value.getFavoriteCount());
-		doc.put(MongoFieldNames.RECENT_NSTALLS, value.getInstallsRecent());
-		doc.put(MongoFieldNames.TOTAL_NSTALLS, value.getInstallsTotal());
-		doc.put(MongoFieldNames.LICENSE_TYPE, value.getLicense());
-		doc.put(MongoFieldNames.LISTING_STATUS, value.getStatus());
-		doc.put(MongoFieldNames.UPDATE_DATE, new Date(value.getUpdateDate()));
-		doc.put(MongoFieldNames.CREATION_DATE, new Date(value.getCreationDate()));
-		doc.put(MongoFieldNames.FOUNDATION_MEMBER_FLAG, value.isFoundationMember());
-		doc.put(MongoFieldNames.CATEGORY_IDS, value.getCategoryIds());
+		doc.put(DatabaseFieldNames.DOCID, value.getId());
+		doc.put(DatabaseFieldNames.LISTING_TITLE, value.getTitle());
+		doc.put(DatabaseFieldNames.URL, value.getUrl());
+		doc.put(DatabaseFieldNames.SUPPORT_PAGE_URL, value.getSupportUrl());
+		doc.put(DatabaseFieldNames.HOME_PAGE_URL, value.getHomepageUrl());
+		doc.put(DatabaseFieldNames.LISTING_BODY, value.getTeaser());
+		doc.put(DatabaseFieldNames.LISTING_TEASER, value.getBody());
+		doc.put(DatabaseFieldNames.MARKETPLACE_FAVORITES, value.getFavoriteCount());
+		doc.put(DatabaseFieldNames.RECENT_NSTALLS, value.getInstallsRecent());
+		doc.put(DatabaseFieldNames.TOTAL_NSTALLS, value.getInstallsTotal());
+		doc.put(DatabaseFieldNames.LICENSE_TYPE, value.getLicense());
+		doc.put(DatabaseFieldNames.LISTING_STATUS, value.getStatus());
+		doc.put(DatabaseFieldNames.UPDATE_DATE, new Date(value.getUpdateDate()));
+		doc.put(DatabaseFieldNames.CREATION_DATE, new Date(value.getCreationDate()));
+		doc.put(DatabaseFieldNames.FOUNDATION_MEMBER_FLAG, value.isFoundationMember());
+		doc.put(DatabaseFieldNames.CATEGORY_IDS, value.getCategoryIds());
 
 		// for nested document types, use the converters to safely transform into BSON
 		// documents
-		doc.put(MongoFieldNames.LISTING_ORGANIZATIONS,
+		doc.put(DatabaseFieldNames.LISTING_ORGANIZATIONS,
 				value.getOrganizations().stream().map(organizationConverter::convert).collect(Collectors.toList()));
-		doc.put(MongoFieldNames.LISTING_AUTHORS,
+		doc.put(DatabaseFieldNames.LISTING_AUTHORS,
 				value.getAuthors().stream().map(authorConverter::convert).collect(Collectors.toList()));
-		doc.put(MongoFieldNames.LISTING_TAGS,
+		doc.put(DatabaseFieldNames.LISTING_TAGS,
 				value.getTags().stream().map(tagConverter::convert).collect(Collectors.toList()));
-		doc.put(MongoFieldNames.LISTING_VERSIONS,
+		doc.put(DatabaseFieldNames.LISTING_VERSIONS,
 				value.getVersions().stream().map(versionConverter::convert).collect(Collectors.toList()));
 		documentCodec.encode(writer, doc, encoderContext);
 	}
@@ -106,37 +105,36 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		Listing out = new Listing();
 
 		// for each field, get the value from the encoded object and set it in POJO
-		out.setId(document.getString(MongoFieldNames.DOCID));
-		out.setListingId(document.getLong(MongoFieldNames.LISTING_ID));
-		out.setTitle(document.getString(MongoFieldNames.LISTING_TITLE));
-		out.setUrl(document.getString(MongoFieldNames.LISTING_URL));
-		out.setSupportUrl(document.getString(MongoFieldNames.SUPPORT_PAGE_URL));
-		out.setHomepageUrl(document.getString(MongoFieldNames.HOME_PAGE_URL));
-		out.setTeaser(document.getString(MongoFieldNames.LISTING_TEASER));
-		out.setBody(document.getString(MongoFieldNames.LISTING_BODY));
-		out.setStatus(document.getString(MongoFieldNames.LISTING_STATUS));
-		out.setInstallsRecent(document.getLong(MongoFieldNames.RECENT_NSTALLS));
-		out.setInstallsTotal(document.getLong(MongoFieldNames.TOTAL_NSTALLS));
-		out.setLicense(document.getString(MongoFieldNames.LICENSE_TYPE));
-		out.setFavoriteCount(document.getLong(MongoFieldNames.MARKETPLACE_FAVORITES));
-		out.setFoundationMember(document.getBoolean(MongoFieldNames.FOUNDATION_MEMBER_FLAG));
-		out.setCategoryIds(document.getList(MongoFieldNames.CATEGORY_IDS, Integer.class));
+		out.setId(document.getString(DatabaseFieldNames.DOCID));
+		out.setTitle(document.getString(DatabaseFieldNames.LISTING_TITLE));
+		out.setUrl(document.getString(DatabaseFieldNames.URL));
+		out.setSupportUrl(document.getString(DatabaseFieldNames.SUPPORT_PAGE_URL));
+		out.setHomepageUrl(document.getString(DatabaseFieldNames.HOME_PAGE_URL));
+		out.setTeaser(document.getString(DatabaseFieldNames.LISTING_TEASER));
+		out.setBody(document.getString(DatabaseFieldNames.LISTING_BODY));
+		out.setStatus(document.getString(DatabaseFieldNames.LISTING_STATUS));
+		out.setInstallsRecent(document.getLong(DatabaseFieldNames.RECENT_NSTALLS));
+		out.setInstallsTotal(document.getLong(DatabaseFieldNames.TOTAL_NSTALLS));
+		out.setLicense(document.getString(DatabaseFieldNames.LICENSE_TYPE));
+		out.setFavoriteCount(document.getLong(DatabaseFieldNames.MARKETPLACE_FAVORITES));
+		out.setFoundationMember(document.getBoolean(DatabaseFieldNames.FOUNDATION_MEMBER_FLAG));
+		out.setCategoryIds(document.getList(DatabaseFieldNames.CATEGORY_IDS, String.class));
 
 		// for nested document types, use the converters to safely transform into POJO
-		out.setAuthors(document.getList(MongoFieldNames.LISTING_AUTHORS, Document.class).stream()
+		out.setAuthors(document.getList(DatabaseFieldNames.LISTING_AUTHORS, Document.class).stream()
 				.map(authorConverter::convert).collect(Collectors.toList()));
-		out.setOrganizations(document.getList(MongoFieldNames.LISTING_ORGANIZATIONS, Document.class).stream()
+		out.setOrganizations(document.getList(DatabaseFieldNames.LISTING_ORGANIZATIONS, Document.class).stream()
 				.map(organizationConverter::convert).collect(Collectors.toList()));
-		out.setTags(document.getList(MongoFieldNames.LISTING_TAGS, Document.class).stream().map(tagConverter::convert)
+		out.setTags(document.getList(DatabaseFieldNames.LISTING_TAGS, Document.class).stream().map(tagConverter::convert)
 				.collect(Collectors.toList()));
-		out.setVersions(document.getList(MongoFieldNames.LISTING_VERSIONS, Document.class).stream()
+		out.setVersions(document.getList(DatabaseFieldNames.LISTING_VERSIONS, Document.class).stream()
 				.map(versionConverter::convert).collect(Collectors.toList()));
-		out.setCategories(document.getList(MongoFieldNames.LISTING_CATEGORIES, Document.class).stream()
+		out.setCategories(document.getList(DatabaseFieldNames.LISTING_CATEGORIES, Document.class).stream()
 				.map(categoryConverter::convert).collect(Collectors.toList()));
 		
 		// convert date to epoch milli
-		out.setCreationDate(document.getDate(MongoFieldNames.CREATION_DATE).toInstant().toEpochMilli());
-		out.setUpdateDate(document.getDate(MongoFieldNames.UPDATE_DATE).toInstant().toEpochMilli());
+		out.setCreationDate(document.getDate(DatabaseFieldNames.CREATION_DATE).toInstant().toEpochMilli());
+		out.setUpdateDate(document.getDate(DatabaseFieldNames.UPDATE_DATE).toInstant().toEpochMilli());
 
 		return out;
 	}

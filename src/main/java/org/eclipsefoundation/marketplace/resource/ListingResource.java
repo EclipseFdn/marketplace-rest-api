@@ -31,7 +31,7 @@ import org.eclipsefoundation.marketplace.helper.StreamHelper;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
 import org.eclipsefoundation.marketplace.model.ResourceDataType;
-import org.eclipsefoundation.marketplace.namespace.MongoFieldNames;
+import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.eclipsefoundation.marketplace.service.CachingService;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.slf4j.Logger;
@@ -89,7 +89,7 @@ public class ListingResource {
 	 */
 	@POST
 	public Response postListing(Listing listing) {
-		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter,cachingService);
+		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter, cachingService);
 
 		// add the object, and await the result
 		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(listing)));
@@ -102,17 +102,17 @@ public class ListingResource {
 	 * Endpoint for /listing/\<listingId\> to retrieve a specific listing from the
 	 * database.
 	 * 
-	 * @param listingId int version of the listing ID
+	 * @param listingId the listing ID
 	 * @return response for the browser
 	 */
 	@GET
 	@Path("/{listingId}")
-	public Response select(@PathParam("listingId") int listingId) {
-		params.addParam(MongoFieldNames.LISTING_ID, Integer.toString(listingId));
+	public Response select(@PathParam("listingId") String listingId) {
+		params.addParam(UrlParameterNames.ID, listingId);
 
 		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// retrieve a cached version of the value for the current listing
-		Optional<List<Listing>> cachedResults = cachingService.get(Integer.toString(listingId), params,
+		Optional<List<Listing>> cachedResults = cachingService.get(listingId, params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listing for ID {}", listingId);
@@ -132,7 +132,7 @@ public class ListingResource {
 	 */
 	@GET
 	@Path("/{listingId}/installs")
-	public Response selectInstallMetrics(@PathParam("listingId") int listingId) {
+	public Response selectInstallMetrics(@PathParam("listingId") String listingId) {
 		throw new UnsupportedOperationException("Getting install statistics is not yet supported");
 	}
 
@@ -147,7 +147,7 @@ public class ListingResource {
 	 */
 	@GET
 	@Path("/{listingId}/versions/{version}/installs")
-	public Response selectInstallMetrics(@PathParam("listingId") int listingId, @PathParam("version") int version) {
+	public Response selectInstallMetrics(@PathParam("listingId") String listingId, @PathParam("version") int version) {
 		throw new UnsupportedOperationException("Getting install statistics is not yet supported");
 	}
 
@@ -161,7 +161,7 @@ public class ListingResource {
 	 */
 	@POST
 	@Path("/{listingId}/versions/{version}/installs")
-	public Response postInstallMetrics(@PathParam("listingId") int listingId, @PathParam("version") int version,
+	public Response postInstallMetrics(@PathParam("listingId") String listingId, @PathParam("version") String version,
 			Install installDetails) {
 		return Response.ok(installDetails).build();
 	}

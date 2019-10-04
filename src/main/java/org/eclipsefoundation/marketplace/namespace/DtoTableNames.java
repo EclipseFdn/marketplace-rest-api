@@ -9,6 +9,7 @@ package org.eclipsefoundation.marketplace.namespace;
 import org.eclipsefoundation.marketplace.dto.Catalog;
 import org.eclipsefoundation.marketplace.dto.Category;
 import org.eclipsefoundation.marketplace.dto.Listing;
+import org.eclipsefoundation.marketplace.dto.Market;
 
 /**
  * Mapping of DTO classes to their respective tables in the DB.
@@ -19,7 +20,7 @@ import org.eclipsefoundation.marketplace.dto.Listing;
 public enum DtoTableNames {
 	LISTING(Listing.class, "listings"),
 	CATEGORY(Category.class, "categories"),
-	CATALOG(Catalog.class, "catalogs");
+	CATALOG(Catalog.class, "catalogs"), MARKET(Market.class, "markets");
 
 	private Class<?> baseClass;
 	private String tableName;

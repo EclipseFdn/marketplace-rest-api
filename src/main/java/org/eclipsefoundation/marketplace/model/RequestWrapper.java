@@ -40,6 +40,7 @@ public class RequestWrapper {
 	
 	private UriInfo uriInfo;
 	private HttpServletRequest request;
+	private UserAgent userAgent;
 
 	/**
 	 * Generates a wrapper around the 
@@ -48,6 +49,7 @@ public class RequestWrapper {
 	RequestWrapper() {
 		this.uriInfo = ResteasyContext.getContextData(UriInfo.class);
 		this.request = ResteasyContext.getContextData(HttpServletRequest.class);
+		this.userAgent = null;
 	}
 	
 	/**
@@ -135,5 +137,16 @@ public class RequestWrapper {
 	
 	public Object getAttribute(String key) {
 		return request.getAttribute(key);
+	}
+
+	public String getHeader(String key) {
+		return request.getHeader(key);
+	}
+	
+	public UserAgent getUserAgent() {
+		if (userAgent == null) {
+			this.userAgent = new UserAgent(getHeader("user-agent"));
+		}
+		return this.userAgent;
 	}
 }

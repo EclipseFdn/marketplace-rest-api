@@ -9,26 +9,30 @@ package org.eclipsefoundation.marketplace.service.impl;
 import java.util.Optional;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.UriInfo;
 
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
+import org.eclipsefoundation.marketplace.model.RequestWrapperMock;
+import org.eclipsefoundation.marketplace.service.impl.GuavaCachingService;
+import org.jboss.resteasy.core.ResteasyContext;
+import org.jboss.resteasy.specimpl.ResteasyUriInfo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.quarkus.test.junit.DisabledOnSubstrate;
 import io.quarkus.test.junit.QuarkusTest;
+import io.undertow.servlet.spec.HttpServletRequestImpl;
 
 /**
  * @author martin
  *
  */
-@DisabledOnSubstrate
 @QuarkusTest
 public class GuavaCachingServiceTest {
 
 	@Inject
 	GuavaCachingService<Object> gcs;
-	@Inject
 	RequestWrapper sample;
 
 	/**
@@ -36,6 +40,11 @@ public class GuavaCachingServiceTest {
 	 */
 	@BeforeEach
 	public void pre() {
+		// inject empty objects into the Request context before creating a mock object
+		ResteasyContext.pushContext(UriInfo.class, new ResteasyUriInfo("",""));
+		ResteasyContext.pushContext(HttpServletRequest.class, new HttpServletRequestImpl(null, null));
+		
+		this.sample = new RequestWrapperMock();
 		// expire all active key values
 		gcs.removeAll();
 	}

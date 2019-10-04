@@ -6,6 +6,7 @@
  */
 package org.eclipsefoundation.marketplace.dto.codecs;
 
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.bson.BsonReader;
@@ -19,7 +20,7 @@ import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.eclipsefoundation.marketplace.dto.Catalog;
 import org.eclipsefoundation.marketplace.dto.converters.TabConverter;
-import org.eclipsefoundation.marketplace.namespace.MongoFieldNames;
+import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 
 import com.mongodb.MongoClient;
 
@@ -49,14 +50,14 @@ public class CatalogCodec implements CollectibleCodec<Catalog> {
 	public void encode(BsonWriter writer, Catalog value, EncoderContext encoderContext) {
 		Document doc = new Document();
 
-		doc.put(MongoFieldNames.DOCID, value.getId());
-		doc.put(MongoFieldNames.CATALOG_TITLE, value.getTitle());
-		doc.put(MongoFieldNames.CATALOG_URL, value.getUrl());
-		doc.put(MongoFieldNames.CATALOG_ICON, value.getIcon());
-		doc.put(MongoFieldNames.CATALOG_SELF_CONTAINED, value.isSelfContained());
-		doc.put(MongoFieldNames.CATALOG_SEARCH_ENABLED, value.isSearchEnabled());
-		doc.put(MongoFieldNames.CATALOG_DEPENDENCIES_REPOSITORY, value.getDependenciesRepository());
-		doc.put(MongoFieldNames.CATALOG_TABS,
+		doc.put(DatabaseFieldNames.DOCID, value.getId());
+		doc.put(DatabaseFieldNames.CATALOG_TITLE, value.getTitle());
+		doc.put(DatabaseFieldNames.CATALOG_URL, value.getUrl());
+		doc.put(DatabaseFieldNames.CATALOG_ICON, value.getIcon());
+		doc.put(DatabaseFieldNames.CATALOG_SELF_CONTAINED, value.isSelfContained());
+		doc.put(DatabaseFieldNames.CATALOG_SEARCH_ENABLED, value.isSearchEnabled());
+		doc.put(DatabaseFieldNames.CATALOG_DEPENDENCIES_REPOSITORY, value.getDependenciesRepository());
+		doc.put(DatabaseFieldNames.CATALOG_TABS,
 				value.getTabs().stream().map(tabConverter::convert).collect(Collectors.toList()));
 		documentCodec.encode(writer, doc, encoderContext);
 	}
@@ -70,20 +71,23 @@ public class CatalogCodec implements CollectibleCodec<Catalog> {
 	public Catalog decode(BsonReader reader, DecoderContext decoderContext) {
 		Document document = documentCodec.decode(reader, decoderContext);
 		Catalog out = new Catalog();
-		out.setId(document.getString(MongoFieldNames.DOCID));
-		out.setUrl(document.getString(MongoFieldNames.CATALOG_URL));
-		out.setTitle(document.getString(MongoFieldNames.CATALOG_TITLE));
-		out.setIcon(document.getString(MongoFieldNames.CATALOG_ICON));
-		out.setSelfContained(document.getBoolean(MongoFieldNames.CATALOG_SELF_CONTAINED));
-		out.setSearchEnabled(document.getBoolean(MongoFieldNames.CATALOG_SEARCH_ENABLED));
-		out.setDependenciesRepository(document.getString(MongoFieldNames.CATALOG_DEPENDENCIES_REPOSITORY));
-		out.setTabs(document.getList(MongoFieldNames.CATALOG_TABS, Document.class).stream().map(tabConverter::convert)
+		out.setId(document.getString(DatabaseFieldNames.DOCID));
+		out.setUrl(document.getString(DatabaseFieldNames.CATALOG_URL));
+		out.setTitle(document.getString(DatabaseFieldNames.CATALOG_TITLE));
+		out.setIcon(document.getString(DatabaseFieldNames.CATALOG_ICON));
+		out.setSelfContained(document.getBoolean(DatabaseFieldNames.CATALOG_SELF_CONTAINED));
+		out.setSearchEnabled(document.getBoolean(DatabaseFieldNames.CATALOG_SEARCH_ENABLED));
+		out.setDependenciesRepository(document.getString(DatabaseFieldNames.CATALOG_DEPENDENCIES_REPOSITORY));
+		out.setTabs(document.getList(DatabaseFieldNames.CATALOG_TABS, Document.class).stream().map(tabConverter::convert)
 				.collect(Collectors.toList()));
 		return out;
 	}
 
 	@Override
 	public Catalog generateIdIfAbsentFromDocument(Catalog document) {
+		if (!documentHasId(document)) {
+			document.setId(UUID.randomUUID().toString());
+		}
 		return document;
 	}
 
@@ -94,7 +98,6 @@ public class CatalogCodec implements CollectibleCodec<Catalog> {
 
 	@Override
 	public BsonValue getDocumentId(Catalog document) {
-		// TODO Auto-generated method stub
 		return new BsonString(document.getId());
 	}
 

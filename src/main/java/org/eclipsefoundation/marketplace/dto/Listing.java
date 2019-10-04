@@ -17,7 +17,7 @@ import javax.json.bind.annotation.JsonbProperty;
 import javax.json.bind.annotation.JsonbTransient;
 
 import org.eclipsefoundation.marketplace.model.SortableField;
-import org.eclipsefoundation.marketplace.namespace.MongoFieldNames;
+import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -29,10 +29,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class Listing {
 
-	@JsonbTransient
 	private String id;
-	@SortableField(name = "listing_id")
-	private long listingId;
 	@SortableField
 	private String title;
 	private String url;
@@ -55,16 +52,16 @@ public class Listing {
 	@SortableField
 	private long favoriteCount;
 
-	@SortableField(name = MongoFieldNames.CREATION_DATE)
-	@JsonbProperty(MongoFieldNames.CREATION_DATE)
+	@SortableField(name = DatabaseFieldNames.CREATION_DATE)
+	@JsonbProperty(DatabaseFieldNames.CREATION_DATE)
 	private long creationDate;
 
-	@SortableField(name = MongoFieldNames.UPDATE_DATE)
-	@JsonbProperty(MongoFieldNames.UPDATE_DATE)
+	@SortableField(name = DatabaseFieldNames.UPDATE_DATE)
+	@JsonbProperty(DatabaseFieldNames.UPDATE_DATE)
 	private long updateDate;
-	@JsonbProperty(MongoFieldNames.LICENSE_TYPE)
+	@JsonbProperty(DatabaseFieldNames.LICENSE_TYPE)
 	private String license;
-	private List<Integer> categoryIds;
+	private List<String> categoryIds;
 	private List<Category> categories;
 	private List<Organization> organizations;
 	private List<Author> authors;
@@ -96,21 +93,7 @@ public class Listing {
 	public void setId(String id) {
 		this.id = id;
 	}
-
-	/**
-	 * @return the listingId
-	 */
-	public long getListingId() {
-		return listingId;
-	}
-
-	/**
-	 * @param listingId the id to set
-	 */
-	public void setListingId(long listingId) {
-		this.listingId = listingId;
-	}
-
+	
 	/**
 	 * @return the title
 	 */
@@ -325,14 +308,15 @@ public class Listing {
 	/**
 	 * @return the categoryIds
 	 */
-	public List<Integer> getCategoryIds() {
+	@JsonbTransient
+	public List<String> getCategoryIds() {
 		return categoryIds;
 	}
 
 	/**
 	 * @param categoryIds the categoryIds to set
 	 */
-	public void setCategoryIds(List<Integer> categoryIds) {
+	public void setCategoryIds(List<String> categoryIds) {
 		this.categoryIds = new ArrayList<>(categoryIds);
 	}
 
@@ -412,10 +396,41 @@ public class Listing {
 	}
 	
 	@Override
+	public int hashCode() {
+		return Objects.hash(authors, body, categories, categoryIds, creationDate, favoriteCount, foundationMember,
+				homepageUrl, id, installsRecent, installsTotal, license, logo, organizations, status, supportUrl, tags,
+				teaser, title, updateDate, url, versions);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Listing other = (Listing) obj;
+		return Objects.equals(authors, other.authors) && Objects.equals(body, other.body)
+				&& Objects.equals(categories, other.categories) && Objects.equals(categoryIds, other.categoryIds)
+				&& creationDate == other.creationDate && favoriteCount == other.favoriteCount
+				&& foundationMember == other.foundationMember && Objects.equals(homepageUrl, other.homepageUrl)
+				&& Objects.equals(id, other.id) && installsRecent == other.installsRecent
+				&& installsTotal == other.installsTotal && Objects.equals(license, other.license)
+				&& Objects.equals(logo, other.logo) && Objects.equals(organizations, other.organizations)
+				&& Objects.equals(status, other.status) && Objects.equals(supportUrl, other.supportUrl)
+				&& Objects.equals(tags, other.tags) && Objects.equals(teaser, other.teaser)
+				&& Objects.equals(title, other.title) && updateDate == other.updateDate
+				&& Objects.equals(url, other.url) && Objects.equals(versions, other.versions);
+	}
+
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(", id=").append(id);
-		sb.append(", listingId=").append(listingId);
 		sb.append(", title=").append(title);
 		sb.append(", url=").append(url);
 		sb.append(", supportUrl=").append(supportUrl);

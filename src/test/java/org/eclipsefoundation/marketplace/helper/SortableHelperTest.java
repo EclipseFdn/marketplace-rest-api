@@ -9,6 +9,7 @@ package org.eclipsefoundation.marketplace.helper;
 import java.util.List;
 import java.util.Optional;
 
+import org.eclipsefoundation.marketplace.helper.SortableHelper;
 import org.eclipsefoundation.marketplace.helper.SortableHelper.Sortable;
 import org.eclipsefoundation.marketplace.model.SortableField;
 import org.junit.jupiter.api.Assertions;

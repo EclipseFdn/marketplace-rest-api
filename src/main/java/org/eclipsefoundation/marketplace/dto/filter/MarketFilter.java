@@ -13,34 +13,39 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 
 import org.bson.conversions.Bson;
-import org.eclipsefoundation.marketplace.dto.Catalog;
+import org.eclipsefoundation.marketplace.dto.Market;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
+import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
+import org.eclipsefoundation.marketplace.namespace.DtoTableNames;
+
+import com.mongodb.client.model.Aggregates;
 
 /**
- * Filter implementation for the Listing class. Checks the following fields:
- * 
- * 	<ul>
- 
- * 	</ul>
+ * Filter implementation for the {@linkplain Market} class.
  * 
  * @author Martin Lowe
  */
 @ApplicationScoped
-public class CatalogFilter implements DtoFilter<Catalog> {
+public class MarketFilter implements DtoFilter<Market> {
 
 	@Override
-	public List<Bson> getFilters(RequestWrapper qps) {
+	public List<Bson> getFilters(RequestWrapper wrap) {
 		return Collections.emptyList();
 	}
-	
+
 	@Override
 	public List<Bson> getAggregates(RequestWrapper wrap) {
-		return Collections.emptyList();
+		List<Bson> aggs = new ArrayList<>();
+		// adds a $lookup aggregate, joining categories on categoryIDS as "categories"
+		aggs.add(Aggregates.lookup(DtoTableNames.CATEGORY.getTableName(), DatabaseFieldNames.CATEGORY_IDS, DatabaseFieldNames.DOCID,
+				"categories"));
+		
+		return aggs;
 	}
 
 	@Override
-	public Class<Catalog> getType() {
-		return Catalog.class;
+	public Class<Market> getType() {
+		return Market.class;
 	}
 
 }
