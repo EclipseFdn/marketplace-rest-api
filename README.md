@@ -8,7 +8,7 @@ Proof of concept project within the Microservice initiative, the Foundation look
 
 1. Installed and configured JDK 1.8+
 1. Apache Maven 3.5.3+
-1. Running instance of MongoDB
+1. Running instance of MongoDB (Docker instructions below)
 1. GraalVM (for compilation of native-image)
 
 ### Optional requirements
@@ -74,10 +74,22 @@ For ease of use, a script has been created to load sample data into a MongoDB in
 1. In root of project, run `npm install` to retrieve dependencies for sample data loader script.
 1. Run `npm run-script load-listings -- -s <api-url>`, replacing `<api-url>` with the URL of a running instance of this API (e.g. http://localhost:8090). This should take a couple of moments, as by default the loader will load 5000 dummy entries into MongoDB. This can be changed using a `-c` flag followed by the number of entries to be created. 
 
+## Dockerizing MongoDB
+
+The following command can be used in any environment with Docker fully configured to run MongoDB with some basic settings. The password and username can be configured to be more secure, so long as the application.properties and secret.properties are updated to reflect the changes (`quarkus.mongodb.credentials.username` and `quarkus.mongodb.credentials.password` respectively).  
+
+```
+docker run -p 127.0.0.1:27017:27017/tcp \
+    --env MONGO_INITDB_ROOT_USERNAME=root \
+    --env MONGO_INITDB_ROOT_PASSWORD=example \
+    mongo
+```
+
 ### Additional MongoDB commands needed:
 
-- use mpc;
-- db.listings.createIndex(
+```
+use mpc;
+db.listings.createIndex(
      {
        body:"text", 
        teaser:"text",
@@ -90,7 +102,8 @@ For ease of use, a script has been created to load sample data into a MongoDB in
      },
      name: "TextIndex"
   });
-- db.categories.createIndex({id:1});
+db.categories.createIndex({id:1});
+```
 
 ## Copyright 
 
