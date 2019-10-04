@@ -6,8 +6,11 @@
  */
 package org.eclipsefoundation.marketplace.dto.codecs;
 
-import org.bson.BsonInt32;
+import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonReader;
+import org.bson.BsonString;
 import org.bson.BsonValue;
 import org.bson.BsonWriter;
 import org.bson.Document;
@@ -55,18 +58,20 @@ public class CategoryCodec implements CollectibleCodec<Category> {
 
 	@Override
 	public Category generateIdIfAbsentFromDocument(Category document) {
-		// TODO Auto-generated method stub
+		if (!documentHasId(document)) {
+			document.setId(UUID.randomUUID().toString());
+		}
 		return document;
 	}
 
 	@Override
 	public boolean documentHasId(Category document) {
-		return document.getId() > 0;
+		return !StringUtils.isBlank(document.getId());
 	}
 
 	@Override
 	public BsonValue getDocumentId(Category document) {
-		return new BsonInt32(document.getId());
+		return new BsonString(document.getId());
 	}
 
 }

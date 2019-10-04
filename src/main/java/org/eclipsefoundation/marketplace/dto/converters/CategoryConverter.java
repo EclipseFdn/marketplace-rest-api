@@ -8,7 +8,7 @@ package org.eclipsefoundation.marketplace.dto.converters;
 
 import org.bson.Document;
 import org.eclipsefoundation.marketplace.dto.Category;
-import org.eclipsefoundation.marketplace.namespace.MongoFieldNames;
+import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 
 /**
  * @author martin
@@ -19,20 +19,18 @@ public class CategoryConverter implements Converter<Category> {
 	@Override
 	public Category convert(Document src) {
 		Category out = new Category();
-		out.setId(src.getInteger(MongoFieldNames.DOCID));
-		out.setName(src.getString(MongoFieldNames.CATEGORY_NAME));
-		out.setUrl(src.getString(MongoFieldNames.CATEGORY_URL));
-		out.setMarketIds(src.getList(MongoFieldNames.MARKET_IDS, Integer.class));
+		out.setId(src.getString(DatabaseFieldNames.DOCID));
+		out.setName(src.getString(DatabaseFieldNames.CATEGORY_NAME));
+		out.setUrl(src.getString(DatabaseFieldNames.CATEGORY_URL));
 		return out;
 	}
 
 	@Override
 	public Document convert(Category src) {
 		Document doc = new Document();
-		doc.put(MongoFieldNames.DOCID, src.getId());
-		doc.put(MongoFieldNames.CATEGORY_NAME, src.getName());
-		doc.put(MongoFieldNames.CATEGORY_URL, src.getUrl());
-		doc.put(MongoFieldNames.MARKET_IDS, src.getMarketIds());
+		doc.put(DatabaseFieldNames.DOCID, src.getId());
+		doc.put(DatabaseFieldNames.CATEGORY_NAME, src.getName());
+		doc.put(DatabaseFieldNames.CATEGORY_URL, src.getUrl());
 		return doc;
 	}
 

@@ -9,11 +9,11 @@
 */
 package org.eclipsefoundation.marketplace.dto;
 
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
+
+import javax.json.bind.annotation.JsonbTransient;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -25,9 +25,10 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
  */
 @RegisterForReflection
 public class Market {
-	private int id;
+	private String id;
 	private String name;
 	private String url;
+	private List<String> categoryIds;
 	private List<Category> categories;
 
 	/**
@@ -36,19 +37,20 @@ public class Market {
 	 */
 	public Market() {
 		this.categories = new LinkedList<>();
+		this.categoryIds = new LinkedList<>();
 	}
 
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public String getId() {
 		return id;
 	}
 
 	/**
 	 * @param id the id to set
 	 */
-	public void setId(int id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -90,36 +92,23 @@ public class Market {
 	/**
 	 * @param categories the categories to set
 	 */
+	@JsonbTransient
 	public void setCategories(List<Category> categories) {
 		this.categories = new ArrayList<>(categories);
 	}
 
 	/**
-	 * Remove a category from the market definition.
-	 * 
-	 * @param c the category to remove if present
-	 * @return the category removed if it was present, or null if it was missing.
-	 * @throws InvalidParameterException if the passed category is an illegal value
-	 *                                   (i.e. null)
+	 * @return the categoryIds
 	 */
-	public Category removeCategory(Category c) {
-		int idx = categories.indexOf(c);
-		if (idx > 0) {
-			return this.categories.remove(idx);
-		} else {
-			return null;
-		}
+	@JsonbTransient
+	public List<String> getCategoryIds() {
+		return new ArrayList<>(categoryIds);
 	}
 
 	/**
-	 * Add a category to the market definition.
-	 * 
-	 * @param c the category to add
-	 * @throws IllegalArgumentException if the passed category is an illegal value
-	 *                                   (i.e. null)
+	 * @param categoryIds the categoryIds to set
 	 */
-	public void addCategory(Category c) {
-		Objects.requireNonNull(c);
-		this.categories.add(c);
+	public void setCategoryIds(List<String> categoryIds) {
+		this.categoryIds = new ArrayList<>(categoryIds);
 	}
 }

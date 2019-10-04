@@ -1,5 +1,6 @@
 const axios = require('axios');
 const randomWords = require('random-words');
+const uuid = require('uuid');
 const argv = require('yargs')
   .option('c', {
     description: 'Number of listings to generate',
@@ -19,11 +20,18 @@ const lic_types = ["EPL-2.0","EPL-1.0","GPL"];
 const platforms = ["windows","macos","linux"];
 const eclipseVs = ["4.6","4.7","4.8","4.9","4.10","4.11","4.12"];
 const javaVs = ["1.5", "1.6", "1.7", "1.8", "1.9", "1.10"];
-const categoryIds = [...Array(20).keys()];
-const marketIds = [...Array(5).keys()];
+const categoryIds = [];
+for (var i=0;i<20;i++) {
+  categoryIds.push(uuid.v4());
+}
+const marketIds = [];
+for (var i=0;i<5;i++) {
+  marketIds.push(uuid.v4());
+}
 
 createListing(0);
 createCategory(0);
+createMarket(0);
 
 function shuff(arr) {
   var out = Array.from(arr);
@@ -51,19 +59,29 @@ function createListing(count) {
   if (count >= max) {
     return;
   }
-
-  axios.post(argv.s+"/listings/", generateJSON(count++))
+  count++;
+  axios.post(argv.s+"/listings/", generateJSON(uuid.v4()))
     .then(createListing(count))
     .catch(err => console.log(err));
 }
 
 function createCategory(count) {
-  if (count >= 20) {
+  if (count >= categoryIds.length) {
     return;
   }
 
-  axios.post(argv.s+"/categories/", generateCategoryJSON(count++))
+  axios.post(argv.s+"/categories/", generateCategoryJSON(categoryIds[count++]))
     .then(createCategory(count))
+    .catch(err => console.log(err));
+}
+
+function createMarket(count) {
+  if (count >= marketIds.length) {
+    return;
+  }
+
+  axios.post(argv.s+"/markets/", generateMarketJSON(marketIds[count++]))
+    .then(createMarket(count))
     .catch(err => console.log(err));
 }
 
@@ -80,7 +98,6 @@ function generateJSON(id) {
   }
   
   return {
-    "listing_id": id,
   	"title": "Sample",
   	"url": "https://jakarta.ee",
   	"foundation_ember": false,
@@ -113,7 +130,7 @@ function generateJSON(id) {
   		}
   	],
   	"versions": solutions,
-  	"category_ids": splice(categoryIds)
+  	"category_ids": splice(categoryIds).splice(0,Math.ceil(Math.random()*5)+1)
   };
 }
 
@@ -121,7 +138,15 @@ function generateCategoryJSON(id) {
   return {
     "id": id,
     "name": randomWords({exactly:1, wordsPerString:Math.ceil(Math.random()*4)})[0],
+    "url": "https://www.eclipse.org"
+  };
+}
+
+function generateMarketJSON(id) {
+  return {
+    "id": id,
+    "name": randomWords({exactly:1, wordsPerString:Math.ceil(Math.random()*4)})[0],
     "url": "https://www.eclipse.org",
-    "market_ids": [splice(marketIds)[0]]
+    "category_ids": splice(categoryIds).splice(0,Math.ceil(Math.random()*5)+1)
   };
 }

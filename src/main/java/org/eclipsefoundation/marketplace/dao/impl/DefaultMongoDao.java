@@ -60,8 +60,6 @@ public class DefaultMongoDao implements MongoDao {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Querying MongoDB using the following query: {}", q);
 		}
-
-		LOGGER.error("{}", q);
 		
 		LOGGER.debug("Getting aggregate results");
 		return getCollection(q.getDocType()).aggregate(q.getPipeline(getLimit(q)), q.getDocType()).limit(getLimit(q))

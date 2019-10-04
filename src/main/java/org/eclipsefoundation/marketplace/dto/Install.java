@@ -8,6 +8,9 @@ package org.eclipsefoundation.marketplace.dto;
 
 import java.sql.Date;
 
+import org.eclipsefoundation.marketplace.model.RequestWrapper;
+import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
+
 /**
  * Domain object representing the data stored for installs.
  * 
@@ -18,9 +21,17 @@ public class Install {
 	private Date installDate;
 	private String os;
 	private String version;
-	private int listingId;
+	private String listingId;
 	private String javaVersion;
 
+	public static Install createFromRequest(RequestWrapper wrap) {
+		Install install = new Install();
+		install.installDate = new Date(System.currentTimeMillis());
+		install.listingId = wrap.getFirstParam(UrlParameterNames.ID).get();
+		
+		return install;
+	}
+	
 	/**
 	 * @return the installDate
 	 */
@@ -66,14 +77,14 @@ public class Install {
 	/**
 	 * @return the listingId
 	 */
-	public int getListingId() {
+	public String getListingId() {
 		return listingId;
 	}
 
 	/**
 	 * @param listingId the listingId to set
 	 */
-	public void setListingId(int listingId) {
+	public void setListingId(String listingId) {
 		this.listingId = listingId;
 	}
 

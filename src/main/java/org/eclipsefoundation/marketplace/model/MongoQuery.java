@@ -83,7 +83,6 @@ public class MongoQuery<T> {
 				setSort(sortVal.substring(0, idx), sortVal.substring(idx + 1), filters);
 			}
 		}
-		LOGGER.error("{}", filters);
 		if (!filters.isEmpty()) {
 			this.filter = Filters.and(filters);
 		}
@@ -142,11 +141,8 @@ public class MongoQuery<T> {
 		
 		List<Sortable<?>> fields = SortableHelper.getSortableFields(getDocType());
 		Optional<Sortable<?>> fieldContainer = SortableHelper.getSortableFieldByName(fields, sortField);
-
-		LOGGER.error("{}:{}", sortField, sortOrder);
 		if (fieldContainer.isPresent()) {
 			this.order = SortOrder.getOrderByName(sortOrder);
-			LOGGER.error("{}", order);
 			// add sorting query if the sortOrder matches a defined order
 			switch (order) {
 			case RANDOM:
