@@ -49,6 +49,8 @@ public class UserAgent {
 	private String osVersion;
 	private String locale;
 
+	private String eclipseVersion;
+
 	public UserAgent(String userAgent) {
 		Objects.requireNonNull(userAgent);
 
@@ -70,32 +72,46 @@ public class UserAgent {
 		this.enhancements = m.group(4);
 		if (MPC_CLIENT_AGENT_NAME.equalsIgnoreCase(name)) {
 			handleMpc();
-		} else if (name.contains("bot")) {
-			// drop as we don't care about bot properties
-		} else {
-			handleWeb();
 		}
 	}
 
+	/**
+	 * Breaks down the different MPC properties into explicit properties that can be
+	 * retrieved via getters built into the class. The expected format is defined
+	 * below:
+	 * 
+	 * <p>
+	 * {@code mpc/<mpc version> (Java <java version> <java vendor>; <os name> <os version> <os arch>; <locale>) <eclipse product>/<product version> (<eclipse application>)}
+	 * </p>
+	 */
 	private void handleMpc() {
+		// expected form: (Java <java version> <java vendor>; <os name> <os version> <os
+		// arch>; <locale>)
 		List<String> systemPropList = Splitter.on(';').splitToList(systemProperties);
 		if (systemPropList.size() != 3) {
 			// TODO throw exception?
 		}
 		// expected form example: Java <java version> <vendor>
-		String javaPropStr = systemPropList.get(0);
-		String javaPlatform = javaPropStr.substring(javaPropStr.indexOf(' ') + 1);
-		List<String> javaProps = Splitter.on(' ').limit(2).splitToList(javaPlatform);
-		this.javaVersion = javaProps.get(0);
-		this.javaVendor = javaProps.get(1);
-		
-		// expected form: <OS name> <OS version> <??>
-		String systemPlatform = systemPropList.get(1);
+		List<String> javaProps = Splitter.on(' ').limit(3).splitToList(systemPropList.get(0));
+		if (javaProps.size() != 3) {
+			// TODO throw exception?
+		}
+		this.javaVersion = javaProps.get(1);
+		this.javaVendor = javaProps.get(2);
+
+		// expected form: <OS name> <OS version> <OS arch>
+		List<String> systemProps = Splitter.on(' ').limit(3).splitToList(systemPropList.get(1));
+		if (systemProps.size() != 3) {
+			// TODO throw exception?
+		}
+		this.os = systemProps.get(0);
+		this.osVersion = systemProps.get(1);
+
+		// get the current locale
 		this.locale = systemPropList.get(2);
-	}
 
-	private void handleWeb() {
-
+		// expected form: <eclipse product>/<product version>
+		List<String> platformProps = Splitter.on('/').limit(3).splitToList(platform);
 	}
 
 	/**
