@@ -113,6 +113,7 @@ public class ListingFilter implements DtoFilter<Listing> {
 		if (!marketIds.isEmpty()) {
 			aggs.add(Aggregates.match(Filters.in("categories.market_ids", marketIds)));
 		}
+		
 		return aggs;
 	}
 

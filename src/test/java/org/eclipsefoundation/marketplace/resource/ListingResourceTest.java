@@ -23,7 +23,7 @@ public class ListingResourceTest {
 
 	@Test
 	public void testListingIdEndpoint() {
-		given().when().get("/listings/1").then().statusCode(200);
+		given().when().get("/listings/abc-123").then().statusCode(200);
 	}
 	
 	@Test

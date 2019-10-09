@@ -8,6 +8,7 @@ package org.eclipsefoundation.marketplace.namespace;
 
 import org.eclipsefoundation.marketplace.dto.Catalog;
 import org.eclipsefoundation.marketplace.dto.Category;
+import org.eclipsefoundation.marketplace.dto.Install;
 import org.eclipsefoundation.marketplace.dto.Listing;
 import org.eclipsefoundation.marketplace.dto.Market;
 import org.eclipsefoundation.marketplace.dto.ErrorReport;
@@ -21,7 +22,8 @@ import org.eclipsefoundation.marketplace.dto.ErrorReport;
 public enum DtoTableNames {
 	LISTING(Listing.class, "listings"),
 	CATEGORY(Category.class, "categories"),
-	CATALOG(Catalog.class, "catalogs"), MARKET(Market.class, "markets"),ERRORREPORT(ErrorReport.class, "errorreports");
+	CATALOG(Catalog.class, "catalogs"), MARKET(Market.class, "markets"),
+	ERRORREPORT(ErrorReport.class, "errorreports"), INSTALL(Install.class, "installs");
 
 	private Class<?> baseClass;
 	private String tableName;
@@ -39,7 +41,7 @@ public enum DtoTableNames {
 		}
 		return null;
 	}
-	
+
 	public String getTableName() {
 		return this.tableName;
 	}

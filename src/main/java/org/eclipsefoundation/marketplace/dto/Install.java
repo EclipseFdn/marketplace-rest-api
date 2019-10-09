@@ -6,10 +6,7 @@
  */
 package org.eclipsefoundation.marketplace.dto;
 
-import java.sql.Date;
-
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
-import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
+import java.util.Date;
 
 /**
  * Domain object representing the data stored for installs.
@@ -18,20 +15,29 @@ import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
  */
 public class Install {
 
+	private String id;
 	private Date installDate;
 	private String os;
 	private String version;
 	private String listingId;
 	private String javaVersion;
-
-	public static Install createFromRequest(RequestWrapper wrap) {
-		Install install = new Install();
-		install.installDate = new Date(System.currentTimeMillis());
-		install.listingId = wrap.getFirstParam(UrlParameterNames.ID).get();
-		
-		return install;
-	}
+	private String eclipseVersion;
+	private String locale;
 	
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(String id) {
+		this.id = id;
+	}
+
 	/**
 	 * @return the installDate
 	 */
@@ -100,5 +106,33 @@ public class Install {
 	 */
 	public void setJavaVersion(String javaVersion) {
 		this.javaVersion = javaVersion;
+	}
+
+	/**
+	 * @return the eclipseVersion
+	 */
+	public String getEclipseVersion() {
+		return eclipseVersion;
+	}
+
+	/**
+	 * @param eclipseVersion the eclipseVersion to set
+	 */
+	public void setEclipseVersion(String eclipseVersion) {
+		this.eclipseVersion = eclipseVersion;
+	}
+
+	/**
+	 * @return the locale
+	 */
+	public String getLocale() {
+		return locale;
+	}
+
+	/**
+	 * @param locale the locale to set
+	 */
+	public void setLocale(String locale) {
+		this.locale = locale;
 	}
 }
