@@ -20,9 +20,9 @@ public final class DatabaseFieldNames {
 	// base fields
 	public static final String DOCID = "_id";
 	public static final String URL = "url";
+	public static final String NAME = "name";
 	
 	// listing fields
-	public static final String LISTING_TITLE = "title";
 	public static final String LISTING_TEASER = "teaser";
 	public static final String LISTING_BODY = "body";
 	public static final String LISTING_AUTHORS = "authors";
@@ -49,17 +49,8 @@ public final class DatabaseFieldNames {
 	public static final String CATALOG_SELF_CONTAINED = "self_contained";
 	public static final String CATALOG_SEARCH_ENABLED = "search_enabled";
 	public static final String CATALOG_ICON = "icon";
-	public static final String CATALOG_URL = "url";
 	public static final String CATALOG_DESCRIPTION = "description";
-	public static final String CATALOG_TITLE = "title";
 	public static final String CATALOG_DEPENDENCIES_REPOSITORY = "dependencies_repository";
-	
-	// category fields
-	public static final String MARKET_IDS = "market_ids";
-	public static final String CATEGORY_NAME = "name";
-	public static final String CATEGORY_URL = "url";
-	
-	public static final String MARKET_NAME = "name";
 	
 	private DatabaseFieldNames() {
 	}

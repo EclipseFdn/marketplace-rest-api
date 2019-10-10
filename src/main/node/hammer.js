@@ -40,7 +40,7 @@ async function toodles() {
 }
 function report(result) {
   var d = result.data;
-  for (l in d) {
+  for (var l in d) {
     var id = d[l].id;
     if (arr.indexOf(id) == -1) {
       arr.push(id);

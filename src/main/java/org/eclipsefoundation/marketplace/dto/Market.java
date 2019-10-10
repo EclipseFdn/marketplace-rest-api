@@ -12,6 +12,7 @@ package org.eclipsefoundation.marketplace.dto;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.json.bind.annotation.JsonbTransient;
 
@@ -24,12 +25,10 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
  * @since 05/2019
  */
 @RegisterForReflection
-public class Market {
-	private String id;
-	private String name;
-	private String url;
+public class Market extends NodeBase {
 	private List<String> categoryIds;
 	private List<Category> categories;
+
 
 	/**
 	 * Default constructor. Creates an empty linkedlist for categories, as its
@@ -38,48 +37,6 @@ public class Market {
 	public Market() {
 		this.categories = new LinkedList<>();
 		this.categoryIds = new LinkedList<>();
-	}
-
-	/**
-	 * @return the id
-	 */
-	public String getId() {
-		return id;
-	}
-
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * @param name the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	/**
-	 * @return the url
-	 */
-	public String getUrl() {
-		return url;
-	}
-
-	/**
-	 * @param url the url to set
-	 */
-	public void setUrl(String url) {
-		this.url = url;
 	}
 
 	/**
@@ -110,5 +67,28 @@ public class Market {
 	 */
 	public void setCategoryIds(List<String> categoryIds) {
 		this.categoryIds = new ArrayList<>(categoryIds);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + Objects.hash(categories, categoryIds);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Market other = (Market) obj;
+		return Objects.equals(categories, other.categories) && Objects.equals(categoryIds, other.categoryIds);
 	}
 }

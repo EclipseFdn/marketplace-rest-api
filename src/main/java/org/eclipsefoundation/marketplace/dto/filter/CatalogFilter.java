@@ -6,7 +6,6 @@
  */
 package org.eclipsefoundation.marketplace.dto.filter;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -17,11 +16,7 @@ import org.eclipsefoundation.marketplace.dto.Catalog;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
 
 /**
- * Filter implementation for the Listing class. Checks the following fields:
- * 
- * 	<ul>
- 
- * 	</ul>
+ * Filter implementation for the Catalog class.
  * 
  * @author Martin Lowe
  */

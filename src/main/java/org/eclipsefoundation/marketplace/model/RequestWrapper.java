@@ -20,8 +20,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.resteasy.core.ResteasyContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Wrapper class for query parameter functionality, wrapping a Map of String to
@@ -33,17 +31,17 @@ import org.slf4j.LoggerFactory;
  */
 @RequestScoped
 public class RequestWrapper {
-	private static final Logger LOGGER = LoggerFactory.getLogger(RequestWrapper.class);
 	private static final String EMPTY_KEY_MESSAGE = "Key must not be null or blank";
 
 	private Map<String, List<String>> params;
-	
+
 	private UriInfo uriInfo;
 	private HttpServletRequest request;
 	private UserAgent userAgent;
 
 	/**
-	 * Generates a wrapper around the 
+	 * Generates a wrapper around the
+	 * 
 	 * @param uriInfo
 	 */
 	RequestWrapper() {
@@ -51,7 +49,7 @@ public class RequestWrapper {
 		this.request = ResteasyContext.getContextData(HttpServletRequest.class);
 		this.userAgent = null;
 	}
-	
+
 	/**
 	 * Retrieves the first value set in a list from the map for a given key.
 	 * 
@@ -91,7 +89,7 @@ public class RequestWrapper {
 		}
 		return vals;
 	}
-	
+
 	/**
 	 * Adds the given value for the given key, preserving previous values if they
 	 * exist.
@@ -109,14 +107,15 @@ public class RequestWrapper {
 	}
 
 	/**
-	 * Returns this QueryParams object as a Map of param values indexed by the param name.
+	 * Returns this QueryParams object as a Map of param values indexed by the param
+	 * name.
 	 * 
 	 * @return a copy of the internal param map
 	 */
 	public Map<String, List<String>> asMap() {
 		return new HashMap<>(getParams());
 	}
-	
+
 	private Map<String, List<String>> getParams() {
 		if (params == null) {
 			params = new HashMap<>();
@@ -126,23 +125,41 @@ public class RequestWrapper {
 		}
 		return this.params;
 	}
-	
+
 	/**
 	 * Returns the endpoint for the current call
+	 * 
 	 * @return
 	 */
 	public String getEndpoint() {
 		return uriInfo.getPath();
 	}
-	
-	public Object getAttribute(String key) {
-		return request.getAttribute(key);
+
+	/**
+	 * Retrieve a request attribute
+	 * 
+	 * @param key attribute key
+	 * @return the attribute value, or an empty optional if missing.
+	 */
+	public Optional<Object> getAttribute(String key) {
+		return Optional.ofNullable(request.getAttribute(key));
 	}
 
+	/**
+	 * Retrieve a request header value as an optional value.
+	 * 
+	 * @param key the headers key value
+	 * @return the value, or an empty optional if missing.
+	 */
 	public String getHeader(String key) {
 		return request.getHeader(key);
 	}
-	
+
+	/**
+	 * Get the wrapped user agent object for the current request.
+	 * 
+	 * @return the wrapped UserAgent object.
+	 */
 	public UserAgent getUserAgent() {
 		if (userAgent == null) {
 			this.userAgent = new UserAgent(getHeader("user-agent"));

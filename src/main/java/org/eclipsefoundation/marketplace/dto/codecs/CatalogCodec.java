@@ -51,8 +51,8 @@ public class CatalogCodec implements CollectibleCodec<Catalog> {
 		Document doc = new Document();
 
 		doc.put(DatabaseFieldNames.DOCID, value.getId());
-		doc.put(DatabaseFieldNames.CATALOG_TITLE, value.getTitle());
-		doc.put(DatabaseFieldNames.CATALOG_URL, value.getUrl());
+		doc.put(DatabaseFieldNames.NAME, value.getName());
+		doc.put(DatabaseFieldNames.URL, value.getUrl());
 		doc.put(DatabaseFieldNames.CATALOG_ICON, value.getIcon());
 		doc.put(DatabaseFieldNames.CATALOG_SELF_CONTAINED, value.isSelfContained());
 		doc.put(DatabaseFieldNames.CATALOG_SEARCH_ENABLED, value.isSearchEnabled());
@@ -72,8 +72,8 @@ public class CatalogCodec implements CollectibleCodec<Catalog> {
 		Document document = documentCodec.decode(reader, decoderContext);
 		Catalog out = new Catalog();
 		out.setId(document.getString(DatabaseFieldNames.DOCID));
-		out.setUrl(document.getString(DatabaseFieldNames.CATALOG_URL));
-		out.setTitle(document.getString(DatabaseFieldNames.CATALOG_TITLE));
+		out.setUrl(document.getString(DatabaseFieldNames.URL));
+		out.setName(document.getString(DatabaseFieldNames.NAME));
 		out.setIcon(document.getString(DatabaseFieldNames.CATALOG_ICON));
 		out.setSelfContained(document.getBoolean(DatabaseFieldNames.CATALOG_SELF_CONTAINED));
 		out.setSearchEnabled(document.getBoolean(DatabaseFieldNames.CATALOG_SEARCH_ENABLED));
