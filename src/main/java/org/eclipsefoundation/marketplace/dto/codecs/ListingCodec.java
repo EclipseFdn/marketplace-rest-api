@@ -102,7 +102,7 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 	public Listing decode(BsonReader reader, DecoderContext decoderContext) {
 		Document document = documentCodec.decode(reader, decoderContext);
 		Listing out = new Listing();
-
+		
 		// for each field, get the value from the encoded object and set it in POJO
 		out.setId(document.getString(DatabaseFieldNames.DOCID));
 		out.setName(document.getString(DatabaseFieldNames.NAME));

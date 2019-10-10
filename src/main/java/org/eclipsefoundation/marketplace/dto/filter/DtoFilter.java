@@ -12,14 +12,32 @@ import org.bson.conversions.Bson;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
 
 /**
- * @author martin
- *
+ * Filter interface for usage when querying data.
+ * 
+ * @author Martin Lowe
  */
 public interface DtoFilter<T> {
 
+	/**
+	 * Retrieve filter objects for the current arguments.
+	 * 
+	 * @param wrap wrapper for the current request
+	 * @return list of filters for the current request, or empty if there are no applicable filters.
+	 */
 	List<Bson> getFilters(RequestWrapper wrap);
-	
+
+	/**
+	 * Retrieve aggregate filter operations for the current arguments.
+	 * 
+	 * @param wrap wrapper for the current request
+	 * @return list of aggregates for the current request, or empty if there are no applicable aggregates.
+	 */
 	List<Bson> getAggregates(RequestWrapper wrap);
-	
+
+	/**
+	 * Returns the type of data this object will filter for.
+	 * 
+	 * @return class of object to filter
+	 */
 	Class<T> getType();
 }
