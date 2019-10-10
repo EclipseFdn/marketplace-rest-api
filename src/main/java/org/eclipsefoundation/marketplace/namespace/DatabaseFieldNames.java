@@ -43,6 +43,7 @@ public final class DatabaseFieldNames {
 	public static final String LISTING_TAGS = "tags";
 	public static final String CATEGORY_IDS = "category_ids";
 	public static final String LISTING_CATEGORIES = "categories";
+	public static final String MAINTAINERS = "maintainers";
 
 	// catalog fields
 	public static final String CATALOG_TABS = "tabs";
