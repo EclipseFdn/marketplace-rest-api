@@ -24,7 +24,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.eclipsefoundation.marketplace.dao.MongoDao;
-import org.eclipsefoundation.marketplace.dto.Install;
 import org.eclipsefoundation.marketplace.dto.Listing;
 import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
@@ -121,48 +120,5 @@ public class ListingResource {
 
 		// return the results as a response
 		return Response.ok(cachedResults.get()).build();
-	}
-
-	/**
-	 * Endpoint for /listing/\<listingId\>/installs to retrieve install metrics for
-	 * a specific listing from the database.
-	 * 
-	 * @param listingId int version of the listing ID
-	 * @return response for the browser
-	 */
-	@GET
-	@Path("/{listingId}/installs")
-	public Response selectInstallMetrics(@PathParam("listingId") String listingId) {
-		throw new UnsupportedOperationException("Getting install statistics is not yet supported");
-	}
-
-	/**
-	 * 
-	 * Endpoint for /listing/\<listingId\>/installs/\<version\> to retrieve install
-	 * metrics for a specific listing version from the database.
-	 * 
-	 * @param listingId int version of the listing ID
-	 * @param version   int version of the listing version number
-	 * @return response for the browser
-	 */
-	@GET
-	@Path("/{listingId}/versions/{version}/installs")
-	public Response selectInstallMetrics(@PathParam("listingId") String listingId, @PathParam("version") int version) {
-		throw new UnsupportedOperationException("Getting install statistics is not yet supported");
-	}
-
-	/**
-	 * Endpoint for /listing/\<listingId\>/installs/\<version\> to post install
-	 * metrics for a specific listing version to a database.
-	 * 
-	 * @param listingId int version of the listing ID
-	 * @param version   int version of the listing version number
-	 * @return response for the browser
-	 */
-	@POST
-	@Path("/{listingId}/versions/{version}/installs")
-	public Response postInstallMetrics(@PathParam("listingId") String listingId, @PathParam("version") String version,
-			Install installDetails) {
-		return Response.ok(installDetails).build();
 	}
 }

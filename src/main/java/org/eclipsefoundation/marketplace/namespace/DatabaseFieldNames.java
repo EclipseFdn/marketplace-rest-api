@@ -69,6 +69,13 @@ public final class DatabaseFieldNames {
 	public static final String ERROR_IP_ADDRESS = "ip_address";
 	public static final String ERROR_STATUS_CODE = "status_code";
 	public static final String ERROR_STATUS_MESSAGE = "status_message";
+	// installs
+	public static final String INSTALL_JAVA_VERSION = "java_version";
+	public static final String INSTALL_VERSION = "version";
+	public static final String INSTALL_LISTING_ID = "listing_id";
+	public static final String INSTALL_DATE = "date";
+	public static final String ECLIPSE_VERSION = "eclipse_version";
+	public static final String LOCALE = "locale";
 	
 	private DatabaseFieldNames() {
 	}
