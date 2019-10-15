@@ -80,11 +80,11 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		doc.put(DatabaseFieldNames.CREATION_DATE, new Date(value.getCreationDate()));
 		doc.put(DatabaseFieldNames.FOUNDATION_MEMBER_FLAG, value.isFoundationMember());
 		doc.put(DatabaseFieldNames.CATEGORY_IDS, value.getCategoryIds());
+		doc.put(DatabaseFieldNames.MAINTAINERS, value.getMaintainers());
 
 		// for nested document types, use the converters to safely transform into BSON
 		// documents
-		doc.put(DatabaseFieldNames.LISTING_ORGANIZATIONS,
-				value.getOrganizations().stream().map(organizationConverter::convert).collect(Collectors.toList()));
+		doc.put(DatabaseFieldNames.LISTING_ORGANIZATIONS, organizationConverter.convert(value.getOrganization()));
 		doc.put(DatabaseFieldNames.LISTING_AUTHORS,
 				value.getAuthors().stream().map(authorConverter::convert).collect(Collectors.toList()));
 		doc.put(DatabaseFieldNames.LISTING_TAGS,
@@ -119,19 +119,20 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		out.setFavoriteCount(document.getLong(DatabaseFieldNames.MARKETPLACE_FAVORITES));
 		out.setFoundationMember(document.getBoolean(DatabaseFieldNames.FOUNDATION_MEMBER_FLAG));
 		out.setCategoryIds(document.getList(DatabaseFieldNames.CATEGORY_IDS, String.class));
+		out.setMaintainers(document.getString(DatabaseFieldNames.MAINTAINERS));
 
 		// for nested document types, use the converters to safely transform into POJO
 		out.setAuthors(document.getList(DatabaseFieldNames.LISTING_AUTHORS, Document.class).stream()
 				.map(authorConverter::convert).collect(Collectors.toList()));
-		out.setOrganizations(document.getList(DatabaseFieldNames.LISTING_ORGANIZATIONS, Document.class).stream()
-				.map(organizationConverter::convert).collect(Collectors.toList()));
-		out.setTags(document.getList(DatabaseFieldNames.LISTING_TAGS, Document.class).stream().map(tagConverter::convert)
-				.collect(Collectors.toList()));
+		out.setOrganization(
+				organizationConverter.convert(document.get(DatabaseFieldNames.LISTING_ORGANIZATIONS, Document.class)));
+		out.setTags(document.getList(DatabaseFieldNames.LISTING_TAGS, Document.class).stream()
+				.map(tagConverter::convert).collect(Collectors.toList()));
 		out.setVersions(document.getList(DatabaseFieldNames.LISTING_VERSIONS, Document.class).stream()
 				.map(versionConverter::convert).collect(Collectors.toList()));
 		out.setCategories(document.getList(DatabaseFieldNames.LISTING_CATEGORIES, Document.class).stream()
 				.map(categoryConverter::convert).collect(Collectors.toList()));
-		
+
 		// convert date to epoch milli
 		out.setCreationDate(document.getDate(DatabaseFieldNames.CREATION_DATE).toInstant().toEpochMilli());
 		out.setUpdateDate(document.getDate(DatabaseFieldNames.UPDATE_DATE).toInstant().toEpochMilli());

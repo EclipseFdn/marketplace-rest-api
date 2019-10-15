@@ -59,21 +59,22 @@ public class Listing extends NodeBase {
 	private String license;
 	private List<String> categoryIds;
 	private List<Category> categories;
-	private List<Organization> organizations;
+	private Organization organization;
 	private List<Author> authors;
 	private List<Tag> tags;
 	private List<SolutionVersion> versions;
+	private String maintainers;
 
 	/**
 	 * Default constructor, sets lists to empty lists to stop null pointers
 	 */
 	public Listing() {
 		this.authors = new ArrayList<>();
-		this.organizations = new ArrayList<>();
 		this.tags = new ArrayList<>();
 		this.versions = new ArrayList<>();
 		this.categoryIds = new ArrayList<>();
 		this.categories = new ArrayList<>();
+	
 	}
 
 	/**
@@ -290,18 +291,17 @@ public class Listing extends NodeBase {
 	}
 
 	/**
-	 * @return the organizations
+	 * @return the organization
 	 */
-	public List<Organization> getOrganizations() {
-		return new ArrayList<>(organizations);
+	public Organization getOrganization() {
+		return organization;
 	}
 
 	/**
-	 * @param organizations the organizations to set
+	 * @param organization the organization to set
 	 */
-	public void setOrganizations(List<Organization> organizations) {
-		Objects.requireNonNull(organizations);
-		this.organizations = new ArrayList<>(organizations);
+	public void setOrganization(Organization organization) {
+		this.organization = organization;
 	}
 
 	/**
@@ -349,13 +349,27 @@ public class Listing extends NodeBase {
 		this.versions = new ArrayList<>(versions);
 	}
 
+	
+	 * @return the maintainers
+	 */
+	public String getMaintainers() {
+		return maintainers;
+	}
+
+	/**
+	 * @param maintainers the maintainers to set
+	 */
+	public void setMaintainers(String maintainers) {
+		this.maintainers = maintainers;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + Objects.hash(authors, body, categories, categoryIds, creationDate, favoriteCount,
-				foundationMember, homepageUrl, installsRecent, installsTotal, license, logo, organizations, status,
-				supportUrl, tags, teaser, updateDate, versions);
+				foundationMember, homepageUrl, installsRecent, installsTotal, license, logo, organization, status,
+				supportUrl, tags, teaser, updateDate, versions, maintainers);
 		return result;
 	}
 
@@ -376,11 +390,12 @@ public class Listing extends NodeBase {
 				&& creationDate == other.creationDate && favoriteCount == other.favoriteCount
 				&& foundationMember == other.foundationMember && Objects.equals(homepageUrl, other.homepageUrl)
 				&& installsRecent == other.installsRecent && installsTotal == other.installsTotal
-				&& Objects.equals(license, other.license) && Objects.equals(logo, other.logo)
+				&& Objects.equals(logo, other.logo) && Objects.equals(organization, other.organization)
 				&& Objects.equals(organizations, other.organizations) && Objects.equals(status, other.status)
 				&& Objects.equals(supportUrl, other.supportUrl) && Objects.equals(tags, other.tags)
 				&& Objects.equals(teaser, other.teaser) && updateDate == other.updateDate
-				&& Objects.equals(versions, other.versions);
+				&& Objects.equals(url, other.url) && Objects.equals(versions, other.versions);
+				&& Objects.equals(maintainers, other.maintainers);
 	}
 
 	@Override
@@ -402,10 +417,11 @@ public class Listing extends NodeBase {
 		sb.append(", creationDate=").append(creationDate);
 		sb.append(", updateDate=").append(updateDate);
 		sb.append(", license=").append(license);
-		sb.append(", organizations=").append(organizations);
+		sb.append(", organization=").append(organization);
 		sb.append(", authors=").append(authors);
 		sb.append(", tags=").append(tags);
 		sb.append(", versions=").append(versions);
+		sb.append(", maintainers=").append(maintainers);
 		return sb.toString();
 	}
 }

@@ -112,16 +112,10 @@ function generateJSON(id) {
   	    "username": "autumnfound"
   		}
   	],
-    "organizations": [
-  		{
-  			"name": "Eclipse Foundation",
-  			"id": 1
-  		},
-  		{
-  			"name": "Eclipse inc.",
-  			"id": 2
-  		}
-  	],
+    "organization": {
+			"name": "Eclipse Foundation",
+			"id": 1
+		},
   	"tags": [
   		{
   			"name": "Build tools",
@@ -130,6 +124,7 @@ function generateJSON(id) {
   		}
   	],
   	"versions": solutions,
+  	"maintainers": "Bill and Ted",
   	"category_ids": splice(categoryIds).splice(0,Math.ceil(Math.random()*5)+1)
   };
 }
