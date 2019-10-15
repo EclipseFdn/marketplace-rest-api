@@ -124,7 +124,6 @@ function generateJSON(id) {
   		}
   	],
   	"versions": solutions,
-  	"maintainers": "Bill and Ted",
   	"category_ids": splice(categoryIds).splice(0,Math.ceil(Math.random()*5)+1)
   };
 }

@@ -63,7 +63,6 @@ public class Listing extends NodeBase {
 	private List<Author> authors;
 	private List<Tag> tags;
 	private List<SolutionVersion> versions;
-	private String maintainers;
 
 	/**
 	 * Default constructor, sets lists to empty lists to stop null pointers
@@ -74,7 +73,6 @@ public class Listing extends NodeBase {
 		this.versions = new ArrayList<>();
 		this.categoryIds = new ArrayList<>();
 		this.categories = new ArrayList<>();
-	
 	}
 
 	/**
@@ -349,27 +347,13 @@ public class Listing extends NodeBase {
 		this.versions = new ArrayList<>(versions);
 	}
 
-	
-	 * @return the maintainers
-	 */
-	public String getMaintainers() {
-		return maintainers;
-	}
-
-	/**
-	 * @param maintainers the maintainers to set
-	 */
-	public void setMaintainers(String maintainers) {
-		this.maintainers = maintainers;
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + Objects.hash(authors, body, categories, categoryIds, creationDate, favoriteCount,
 				foundationMember, homepageUrl, installsRecent, installsTotal, license, logo, organization, status,
-				supportUrl, tags, teaser, updateDate, versions, maintainers);
+				supportUrl, tags, teaser, updateDate, versions);
 		return result;
 	}
 
@@ -391,16 +375,15 @@ public class Listing extends NodeBase {
 				&& foundationMember == other.foundationMember && Objects.equals(homepageUrl, other.homepageUrl)
 				&& installsRecent == other.installsRecent && installsTotal == other.installsTotal
 				&& Objects.equals(logo, other.logo) && Objects.equals(organization, other.organization)
-				&& Objects.equals(organizations, other.organizations) && Objects.equals(status, other.status)
-				&& Objects.equals(supportUrl, other.supportUrl) && Objects.equals(tags, other.tags)
-				&& Objects.equals(teaser, other.teaser) && updateDate == other.updateDate
-				&& Objects.equals(url, other.url) && Objects.equals(versions, other.versions);
-				&& Objects.equals(maintainers, other.maintainers);
+				&& Objects.equals(status, other.status) && Objects.equals(supportUrl, other.supportUrl)
+				&& Objects.equals(tags, other.tags) && Objects.equals(teaser, other.teaser)
+				&& updateDate == other.updateDate && Objects.equals(versions, other.versions);
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
+		sb.append("Listing [");
 		sb.append(", id=").append(getId());
 		sb.append(", name=").append(getName());
 		sb.append(", url=").append(getUrl());
@@ -421,7 +404,7 @@ public class Listing extends NodeBase {
 		sb.append(", authors=").append(authors);
 		sb.append(", tags=").append(tags);
 		sb.append(", versions=").append(versions);
-		sb.append(", maintainers=").append(maintainers);
+		sb.append(']');
 		return sb.toString();
 	}
 }
