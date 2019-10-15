@@ -27,6 +27,9 @@ public final class UrlParameterNames {
 	public static final String TAGS = "tags";
 	public static final String MARKET_IDS = "market_ids";
 	public static final String ID = "id";
+	public static final String LISTING_ID = "listing_id";
+	public static final String READ = "read";
+	public static final String FEATURE_ID = "feature_id";
 
 	private UrlParameterNames() {
 	}
