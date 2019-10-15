@@ -11,8 +11,9 @@ import org.eclipsefoundation.marketplace.dto.Category;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 
 /**
- * @author martin
- *
+ * Converter implementation for the {@link Category} object.
+ * 
+ * @author Martin Lowe
  */
 public class CategoryConverter implements Converter<Category> {
 
@@ -20,8 +21,8 @@ public class CategoryConverter implements Converter<Category> {
 	public Category convert(Document src) {
 		Category out = new Category();
 		out.setId(src.getString(DatabaseFieldNames.DOCID));
-		out.setName(src.getString(DatabaseFieldNames.CATEGORY_NAME));
-		out.setUrl(src.getString(DatabaseFieldNames.CATEGORY_URL));
+		out.setName(src.getString(DatabaseFieldNames.NAME));
+		out.setUrl(src.getString(DatabaseFieldNames.URL));
 		return out;
 	}
 
@@ -29,8 +30,8 @@ public class CategoryConverter implements Converter<Category> {
 	public Document convert(Category src) {
 		Document doc = new Document();
 		doc.put(DatabaseFieldNames.DOCID, src.getId());
-		doc.put(DatabaseFieldNames.CATEGORY_NAME, src.getName());
-		doc.put(DatabaseFieldNames.CATEGORY_URL, src.getUrl());
+		doc.put(DatabaseFieldNames.NAME, src.getName());
+		doc.put(DatabaseFieldNames.URL, src.getUrl());
 		return doc;
 	}
 

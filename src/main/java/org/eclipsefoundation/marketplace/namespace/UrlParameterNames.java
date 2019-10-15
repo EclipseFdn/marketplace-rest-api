@@ -9,6 +9,11 @@
 */
 package org.eclipsefoundation.marketplace.namespace;
 
+/**
+ * Namespace containing URL parameters used throughout the API.
+ * 
+ * @author Martin Lowe
+ */
 public final class UrlParameterNames {
 
 	public static final String QUERY_STRING = "q";

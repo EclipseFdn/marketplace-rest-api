@@ -32,8 +32,6 @@ import org.slf4j.LoggerFactory;
  */
 public class SecretConfigSource implements ConfigSource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SecretConfigSource.class);
-
-	private String secretPath;
 	
 	private Map<String, String> secrets;
 
@@ -41,7 +39,7 @@ public class SecretConfigSource implements ConfigSource {
 	public Map<String, String> getProperties() {
 		if (secrets == null) {
 			this.secrets = new HashMap<>();
-			this.secretPath = System.getProperty("config.secret.path");
+			String secretPath = System.getProperty("config.secret.path");
 			if (StringUtils.isEmpty(secretPath)) {
 				LOGGER.error("Configuration 'config.secret.path' not set, cannot generate secret properties");
 				return this.secrets;

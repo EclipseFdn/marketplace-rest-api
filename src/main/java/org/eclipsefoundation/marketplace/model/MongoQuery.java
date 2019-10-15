@@ -186,7 +186,7 @@ public class MongoQuery<T> {
 	 * @return the docType
 	 */
 	public Class<T> getDocType() {
-		return (Class<T>) qps.getAttribute(AnnotationClassInjectionFilter.ATTRIBUTE_NAME);
+		return (Class<T>) qps.getAttribute(AnnotationClassInjectionFilter.ATTRIBUTE_NAME).get();
 	}
 
 	/**

@@ -22,11 +22,6 @@ import io.quarkus.test.junit.QuarkusTest;
 public class ListingResourceTest {
 
 	@Test
-	public void testListingIdEndpointBadId() {
-		given().when().get("/listings/test").then().statusCode(400);
-	}
-
-	@Test
 	public void testListingIdEndpoint() {
 		given().when().get("/listings/1").then().statusCode(200);
 	}

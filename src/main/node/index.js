@@ -25,7 +25,7 @@ for (var i=0;i<20;i++) {
   categoryIds.push(uuid.v4());
 }
 const marketIds = [];
-for (var i=0;i<5;i++) {
+for (i=0;i<5;i++) {
   marketIds.push(uuid.v4());
 }
 
@@ -61,7 +61,7 @@ function createListing(count) {
   }
   count++;
   axios.post(argv.s+"/listings/", generateJSON(uuid.v4()))
-    .then(createListing(count))
+    .then(() => createListing(count))
     .catch(err => console.log(err));
 }
 
@@ -71,7 +71,7 @@ function createCategory(count) {
   }
 
   axios.post(argv.s+"/categories/", generateCategoryJSON(categoryIds[count++]))
-    .then(createCategory(count))
+    .then(() => createCategory(count))
     .catch(err => console.log(err));
 }
 
@@ -81,7 +81,7 @@ function createMarket(count) {
   }
 
   axios.post(argv.s+"/markets/", generateMarketJSON(marketIds[count++]))
-    .then(createMarket(count))
+    .then(() => createMarket(count))
     .catch(err => console.log(err));
 }
 

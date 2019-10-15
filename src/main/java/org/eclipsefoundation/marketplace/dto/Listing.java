@@ -27,12 +27,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
  * @author Martin Lowe
  */
 @RegisterForReflection
-public class Listing {
+public class Listing extends NodeBase {
 
-	private String id;
-	@SortableField
-	private String title;
-	private String url;
 	private String supportUrl;
 	private String homepageUrl;
 	private String teaser;
@@ -78,48 +74,6 @@ public class Listing {
 		this.versions = new ArrayList<>();
 		this.categoryIds = new ArrayList<>();
 		this.categories = new ArrayList<>();
-	}
-
-	/**
-	 * @return the id
-	 */
-	public String getId() {
-		return id;
-	}
-
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(String id) {
-		this.id = id;
-	}
-	
-	/**
-	 * @return the title
-	 */
-	public String getTitle() {
-		return title;
-	}
-
-	/**
-	 * @param title the title to set
-	 */
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
-	/**
-	 * @return the url
-	 */
-	public String getUrl() {
-		return url;
-	}
-
-	/**
-	 * @param url the url to set
-	 */
-	public void setUrl(String url) {
-		this.url = url;
 	}
 
 	/**
@@ -394,12 +348,15 @@ public class Listing {
 		Objects.requireNonNull(versions);
 		this.versions = new ArrayList<>(versions);
 	}
-	
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(authors, body, categories, categoryIds, creationDate, favoriteCount, foundationMember,
-				homepageUrl, id, installsRecent, installsTotal, license, logo, organizations, status, supportUrl, tags,
-				teaser, title, updateDate, url, versions);
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + Objects.hash(authors, body, categories, categoryIds, creationDate, favoriteCount,
+				foundationMember, homepageUrl, installsRecent, installsTotal, license, logo, organizations, status,
+				supportUrl, tags, teaser, updateDate, versions);
+		return result;
 	}
 
 	@Override
@@ -407,7 +364,7 @@ public class Listing {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
+		if (!super.equals(obj)) {
 			return false;
 		}
 		if (getClass() != obj.getClass()) {
@@ -418,21 +375,20 @@ public class Listing {
 				&& Objects.equals(categories, other.categories) && Objects.equals(categoryIds, other.categoryIds)
 				&& creationDate == other.creationDate && favoriteCount == other.favoriteCount
 				&& foundationMember == other.foundationMember && Objects.equals(homepageUrl, other.homepageUrl)
-				&& Objects.equals(id, other.id) && installsRecent == other.installsRecent
-				&& installsTotal == other.installsTotal && Objects.equals(license, other.license)
-				&& Objects.equals(logo, other.logo) && Objects.equals(organizations, other.organizations)
-				&& Objects.equals(status, other.status) && Objects.equals(supportUrl, other.supportUrl)
-				&& Objects.equals(tags, other.tags) && Objects.equals(teaser, other.teaser)
-				&& Objects.equals(title, other.title) && updateDate == other.updateDate
-				&& Objects.equals(url, other.url) && Objects.equals(versions, other.versions);
+				&& installsRecent == other.installsRecent && installsTotal == other.installsTotal
+				&& Objects.equals(license, other.license) && Objects.equals(logo, other.logo)
+				&& Objects.equals(organizations, other.organizations) && Objects.equals(status, other.status)
+				&& Objects.equals(supportUrl, other.supportUrl) && Objects.equals(tags, other.tags)
+				&& Objects.equals(teaser, other.teaser) && updateDate == other.updateDate
+				&& Objects.equals(versions, other.versions);
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(", id=").append(id);
-		sb.append(", title=").append(title);
-		sb.append(", url=").append(url);
+		sb.append(", id=").append(getId());
+		sb.append(", name=").append(getName());
+		sb.append(", url=").append(getUrl());
 		sb.append(", supportUrl=").append(supportUrl);
 		sb.append(", homepageUrl=").append(homepageUrl);
 		sb.append(", teaser=").append(teaser);

@@ -18,13 +18,10 @@ public class TagConverter implements Converter<Tag> {
 
 	@Override
 	public Tag convert(Document src) {
-		Tag org = new Tag();
-
-		org.setId(src.getString("id"));
-		org.setName(src.getString("name"));
-		org.setUrl(src.getString("url"));
-
-		return org;
+		Tag tag = new Tag();
+		tag.setId(src.getString("id"));
+		tag.setName(src.getString("name"));
+		return tag;
 	}
 
 	@Override
@@ -32,7 +29,6 @@ public class TagConverter implements Converter<Tag> {
 		Document doc = new Document();
 		doc.put("name", src.getName());
 		doc.put("id", src.getId());
-		doc.put("url", src.getUrl());
 		return doc;
 	}
 
