@@ -68,7 +68,7 @@ function createListing(count) {
   
   console.log(`Generating listing ${count} of ${max}`);
   var json = generateJSON(uuid.v4());
-  axios.post(argv.s+"/listings/", json)
+  axios.put(argv.s+"/listings/", json)
     .then(() => {
       var installs = Math.floor(Math.random()*argv.i);
       console.log(`Generating ${installs} install records for listing '${json.id}'`);
@@ -82,7 +82,7 @@ function createCategory(count) {
     return;
   }
 
-  axios.post(argv.s+"/categories/", generateCategoryJSON(categoryIds[count++]))
+  axios.put(argv.s+"/categories/", generateCategoryJSON(categoryIds[count++]))
     .then(() => createCategory(count))
     .catch(err => console.log(err));
 }
@@ -92,7 +92,7 @@ function createMarket(count) {
     return;
   }
 
-  axios.post(argv.s+"/markets/", generateMarketJSON(marketIds[count++]))
+  axios.put(argv.s+"/markets/", generateMarketJSON(marketIds[count++]))
     .then(() => createMarket(count))
     .catch(err => console.log(err));
 }
