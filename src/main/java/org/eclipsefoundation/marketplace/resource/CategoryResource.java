@@ -14,7 +14,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -74,8 +74,8 @@ public class CategoryResource {
 	 * @param category the Category object to insert into the database.
 	 * @return response for the browser
 	 */
-	@POST
-	public Response postCategory(Category category) {
+	@PUT
+	public Response putCategory(Category category) {
 		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// add the object, and await the result
 		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(category)));
