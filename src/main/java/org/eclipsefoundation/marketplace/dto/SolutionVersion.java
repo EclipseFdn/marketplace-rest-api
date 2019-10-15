@@ -22,6 +22,13 @@ public class SolutionVersion {
 	private List<String> platforms;
 	private String minJavaVersion;
 	private String updateSiteUrl;
+	private List<FeatureId> featureIds;
+	
+	public SolutionVersion() {
+		this.eclipseVersions = new ArrayList<>();
+		this.platforms = new ArrayList<>();
+		this.featureIds = new ArrayList<>();
+	}
 
 	/**
 	 * @return the versionString
@@ -93,6 +100,20 @@ public class SolutionVersion {
 	 */
 	public void setUpdateSiteUrl(String updateSiteUrl) {
 		this.updateSiteUrl = updateSiteUrl;
+	}
+
+	/**
+	 * @return the featureIds
+	 */
+	public List<FeatureId> getFeatureIds() {
+		return featureIds;
+	}
+
+	/**
+	 * @param featureIds the featureIds to set
+	 */
+	public void setFeatureIds(List<FeatureId> featureIds) {
+		this.featureIds = featureIds;
 	}
 
 }

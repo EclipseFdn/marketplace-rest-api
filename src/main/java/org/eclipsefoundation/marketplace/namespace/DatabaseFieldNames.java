@@ -21,6 +21,7 @@ public final class DatabaseFieldNames {
 	public static final String DOCID = "_id";
 	public static final String URL = "url";
 	public static final String NAME = "name";
+	public static final String OS = "os";
 	
 	// listing fields
 	public static final String LISTING_TEASER = "teaser";
@@ -43,7 +44,8 @@ public final class DatabaseFieldNames {
 	public static final String LISTING_TAGS = "tags";
 	public static final String CATEGORY_IDS = "category_ids";
 	public static final String LISTING_CATEGORIES = "categories";
-	public static final String MAINTAINERS = "maintainers";
+	public static final String FEATURE_ID = "feature_id";
+	public static final String INSTALL_STATE = "install_state";
 
 	// catalog fields
 	public static final String CATALOG_TABS = "tabs";
@@ -52,6 +54,17 @@ public final class DatabaseFieldNames {
 	public static final String CATALOG_ICON = "icon";
 	public static final String CATALOG_DESCRIPTION = "description";
 	public static final String CATALOG_DEPENDENCIES_REPOSITORY = "dependencies_repository";
+	
+	// category fields
+	public static final String MARKET_IDS = "market_ids";
+	
+	public static final String INSTALL_JAVA_VERSION = "java_version";
+	public static final String INSTALL_VERSION = "version";
+	public static final String INSTALL_LISTING_ID = "listing_id";
+	public static final String INSTALL_DATE = "date";
+	public static final String ECLIPSE_VERSION = "eclipse_version";
+	public static final String FEATURE_IDS = "feature_ids";
+	public static final String LOCALE = "locale";
 	
 	private DatabaseFieldNames() {
 	}

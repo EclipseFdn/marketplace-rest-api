@@ -6,8 +6,11 @@
  */
 package org.eclipsefoundation.marketplace.dto.converters;
 
+import java.util.stream.Collectors;
+
 import org.bson.Document;
 import org.eclipsefoundation.marketplace.dto.SolutionVersion;
+import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 
 /**
  * Converter implementation for the {@link SolutionVersion} object.
@@ -15,6 +18,8 @@ import org.eclipsefoundation.marketplace.dto.SolutionVersion;
  * @author Martin Lowe
  */
 public class SolutionVersionConverter implements Converter<SolutionVersion> {
+
+	private final FeatureIdConverter featureIdConverter = new FeatureIdConverter();
 
 	@Override
 	public SolutionVersion convert(Document src) {
@@ -24,7 +29,8 @@ public class SolutionVersionConverter implements Converter<SolutionVersion> {
 		version.setMinJavaVersion(src.getString("min_java_version"));
 		version.setUpdateSiteUrl(src.getString("update_site_url"));
 		version.setVersion(src.getString("version"));
-
+		version.setFeatureIds(src.getList(DatabaseFieldNames.FEATURE_IDS, Document.class).stream()
+				.map(featureIdConverter::convert).collect(Collectors.toList()));
 		return version;
 	}
 
@@ -36,7 +42,8 @@ public class SolutionVersionConverter implements Converter<SolutionVersion> {
 		doc.put("min_java_version", src.getMinJavaVersion());
 		doc.put("update_site_url", src.getUpdateSiteUrl());
 		doc.put("version", src.getVersion());
-
+		doc.put(DatabaseFieldNames.FEATURE_IDS,
+				src.getFeatureIds().stream().map(featureIdConverter::convert).collect(Collectors.toList()));
 		return doc;
 	}
 }
