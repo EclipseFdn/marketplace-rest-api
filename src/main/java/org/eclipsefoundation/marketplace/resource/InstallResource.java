@@ -20,11 +20,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.eclipsefoundation.marketplace.dao.MongoDao;
 import org.eclipsefoundation.marketplace.dto.Install;
 import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
+import org.eclipsefoundation.marketplace.model.Error;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
 import org.eclipsefoundation.marketplace.model.ResourceDataType;
@@ -50,7 +52,7 @@ public class InstallResource {
 	@Inject
 	MongoDao dao;
 	@Inject
-	RequestWrapper params;
+	RequestWrapper wrapper;
 	@Inject
 	DtoFilter<Install> dtoFilter;
 
@@ -59,7 +61,7 @@ public class InstallResource {
 	CachingService<Long> countCache;
 	@Inject
 	CachingService<List<Install>> installCache;
-	
+
 	/**
 	 * Endpoint for /listing/\<listingId\>/installs to retrieve install metrics for
 	 * a specific listing from the database.
@@ -70,9 +72,9 @@ public class InstallResource {
 	@GET
 	@Path("/{listingId}")
 	public Response selectInstallMetrics(@PathParam("listingId") String listingId) {
-		params.addParam(UrlParameterNames.ID, listingId);
-		MongoQuery<Install> q = new MongoQuery<>(params, dtoFilter, installCache);
-		Optional<Long> cachedResults = countCache.get(listingId, params,
+		wrapper.addParam(UrlParameterNames.ID, listingId);
+		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter, installCache);
+		Optional<Long> cachedResults = countCache.get(listingId, wrapper,
 				() -> StreamHelper.awaitCompletionStage(dao.count(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listing for ID {}", listingId);
@@ -94,11 +96,12 @@ public class InstallResource {
 	 */
 	@GET
 	@Path("/{listingId}/{version}")
-	public Response selectInstallMetrics(@PathParam("listingId") String listingId, @PathParam("version") String version) {
-		params.addParam(UrlParameterNames.ID, listingId);
-		params.addParam(UrlParameterNames.VERSION, version);
-		MongoQuery<Install> q = new MongoQuery<>(params, dtoFilter, installCache);
-		Optional<Long> cachedResults = countCache.get(getCompositeKey(listingId, version), params,
+	public Response selectInstallMetrics(@PathParam("listingId") String listingId,
+			@PathParam("version") String version) {
+		wrapper.addParam(UrlParameterNames.ID, listingId);
+		wrapper.addParam(UrlParameterNames.VERSION, version);
+		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter, installCache);
+		Optional<Long> cachedResults = countCache.get(getCompositeKey(listingId, version), wrapper,
 				() -> StreamHelper.awaitCompletionStage(dao.count(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listing for ID {}", listingId);
@@ -121,21 +124,39 @@ public class InstallResource {
 	@Path("/{listingId}/{version}")
 	public Response postInstallMetrics(@PathParam("listingId") String listingId, @PathParam("version") String version,
 			Install installDetails) {
-		// update the install details to reflect the current request
-		installDetails.setInstallDate(new Date(System.currentTimeMillis()));
-		installDetails.setListingId(listingId);
-		installDetails.setVersion(version);
+		Install record = null;
 		
+		// check that connection was opened by MPC, and check for install information
+		// from user agent
+		if (wrapper.getUserAgent().isValid()) {
+			record = wrapper.getUserAgent().generateInstallRecord();
+		} else if (wrapper.getUserAgent().isFromMPC()) {
+			if (installDetails == null) {
+				return new Error(Status.BAD_REQUEST, "Install data could not be read from request body")
+						.asResponse();
+			}
+			record = installDetails;
+		} else {
+			LOGGER.warn("Rebuffed request to post install from request: {}", wrapper);
+			return new Error(Status.FORBIDDEN, "Installs cannot be posted directly from consumer applications")
+					.asResponse();
+		}
+
+		// update the install details to reflect the current request
+		record.setInstallDate(new Date(System.currentTimeMillis()));
+		record.setListingId(listingId);
+		record.setVersion(version);
+
 		// create the query wrapper to pass to DB dao
-		MongoQuery<Install> q = new MongoQuery<>(params, dtoFilter, installCache);
+		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter, installCache);
 
 		// add the object, and await the result
-		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(installDetails)));
+		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(record)));
 
 		// return the results as a response
 		return Response.ok().build();
 	}
-	
+
 	private String getCompositeKey(String listingId, String version) {
 		return listingId + ':' + version;
 	}

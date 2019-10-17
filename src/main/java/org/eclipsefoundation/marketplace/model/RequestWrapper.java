@@ -53,7 +53,7 @@ public class RequestWrapper {
 	/**
 	 * Retrieves the first value set in a list from the map for a given key.
 	 * 
-	 * @param params the parameter map containing the value
+	 * @param wrapper the parameter map containing the value
 	 * @param key    the key to retrieve the value for
 	 * @return the first value set in the parameter map for the given key, or null
 	 *         if absent.
@@ -73,7 +73,7 @@ public class RequestWrapper {
 	/**
 	 * Retrieves the value list from the map for a given key.
 	 * 
-	 * @param params the parameter map containing the values
+	 * @param wrapper the parameter map containing the values
 	 * @param key    the key to retrieve the values for
 	 * @return the value list for the given key if it exists, or an empty collection
 	 *         if none exists.
@@ -94,7 +94,7 @@ public class RequestWrapper {
 	 * Adds the given value for the given key, preserving previous values if they
 	 * exist.
 	 * 
-	 * @param params map containing parameters to update
+	 * @param wrapper map containing parameters to update
 	 * @param key    string key to add the value to, must not be null
 	 * @param value  the value to add to the key
 	 */
@@ -165,5 +165,15 @@ public class RequestWrapper {
 			this.userAgent = new UserAgent(getHeader("user-agent"));
 		}
 		return this.userAgent;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("RequestWrapper [");
+		sb.append("ip=").append(request.getRemoteAddr());
+		sb.append(", uri=").append(request.getRequestURI());
+		sb.append(", params=").append(getParams());
+		return sb.toString();
 	}
 }

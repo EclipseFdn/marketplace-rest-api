@@ -37,7 +37,7 @@ public class MongoQuery<T> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MongoQuery.class);
 
 	private CachingService<List<T>> cache;
-	private RequestWrapper qps;
+	private RequestWrapper wrapper;
 	private DtoFilter<T> dtoFilter;
 
 	private Bson filter;
@@ -45,8 +45,8 @@ public class MongoQuery<T> {
 	private SortOrder order;
 	private List<Bson> aggregates;
 
-	public MongoQuery(RequestWrapper qps, DtoFilter<T> dtoFilter, CachingService<List<T>> cache) {
-		this.qps = qps;
+	public MongoQuery(RequestWrapper wrapper, DtoFilter<T> dtoFilter, CachingService<List<T>> cache) {
+		this.wrapper = wrapper;
 		this.dtoFilter = dtoFilter;
 		this.cache = cache;
 		this.aggregates = new ArrayList<>();
@@ -68,10 +68,10 @@ public class MongoQuery<T> {
 
 		// get the filters for the current DTO
 		List<Bson> filters = new ArrayList<>();
-		filters.addAll(dtoFilter.getFilters(qps));
+		filters.addAll(dtoFilter.getFilters(wrapper));
 		
 		// get fields that make up the required fields to enable pagination and check
-		Optional<String> sortOpt = qps.getFirstParam(UrlParameterNames.SORT);
+		Optional<String> sortOpt = wrapper.getFirstParam(UrlParameterNames.SORT);
 		if (sortOpt.isPresent()) {
 			String sortVal = sortOpt.get();
 			// split sort string of `<fieldName> <SortOrder>`
@@ -86,7 +86,7 @@ public class MongoQuery<T> {
 		if (!filters.isEmpty()) {
 			this.filter = Filters.and(filters);
 		}
-		this.aggregates = dtoFilter.getAggregates(qps);
+		this.aggregates = dtoFilter.getAggregates(wrapper);
 		
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("MongoDB query initialized with filter: {}", this.filter);
@@ -129,7 +129,7 @@ public class MongoQuery<T> {
 	 *         present and numeric, otherwise returns -1.
 	 */
 	public int getLimit() {
-		Optional<String> limitVal = qps.getFirstParam(UrlParameterNames.LIMIT);
+		Optional<String> limitVal = wrapper.getFirstParam(UrlParameterNames.LIMIT);
 		if (limitVal.isPresent() && StringUtils.isNumeric(limitVal.get())) {
 			return Integer.parseInt(limitVal.get());
 		}
@@ -137,7 +137,7 @@ public class MongoQuery<T> {
 	}
 
 	private void setSort(String sortField, String sortOrder, List<Bson> filters) {
-		Optional<String> lastOpt = qps.getFirstParam(UrlParameterNames.LAST_SEEN);
+		Optional<String> lastOpt = wrapper.getFirstParam(UrlParameterNames.LAST_SEEN);
 		
 		List<Sortable<?>> fields = SortableHelper.getSortableFields(getDocType());
 		Optional<Sortable<?>> fieldContainer = SortableHelper.getSortableFieldByName(fields, sortField);
@@ -186,21 +186,21 @@ public class MongoQuery<T> {
 	 * @return the docType
 	 */
 	public Class<T> getDocType() {
-		return (Class<T>) qps.getAttribute(AnnotationClassInjectionFilter.ATTRIBUTE_NAME).get();
+		return (Class<T>) wrapper.getAttribute(AnnotationClassInjectionFilter.ATTRIBUTE_NAME).get();
 	}
 
 	/**
-	 * @return the qps
+	 * @return the wrapper
 	 */
-	public RequestWrapper getQps() {
-		return qps;
+	public RequestWrapper getWrapper() {
+		return wrapper;
 	}
 
 	/**
-	 * @param qps the qps to set
+	 * @param wrapper the wrapper to set
 	 */
-	public void setQps(RequestWrapper qps) {
-		this.qps = qps;
+	public void setWrapper(RequestWrapper wrapper) {
+		this.wrapper = wrapper;
 	}
 
 	@Override
