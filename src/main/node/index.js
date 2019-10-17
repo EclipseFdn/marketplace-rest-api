@@ -1,4 +1,8 @@
 const axios = require('axios');
+const instance = axios.create({
+  timeout: 1000,
+  headers: {'User-Agent': 'mpc/0.0.0'}
+});
 const randomWords = require('random-words');
 const uuid = require('uuid');
 const argv = require('yargs')
@@ -68,7 +72,7 @@ function createListing(count) {
   
   console.log(`Generating listing ${count} of ${max}`);
   var json = generateJSON(uuid.v4());
-  axios.put(argv.s+"/listings/", json)
+  axios.post(argv.s+"/listings/", json)
     .then(() => {
       var installs = Math.floor(Math.random()*argv.i);
       console.log(`Generating ${installs} install records for listing '${json.id}'`);
@@ -82,7 +86,7 @@ function createCategory(count) {
     return;
   }
 
-  axios.put(argv.s+"/categories/", generateCategoryJSON(categoryIds[count++]))
+  instance.put(argv.s+"/categories/", generateCategoryJSON(categoryIds[count++]))
     .then(() => createCategory(count))
     .catch(err => console.log(err));
 }
@@ -92,7 +96,7 @@ function createMarket(count) {
     return;
   }
 
-  axios.put(argv.s+"/markets/", generateMarketJSON(marketIds[count++]))
+  instance.put(argv.s+"/markets/", generateMarketJSON(marketIds[count++]))
     .then(() => createMarket(count))
     .catch(err => console.log(err));
 }
@@ -102,7 +106,7 @@ function createInstall(curr, max, listing, callback) {
     return callback();
   }
   var json = generateInstallJSON(listing);
-  axios.post(`${argv.s}/installs/${json['listing_id']}/${json.version}`, json)
+  instance.post(`${argv.s}/installs/${json['listing_id']}/${json.version}`, json)
     .then(createInstall(curr+1,max,listing,callback))
     .catch(err => console.log(err));
 }
@@ -170,8 +174,8 @@ function generateMarketJSON(id) {
 
 function generateInstallJSON(listing) {
   var version = listing.versions[Math.floor(Math.random()*listing.versions.length)];
-  var javaVersions = javaVs.splice(javaVs.indexOf(version["min_java_version"]));
-  var eclipseVersions = eclipseVs.splice(eclipseVs.indexOf(version["eclipse_version"]));
+  var javaVersions = Array.from(javaVs).splice(javaVs.indexOf(version["min_java_version"]));
+  var eclipseVersions = Array.from(eclipseVs).splice(eclipseVs.indexOf(version["eclipse_version"]));
   
   return {
     "listing_id": listing.id,
