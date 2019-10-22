@@ -385,7 +385,7 @@ public class Listing extends NodeBase {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Listing [");
 		sb.append(", id=").append(getId());
-		sb.append(", name=").append(getName());
+		sb.append(", name=").append(getTitle());
 		sb.append(", url=").append(getUrl());
 		sb.append(", supportUrl=").append(supportUrl);
 		sb.append(", homepageUrl=").append(homepageUrl);
