@@ -21,7 +21,7 @@ public class CategoryConverter implements Converter<Category> {
 	public Category convert(Document src) {
 		Category out = new Category();
 		out.setId(src.getString(DatabaseFieldNames.DOCID));
-		out.setName(src.getString(DatabaseFieldNames.NAME));
+		out.setTitle(src.getString(DatabaseFieldNames.TITLE));
 		out.setUrl(src.getString(DatabaseFieldNames.URL));
 		return out;
 	}
@@ -30,7 +30,7 @@ public class CategoryConverter implements Converter<Category> {
 	public Document convert(Category src) {
 		Document doc = new Document();
 		doc.put(DatabaseFieldNames.DOCID, src.getId());
-		doc.put(DatabaseFieldNames.NAME, src.getName());
+		doc.put(DatabaseFieldNames.TITLE, src.getTitle());
 		doc.put(DatabaseFieldNames.URL, src.getUrl());
 		return doc;
 	}

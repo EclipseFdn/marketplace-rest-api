@@ -43,7 +43,7 @@ public class ErrorReportCodec implements CollectibleCodec<ErrorReport> {
 		Document doc = new Document();
 
 		doc.put(DatabaseFieldNames.DOCID, value.getId());
-		doc.put(DatabaseFieldNames.NAME, value.getTitle());
+		doc.put(DatabaseFieldNames.TITLE, value.getTitle());
 		doc.put(DatabaseFieldNames.ERROR_BODY, value.getBody());
 		doc.put(DatabaseFieldNames.ERROR_DETAILED_MESSAGE, value.getDetailedMessage());
 		doc.put(DatabaseFieldNames.ERROR_READ, value.isRead());

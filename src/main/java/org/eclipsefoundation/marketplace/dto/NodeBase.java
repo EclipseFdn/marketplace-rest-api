@@ -15,7 +15,7 @@ import java.util.Objects;
  */
 public class NodeBase {
 	private String id;
-	private String name;
+	private String title;
 	private String url;
 
 	/**
@@ -33,17 +33,17 @@ public class NodeBase {
 	}
 
 	/**
-	 * @return the name
+	 * @return the title
 	 */
-	public String getName() {
-		return name;
+	public String getTitle() {
+		return title;
 	}
 
 	/**
-	 * @param name the name to set
+	 * @param title the title to set
 	 */
-	public void setName(String name) {
-		this.name = name;
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	/**
@@ -62,7 +62,7 @@ public class NodeBase {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, name, url);
+		return Objects.hash(id, title, url);
 	}
 
 	@Override
@@ -77,6 +77,6 @@ public class NodeBase {
 			return false;
 		}
 		NodeBase other = (NodeBase) obj;
-		return Objects.equals(id, other.id) && Objects.equals(name, other.name) && Objects.equals(url, other.url);
+		return Objects.equals(id, other.id) && Objects.equals(title, other.title) && Objects.equals(url, other.url);
 	}
 }

@@ -65,7 +65,7 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 
 		// for each of the fields, get the value from the unencoded object and set it
 		doc.put(DatabaseFieldNames.DOCID, value.getId());
-		doc.put(DatabaseFieldNames.NAME, value.getName());
+		doc.put(DatabaseFieldNames.TITLE, value.getTitle());
 		doc.put(DatabaseFieldNames.URL, value.getUrl());
 		doc.put(DatabaseFieldNames.SUPPORT_PAGE_URL, value.getSupportUrl());
 		doc.put(DatabaseFieldNames.HOME_PAGE_URL, value.getHomepageUrl());
@@ -105,7 +105,7 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		
 		// for each field, get the value from the encoded object and set it in POJO
 		out.setId(document.getString(DatabaseFieldNames.DOCID));
-		out.setName(document.getString(DatabaseFieldNames.NAME));
+		out.setTitle(document.getString(DatabaseFieldNames.TITLE));
 		out.setUrl(document.getString(DatabaseFieldNames.URL));
 		out.setSupportUrl(document.getString(DatabaseFieldNames.SUPPORT_PAGE_URL));
 		out.setHomepageUrl(document.getString(DatabaseFieldNames.HOME_PAGE_URL));
