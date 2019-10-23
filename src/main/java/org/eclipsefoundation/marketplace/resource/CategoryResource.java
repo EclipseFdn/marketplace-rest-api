@@ -13,23 +13,30 @@ import java.util.Optional;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.eclipsefoundation.marketplace.dao.MongoDao;
 import org.eclipsefoundation.marketplace.dto.Category;
 import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
+import org.eclipsefoundation.marketplace.model.Error;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
 import org.eclipsefoundation.marketplace.model.ResourceDataType;
+import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.eclipsefoundation.marketplace.service.CachingService;
+import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.mongodb.client.result.DeleteResult;
 
 /**
  * @author martin
@@ -51,7 +58,6 @@ public class CategoryResource {
 	RequestWrapper params;
 	@Inject
 	DtoFilter<Category> dtoFilter;
-
 
 	@GET
 	public Response select() {
@@ -80,6 +86,53 @@ public class CategoryResource {
 		// add the object, and await the result
 		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(category)));
 
+		// return the results as a response
+		return Response.ok().build();
+	}
+
+	/**
+	 * Endpoint for /categories/\<categoryId\> to retrieve a specific Category from
+	 * the database.
+	 * 
+	 * @param categoryId the Category ID
+	 * @return response for the browser
+	 */
+	@GET
+	@Path("/{categoryId}")
+	public Response select(@PathParam("categoryId") String categoryId) {
+		params.addParam(UrlParameterNames.ID, categoryId);
+
+		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		// retrieve a cached version of the value for the current listing
+		Optional<List<Category>> cachedResults = cachingService.get(categoryId, params,
+				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+		if (!cachedResults.isPresent()) {
+			LOGGER.error("Error while retrieving cached listing for ID {}", categoryId);
+			return Response.serverError().build();
+		}
+
+		// return the results as a response
+		return Response.ok(cachedResults.get()).build();
+	}
+
+	/**
+	 * Endpoint for /categories/\<categoryId\> to retrieve a specific Category from
+	 * the database.
+	 * 
+	 * @param categoryId the category ID
+	 * @return response for the browser
+	 */
+	@DELETE
+	@Path("/{categoryId}")
+	public Response delete(@PathParam("categoryId") String categoryId) {
+		params.addParam(UrlParameterNames.ID, categoryId);
+
+		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		// delete the currently selected asset
+		DeleteResult result = StreamHelper.awaitCompletionStage(dao.delete(q));
+		if (result.getDeletedCount() == 0 || !result.wasAcknowledged()) {
+			return new Error(Status.NOT_FOUND, "Did not find an asset to delete for current call").asResponse();
+		}
 		// return the results as a response
 		return Response.ok().build();
 	}

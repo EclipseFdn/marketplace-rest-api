@@ -12,7 +12,6 @@ import java.util.concurrent.CompletionStage;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.bson.BsonDocument;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
@@ -85,8 +84,7 @@ public class DefaultMongoDao implements MongoDao {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Removing documents from MongoDB using the following query: {}", q);
 		}
-		// TODO we need to figure out how to build this
-		return getCollection(q.getDocType()).deleteMany(new BsonDocument());
+		return getCollection(q.getDocType()).deleteMany(q.getFilter());
 	}
 
 	@Override
