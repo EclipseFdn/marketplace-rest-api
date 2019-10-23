@@ -6,7 +6,6 @@
  */
 package org.eclipsefoundation.marketplace.dto.codecs;
 
-import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -25,6 +24,7 @@ import org.eclipsefoundation.marketplace.dto.converters.CategoryConverter;
 import org.eclipsefoundation.marketplace.dto.converters.OrganizationConverter;
 import org.eclipsefoundation.marketplace.dto.converters.SolutionVersionConverter;
 import org.eclipsefoundation.marketplace.dto.converters.TagConverter;
+import org.eclipsefoundation.marketplace.helper.DateTimeHelper;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 
 import com.mongodb.MongoClient;
@@ -76,13 +76,13 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		doc.put(DatabaseFieldNames.TOTAL_NSTALLS, value.getInstallsTotal());
 		doc.put(DatabaseFieldNames.LICENSE_TYPE, value.getLicense());
 		doc.put(DatabaseFieldNames.LISTING_STATUS, value.getStatus());
-		doc.put(DatabaseFieldNames.UPDATE_DATE, new Date(value.getUpdateDate()));
-		doc.put(DatabaseFieldNames.CREATION_DATE, new Date(value.getCreationDate()));
+		doc.put(DatabaseFieldNames.UPDATE_DATE, DateTimeHelper.toRFC3339(value.getUpdateDate()));
+		doc.put(DatabaseFieldNames.CREATION_DATE, DateTimeHelper.toRFC3339(value.getCreationDate()));
 		doc.put(DatabaseFieldNames.FOUNDATION_MEMBER_FLAG, value.isFoundationMember());
 		doc.put(DatabaseFieldNames.CATEGORY_IDS, value.getCategoryIds());
 		doc.put(DatabaseFieldNames.SCREENSHOTS, value.getScreenshots());
 		doc.put(DatabaseFieldNames.MARKET_IDS, value.getMarketIds());
-
+		
 		// for nested document types, use the converters to safely transform into BSON
 		// documents
 		doc.put(DatabaseFieldNames.LISTING_ORGANIZATIONS, organizationConverter.convert(value.getOrganization()));
@@ -104,7 +104,7 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 	public Listing decode(BsonReader reader, DecoderContext decoderContext) {
 		Document document = documentCodec.decode(reader, decoderContext);
 		Listing out = new Listing();
-		
+
 		// for each field, get the value from the encoded object and set it in POJO
 		out.setId(document.getString(DatabaseFieldNames.DOCID));
 		out.setTitle(document.getString(DatabaseFieldNames.TITLE));
@@ -135,9 +135,9 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		out.setCategories(document.getList(DatabaseFieldNames.LISTING_CATEGORIES, Document.class).stream()
 				.map(categoryConverter::convert).collect(Collectors.toList()));
 
-		// convert date to epoch milli
-		out.setCreationDate(document.getDate(DatabaseFieldNames.CREATION_DATE).toInstant().toEpochMilli());
-		out.setUpdateDate(document.getDate(DatabaseFieldNames.UPDATE_DATE).toInstant().toEpochMilli());
+		// convert date to date string
+		out.setCreationDate(DateTimeHelper.toRFC3339(document.getDate(DatabaseFieldNames.CREATION_DATE)));
+		out.setUpdateDate(DateTimeHelper.toRFC3339(document.getDate(DatabaseFieldNames.UPDATE_DATE)));
 
 		return out;
 	}

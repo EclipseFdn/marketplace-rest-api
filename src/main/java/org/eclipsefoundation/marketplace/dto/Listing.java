@@ -50,11 +50,11 @@ public class Listing extends NodeBase {
 
 	@SortableField(name = DatabaseFieldNames.CREATION_DATE)
 	@JsonbProperty(DatabaseFieldNames.CREATION_DATE)
-	private long creationDate;
+	private String creationDate;
 
 	@SortableField(name = DatabaseFieldNames.UPDATE_DATE)
 	@JsonbProperty(DatabaseFieldNames.UPDATE_DATE)
-	private long updateDate;
+	private String updateDate;
 	@JsonbProperty(DatabaseFieldNames.LICENSE_TYPE)
 	private String license;
 	private List<String> marketIds;
@@ -223,28 +223,28 @@ public class Listing extends NodeBase {
 	/**
 	 * @return the creationDate
 	 */
-	public long getCreationDate() {
+	public String getCreationDate() {
 		return creationDate;
 	}
 
 	/**
 	 * @param creationDate the creationDate to set
 	 */
-	public void setCreationDate(long creationDate) {
+	public void setCreationDate(String creationDate) {
 		this.creationDate = creationDate;
 	}
 
 	/**
 	 * @return the updateDate
 	 */
-	public long getUpdateDate() {
+	public String getUpdateDate() {
 		return updateDate;
 	}
 
 	/**
 	 * @param updateDate the updateDate to set
 	 */
-	public void setUpdateDate(long updateDate) {
+	public void setUpdateDate(String updateDate) {
 		this.updateDate = updateDate;
 	}
 
