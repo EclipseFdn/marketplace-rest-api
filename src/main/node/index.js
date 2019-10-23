@@ -26,6 +26,7 @@ const argv = require('yargs')
   }).argv;
 
 let max = argv.c;
+var moment = require('moment-timezone');
 const lic_types = ["EPL-2.0","EPL-1.0","GPL"];
 const platforms = ["windows","macos","linux"];
 const eclipseVs = ["4.6","4.7","4.8","4.9","4.10","4.11","4.12"];
@@ -143,6 +144,8 @@ function generateJSON(id) {
     "status": "draft",
   	"support_url": "https://jakarta.ee/about/faq",
   	"license_type": lic_types[Math.floor(Math.random()*lic_types.length)],
+    "created": moment.tz((new Date()).toISOString(), "America/Toronto").format(),
+    "changed": moment.tz((new Date()).toISOString(), "America/Toronto").format(),
   	"authors": [
   		{
   			"full_name": "Martin Lowe",
