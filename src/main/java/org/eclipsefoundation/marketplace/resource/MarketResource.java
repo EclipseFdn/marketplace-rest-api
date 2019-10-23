@@ -13,17 +13,20 @@ import java.util.Optional;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.eclipsefoundation.marketplace.dao.MongoDao;
 import org.eclipsefoundation.marketplace.dto.Market;
 import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
+import org.eclipsefoundation.marketplace.model.Error;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
 import org.eclipsefoundation.marketplace.model.ResourceDataType;
@@ -32,6 +35,8 @@ import org.eclipsefoundation.marketplace.service.CachingService;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.mongodb.client.result.DeleteResult;
 
 /**
  * @author martin
@@ -109,5 +114,27 @@ public class MarketResource {
 
 		// return the results as a response
 		return Response.ok(cachedResults.get()).build();
+	}
+
+	/**
+	 * Endpoint for /markets/\<marketId\> to retrieve a specific Market from the
+	 * database.
+	 * 
+	 * @param marketId the market ID
+	 * @return response for the browser
+	 */
+	@DELETE
+	@Path("/{marketId}")
+	public Response delete(@PathParam("marketId") String marketId) {
+		params.addParam(UrlParameterNames.ID, marketId);
+
+		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		// delete the currently selected asset
+		DeleteResult result = StreamHelper.awaitCompletionStage(dao.delete(q));
+		if (result.getDeletedCount() == 0 || !result.wasAcknowledged()) {
+			return new Error(Status.NOT_FOUND, "Did not find an asset to delete for current call").asResponse();
+		}
+		// return the results as a response
+		return Response.ok().build();
 	}
 }

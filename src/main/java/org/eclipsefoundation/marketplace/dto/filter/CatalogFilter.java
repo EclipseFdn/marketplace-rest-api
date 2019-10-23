@@ -6,14 +6,20 @@
  */
 package org.eclipsefoundation.marketplace.dto.filter;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import org.bson.conversions.Bson;
 import org.eclipsefoundation.marketplace.dto.Catalog;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
+import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
+import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
+
+import com.mongodb.client.model.Filters;
 
 /**
  * Filter implementation for the Catalog class.
@@ -24,8 +30,14 @@ import org.eclipsefoundation.marketplace.model.RequestWrapper;
 public class CatalogFilter implements DtoFilter<Catalog> {
 
 	@Override
-	public List<Bson> getFilters(RequestWrapper qps) {
-		return Collections.emptyList();
+	public List<Bson> getFilters(RequestWrapper wrap) {
+		List<Bson> filters = new ArrayList<>();
+		// ID check
+		Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
+		if (id.isPresent()) {
+			filters.add(Filters.eq(DatabaseFieldNames.DOCID, id.get()));
+		}
+		return filters;
 	}
 	
 	@Override
