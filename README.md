@@ -23,7 +23,9 @@ This section will outline configuration values that need to be checked and updat
 1. Update `quarkus.mongodb.credentials.username` to be a known user with write permissions to MongoDB instance.
 1. Create a copy of `./config/sample.secret.properties` named `secret.properties` in a location of your choosing on the system, with the config folder in the project root being default configured. If changed, keep this path as it is needed to start the environment later.
 1. Update `quarkus.mongodb.credentials.password` to be the password for the MongoDB user in the newly created `secret.properties` file.
-1. By default, this application binds to port 8090. If port 8090 is occupied by another service, the value of `quarkus.http.port` can be modified to designate a different port.
+1. By default, this application binds to port 8090. If port 8090 is occupied by another service, the value of `quarkus.http.port` can be modified to designate a different port. 
+1. In order to protect endpoints for write operations, an introspection endpoint has been configured to validate OAuth tokens. This introspection endpoint should match the requirements set out by the OAuth group for such endpoints. The URL should be set in `quarkus.oauth2.introspection-url`.
+1. As part of the set up of this client, an OAuth client ID and secret need to be defined in the `secret.properties` file. These values should be set in `quarkus.oauth2.client-id` and `quarkus.oauth2.client-secret`. These are required for introspection to avoid token fishing attempts.
 
 If you are compiling from source, in order to properly pass tests in packaging, some additional set up sill need to be done. There are two options for setting up test variables for the project.
 
@@ -38,7 +40,7 @@ If you are compiling from source, in order to properly pass tests in packaging, 
         - Build native & docker image  
     - Create a copy of `config/test.secret.properties` somewhere on the file system, with the config folder in the project root being default configured. If changed, keep this path as it is needed for compilations of the product.
 
-For users looking to build native images and docker files, an install of GraalVM is required to compile the image. Please retrieve the version **19.1.1** from the [GraalVM release page](https://github.com/oracle/graal/releases) for your given environment. Once installed, please ensure your `GRAAL_HOME`, `GRAALVM_HOME` are set to the installed directory, and the GraalVM `/bin` folder has been added to your `PATH`. Run `sudo gu install native-image` to retrieve imaging functionality from GitHub for GraalVM on Linux and MacOS based environments. 
+For users looking to build native images and docker files, an install of GraalVM is required to compile the image. Please retrieve the version **19.2.0** from the [GraalVM release page](https://github.com/oracle/graal/releases) for your given environment. Once installed, please ensure your `GRAAL_HOME`, `GRAALVM_HOME` are set to the installed directory, and the GraalVM `/bin` folder has been added to your `PATH`. Run `sudo gu install native-image` to retrieve imaging functionality from GitHub for GraalVM on Linux and MacOS based environments. 
 
 
 ## Build
@@ -57,15 +59,19 @@ For users looking to build native images and docker files, an install of GraalVM
     
 * Build native & docker image
 
-    $ mvn package -Pnative -Dnative-image.docker-build=true -Dconfig.secret.path=<full path to test secret file>
-    docker build -f src/main/docker/Dockerfile.native -t eclipse/mpc . --build-arg SECRET_LOCATION=/var/secret --build-arg LOCAL_SECRETS=config/secret.properties
-    docker run -i --rm -p 8080:8090 eclipse/mpc
-    
+```
+    $ mvn package -Pnative -Dnative-image.docker-build=true -Dconfig.secret.path=<full path to test secret file>  
+    docker build -f src/main/docker/Dockerfile.native -t eclipse/mpc . --build-arg SECRET_LOCATION=/var/secret --build-arg LOCAL_SECRETS=config/secret.properties  
+    docker run -i --rm -p 8080:8090 eclipse/mpc  
+```
+
 See https://quarkus.io for more information.  
 
 The property ` -Dconfig.secret.path` is added to each line as the location needs to be fed in at runtime where to find the secret properties data. By default, Quarkus includes surefire as part of its native imagine build plug-in, which needs the given path in order for the given packages to pass.
 
 The Docker build-arg `LOCAL_SECRETS` can be configured on the `docker build` command if the secrets file exists outside of the standard location of `config/secret.properties`. It has been set to the default value in the sample command for example purposes on usage.
+
+The Docker build-arg `GRAALVM_HOME` must be configured on the `docker build` command to properly import SSL certificate information into the native image. Without this, all calls to authenticate users will fail.
 
 ## Sample data
 

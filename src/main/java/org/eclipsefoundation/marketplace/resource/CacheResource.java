@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
@@ -33,6 +34,7 @@ import org.jboss.resteasy.annotations.jaxrs.PathParam;
  * @author Martin Lowe
  */
 @Path("/cache")
+@RolesAllowed("admin")
 @Produces(MediaType.APPLICATION_JSON)
 public class CacheResource {
 
@@ -43,10 +45,7 @@ public class CacheResource {
 	Instance<CachingService<?>> cacheServices;
 
 	@GET
-	public Response getActiveCacheEntries(@HeaderParam(RequestHeaderNames.ACCESS_TOKEN) String token) {
-		if (!this.token.equals(token)) {
-			return Response.status(Status.UNAUTHORIZED).build();
-		}
+	public Response getActiveCacheEntries() {
 		List<Set<String>> cacheEntries = new ArrayList<>();
 		for (CachingService<?> cs : cacheServices) {
 			cacheEntries.add(cs.getCacheKeys());
@@ -54,8 +53,8 @@ public class CacheResource {
 		return Response.ok(cacheEntries).build();
 	}
 
-	@Path("/{key}")
 	@DELETE
+	@Path("/{key}")
 	public Response removeCacheEntry(@PathParam("key") String key,
 			@HeaderParam(RequestHeaderNames.ACCESS_TOKEN) String token) {
 		if (!this.token.equals(token)) {
@@ -65,8 +64,8 @@ public class CacheResource {
 		return Response.ok().build();
 	}
 
-	@Path("/all")
 	@DELETE
+	@Path("/all")
 	public Response clearCaches(@HeaderParam(RequestHeaderNames.ACCESS_TOKEN) String token) {
 		if (!this.token.equals(token)) {
 			return Response.status(Status.UNAUTHORIZED).build();

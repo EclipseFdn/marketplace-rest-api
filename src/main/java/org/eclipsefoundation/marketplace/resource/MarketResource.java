@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -59,7 +61,9 @@ public class MarketResource {
 	@Inject
 	DtoFilter<Market> dtoFilter;
 
+	
 	@GET
+	@PermitAll
 	public Response select() {
 		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// retrieve the possible cached object
@@ -81,6 +85,7 @@ public class MarketResource {
 	 * @return response for the browser
 	 */
 	@PUT
+	@RolesAllowed("market_put")
 	public Response putMarket(Market market) {
 		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter, cachingService);
 
@@ -99,6 +104,7 @@ public class MarketResource {
 	 * @return response for the browser
 	 */
 	@GET
+	@PermitAll
 	@Path("/{marketId}")
 	public Response select(@PathParam("marketId") String marketId) {
 		params.addParam(UrlParameterNames.ID, marketId);

@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -60,6 +62,7 @@ public class CatalogResource {
 	DtoFilter<Catalog> dtoFilter;
 
 	@GET
+	@PermitAll
 	public Response select() {
 		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// retrieve the possible cached object
@@ -81,6 +84,7 @@ public class CatalogResource {
 	 * @return response for the browser
 	 */
 	@PUT
+	@RolesAllowed({ "marketplace_catalog_put", "marketplace_admin_access" })
 	public Response putCatalog(Catalog catalog) {
 		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// add the object, and await the result
@@ -91,8 +95,8 @@ public class CatalogResource {
 	}
 
 	/**
-	 * Endpoint for /catalogs/\<catalogId\> to retrieve a specific Catalog from
-	 * the database.
+	 * Endpoint for /catalogs/\<catalogId\> to retrieve a specific Catalog from the
+	 * database.
 	 * 
 	 * @param catalogId the Catalog ID
 	 * @return response for the browser
@@ -116,13 +120,14 @@ public class CatalogResource {
 	}
 
 	/**
-	 * Endpoint for /catalogs/\<catalogId\> to retrieve a specific Catalog from
-	 * the database.
+	 * Endpoint for /catalogs/\<catalogId\> to retrieve a specific Catalog from the
+	 * database.
 	 * 
 	 * @param catalogId the catalog ID
 	 * @return response for the browser
 	 */
 	@DELETE
+	@RolesAllowed({ "marketplace_catalog_delete", "marketplace_admin_access" })
 	@Path("/{catalogId}")
 	public Response delete(@PathParam("catalogId") String catalogId) {
 		params.addParam(UrlParameterNames.ID, catalogId);

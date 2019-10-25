@@ -15,7 +15,27 @@
 #
 ###
 FROM fabric8/java-alpine-openjdk8-jre
-ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+  
+## Where to source the cert file
+ARG LOCAL_CRT=config/local.crt
+ENV LOCAL_CRT ${LOCAL_CRT}
+
+## copy to a temp ssl dir for container usage
+WORKDIR /tmp
+RUN mkdir ssl
+COPY $LOCAL_CRT ssl/local.crt
+
+## Where to copy the secret file, default to tmp
+ARG SECRET_LOCATION=/tmp
+ENV SECRET_LOCATION ${SECRET_LOCATION}
+## Where to source the secret.properties file
+ARG LOCAL_SECRETS=config/secret.properties
+ENV LOCAL_SECRETS ${LOCAL_SECRETS}
+## Copy the secret.properties to the given location
+WORKDIR $SECRET_LOCATION
+COPY $LOCAL_SECRETS secret.properties
+
+ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager -Dconfig.secret.path=${SECRET_LOCATION}/secret.properties"
 ENV AB_ENABLED=jmx_exporter
 COPY target/lib/* /deployments/lib/
 COPY target/*-runner.jar /deployments/app.jar

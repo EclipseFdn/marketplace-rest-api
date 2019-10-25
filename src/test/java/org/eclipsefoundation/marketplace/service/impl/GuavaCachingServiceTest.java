@@ -14,7 +14,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
 import org.eclipsefoundation.marketplace.model.RequestWrapperMock;
-import org.eclipsefoundation.marketplace.service.impl.GuavaCachingService;
 import org.jboss.resteasy.core.ResteasyContext;
 import org.jboss.resteasy.specimpl.ResteasyUriInfo;
 import org.junit.jupiter.api.Assertions;
@@ -42,6 +41,7 @@ public class GuavaCachingServiceTest {
 	public void pre() {
 		// inject empty objects into the Request context before creating a mock object
 		ResteasyContext.pushContext(UriInfo.class, new ResteasyUriInfo("",""));
+		
 		ResteasyContext.pushContext(HttpServletRequest.class, new HttpServletRequestImpl(null, null));
 		
 		this.sample = new RequestWrapperMock();

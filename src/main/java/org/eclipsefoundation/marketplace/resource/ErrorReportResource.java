@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -63,6 +65,7 @@ public class ErrorReportResource {
 	 * @return response for the browser
 	 */
 	@GET
+	@PermitAll
 	public Response select() {
 		MongoQuery<ErrorReport> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// retrieve the possible cached object
@@ -84,6 +87,7 @@ public class ErrorReportResource {
 	 * @return response for the browser
 	 */
 	@PUT
+	@RolesAllowed("error_put")
 	public Response putErrorReport(ErrorReport errorReport) {
 		MongoQuery<ErrorReport> q = new MongoQuery<>(params, dtoFilter, cachingService);
 
@@ -102,6 +106,7 @@ public class ErrorReportResource {
 	 * @return response for the browser
 	 */
 	@GET
+	@PermitAll
 	@Path("/{errorReportId}")
 	public Response select(@PathParam("errorReportId") String errorReportId) {
 		params.addParam(UrlParameterNames.ID, errorReportId);
