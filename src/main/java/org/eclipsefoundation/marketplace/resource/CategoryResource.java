@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -58,6 +60,7 @@ public class CategoryResource {
 	DtoFilter<Category> dtoFilter;
 
 	@GET
+	@PermitAll
 	public Response select() {
 		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// retrieve the possible cached object
@@ -79,6 +82,7 @@ public class CategoryResource {
 	 * @return response for the browser
 	 */
 	@PUT
+	@RolesAllowed({"marketplace_category_put", "marketplace_admin_access"})
 	public Response putCategory(Category category) {
 		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// add the object, and await the result
@@ -121,6 +125,7 @@ public class CategoryResource {
 	 * @return response for the browser
 	 */
 	@DELETE
+	@RolesAllowed({ "marketplace_category_delete", "marketplace_admin_access" })
 	@Path("/{categoryId}")
 	public Response delete(@PathParam("categoryId") String categoryId) {
 		params.addParam(UrlParameterNames.ID, categoryId);

@@ -2,7 +2,6 @@
 .project
 .classpath
 .settings/
-bin/
 
 # IntelliJ
 .idea
@@ -36,7 +35,9 @@ release.properties
 
 # Secrets config
 secret.properties
-secret.properties
+
+# Cert files
+config/*.crt
 
 #NodeJS
 node_modules/

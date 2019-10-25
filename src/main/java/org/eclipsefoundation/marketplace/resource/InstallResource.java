@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -68,6 +70,7 @@ public class InstallResource {
 	 * @return response for the browser
 	 */
 	@GET
+	@PermitAll
 	@Path("/{listingId}")
 	public Response selectInstallMetrics(@PathParam("listingId") String listingId) {
 		wrapper.addParam(UrlParameterNames.ID, listingId);
@@ -93,6 +96,7 @@ public class InstallResource {
 	 * @return response for the browser
 	 */
 	@GET
+	@PermitAll
 	@Path("/{listingId}/{version}")
 	public Response selectInstallMetrics(@PathParam("listingId") String listingId,
 			@PathParam("version") String version) {
@@ -119,19 +123,19 @@ public class InstallResource {
 	 * @return response for the browser
 	 */
 	@POST
+	@RolesAllowed({ "marketplace_install_put", "marketplace_admin_access" })
 	@Path("/{listingId}/{version}")
 	public Response postInstallMetrics(@PathParam("listingId") String listingId, @PathParam("version") String version,
 			Install installDetails) {
 		Install record = null;
-		
+
 		// check that connection was opened by MPC, and check for install information
 		// from user agent
 		if (wrapper.getUserAgent().isValid()) {
 			record = wrapper.getUserAgent().generateInstallRecord();
 		} else if (wrapper.getUserAgent().isFromMPC()) {
 			if (installDetails == null) {
-				return new Error(Status.BAD_REQUEST, "Install data could not be read from request body")
-						.asResponse();
+				return new Error(Status.BAD_REQUEST, "Install data could not be read from request body").asResponse();
 			}
 			record = installDetails;
 		} else {

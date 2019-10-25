@@ -7,25 +7,43 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native -t quarkus/sample .
+# docker build -f src/main/docker/Dockerfile.native -t eclipsefdn/mpc-api .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/sample
+# docker run -i --rm -p 8090:8090 eclipsefdn/mpc-api
 #
 ###
+# Get a fresh copy of cacerts for truststore
+FROM quay.io/quarkus/ubi-quarkus-native-image:19.2.1 as nativebuilder
+RUN mkdir -p /tmp/ssl-libs/lib \
+  && cp /opt/graalvm/jre/lib/security/cacerts /tmp/ssl-libs \
+  && cp /opt/graalvm/jre/lib/amd64/libsunec.so /tmp/ssl-libs/lib/
+
 FROM registry.fedoraproject.org/fedora-minimal
+
+## Where to source the cert file
+ARG LOCAL_CRT=config/local.crt
+ENV LOCAL_CRT ${LOCAL_CRT}
+
+## copy to a temp ssl dir for container usage
+WORKDIR /tmp
+RUN mkdir ssl
+COPY $LOCAL_CRT ssl/local.crt
+
+## Where to copy the secret file, default to tmp
 ARG SECRET_LOCATION=/tmp
 ENV SECRET_LOCATION ${SECRET_LOCATION}
-
+## Where to source the secret.properties file
 ARG LOCAL_SECRETS=config/secret.properties
 ENV LOCAL_SECRETS ${LOCAL_SECRETS}
-
+## Copy the secret.properties to the given location
 WORKDIR $SECRET_LOCATION
 COPY $LOCAL_SECRETS secret.properties
 
 WORKDIR /work/
 COPY target/*-runner /work/application
+COPY --from=nativebuilder /tmp/ssl-libs/ /work/
 RUN chmod 775 /work
 EXPOSE 8080
-CMD ./application -Dquarkus.http.host=0.0.0.0 -Dconfig.secret.path=${SECRET_LOCATION}/secret.properties
+CMD ./application -Dquarkus.http.host=0.0.0.0 -Dconfig.secret.path=${SECRET_LOCATION}/secret.properties -Djavax.net.ssl.trustStore=/work/cacerts

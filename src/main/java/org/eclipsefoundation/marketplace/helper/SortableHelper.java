@@ -15,10 +15,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
-import javax.json.bind.config.PropertyNamingStrategy;
-
-import org.eclipse.yasson.internal.model.customization.naming.LowerCaseWithUnderscoresStrategy;
 import org.eclipsefoundation.marketplace.model.SortableField;
+
+import com.fasterxml.jackson.databind.PropertyNamingStrategy.SnakeCaseStrategy;
 
 /**
  * Reflection based helper that reads in a type and reads annotations present on
@@ -31,7 +30,7 @@ public class SortableHelper {
 	private static final int MAX_DEPTH = 2;
 
 	// 
-	private static final PropertyNamingStrategy NAMING_STRATEGY = new LowerCaseWithUnderscoresStrategy();
+	private static final SnakeCaseStrategy NAMING_STRATEGY = new SnakeCaseStrategy();
 	// set up the internal conversion functions
 	private static final Map<Class<?>, Function<String, ?>> CONVERSION_FUNCTIONS = new HashMap<>();
 	static {
@@ -81,7 +80,7 @@ public class SortableHelper {
 		for (Field f : tgt.getDeclaredFields()) {
 			// create new container for field
 			Sortable<?> c = new Sortable<>(f.getType());
-			c.name = NAMING_STRATEGY.translateName(f.getName());
+			c.name = NAMING_STRATEGY.translate(f.getName());
 			c.path = c.name;
 
 			// if annotation exists, get values from it

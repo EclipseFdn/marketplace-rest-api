@@ -13,6 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -69,6 +71,7 @@ public class ListingResource {
 	 * @return response for the browser
 	 */
 	@GET
+	@PermitAll
 	public Response select() {
 		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// retrieve the possible cached object
@@ -90,6 +93,7 @@ public class ListingResource {
 	 * @return response for the browser
 	 */
 	@PUT
+	@RolesAllowed({ "marketplace_listing_put", "marketplace_admin_access" })
 	public Response putListing(Listing listing) {
 		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter, cachingService);
 
@@ -108,6 +112,7 @@ public class ListingResource {
 	 * @return response for the browser
 	 */
 	@GET
+	@PermitAll
 	@Path("/{listingId}")
 	public Response select(@PathParam("listingId") String listingId) {
 		params.addParam(UrlParameterNames.ID, listingId);
@@ -124,7 +129,7 @@ public class ListingResource {
 		// return the results as a response
 		return Response.ok(cachedResults.get()).build();
 	}
-	
+
 	/**
 	 * Endpoint for /listing/\<listingId\> to delete a specific listing from the
 	 * database.
@@ -133,6 +138,7 @@ public class ListingResource {
 	 * @return response for the browser
 	 */
 	@DELETE
+	@RolesAllowed({ "marketplace_listing_delete", "marketplace_admin_access" })
 	@Path("/{listingId}")
 	public Response delete(@PathParam("listingId") String listingId) {
 		params.addParam(UrlParameterNames.ID, listingId);
