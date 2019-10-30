@@ -80,6 +80,7 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		doc.put(DatabaseFieldNames.CREATION_DATE, new Date(value.getCreationDate()));
 		doc.put(DatabaseFieldNames.FOUNDATION_MEMBER_FLAG, value.isFoundationMember());
 		doc.put(DatabaseFieldNames.CATEGORY_IDS, value.getCategoryIds());
+		doc.put(DatabaseFieldNames.SCREENSHOTS, value.getScreenshots());
 		doc.put(DatabaseFieldNames.MARKET_IDS, value.getMarketIds());
 
 		// for nested document types, use the converters to safely transform into BSON
@@ -120,6 +121,7 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		out.setFoundationMember(document.getBoolean(DatabaseFieldNames.FOUNDATION_MEMBER_FLAG));
 		out.setCategoryIds(document.getList(DatabaseFieldNames.CATEGORY_IDS, String.class));
 		out.setMarketIds(document.getList(DatabaseFieldNames.MARKET_IDS, String.class));
+		out.setScreenshots(document.getList(DatabaseFieldNames.SCREENSHOTS, String.class));
 
 		// for nested document types, use the converters to safely transform into POJO
 		out.setAuthors(document.getList(DatabaseFieldNames.LISTING_AUTHORS, Document.class).stream()

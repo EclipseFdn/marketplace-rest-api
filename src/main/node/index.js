@@ -72,7 +72,7 @@ function createListing(count) {
   
   console.log(`Generating listing ${count} of ${max}`);
   var json = generateJSON(uuid.v4());
-  axios.post(argv.s+"/listings/", json)
+  instance.put(argv.s+"/listings/", json)
     .then(() => {
       var installs = Math.floor(Math.random()*argv.i);
       console.log(`Generating ${installs} install records for listing '${json.id}'`);
@@ -152,7 +152,8 @@ function generateJSON(id) {
   	],
   	"versions": solutions,
 	"market_ids": splice(marketIds).splice(0,Math.ceil(Math.random()*2)),
-  	"category_ids": splice(categoryIds).splice(0,Math.ceil(Math.random()*5))
+  "category_ids": splice(categoryIds).splice(0,Math.ceil(Math.random()*5)+1),
+	"screenshots": ["http://www.example.com/img/sample.png"]
   };
 }
 
