@@ -27,11 +27,11 @@ const platforms = ["windows","macos","linux"];
 const eclipseVs = ["4.6","4.7","4.8","4.9","4.10","4.11","4.12"];
 const javaVs = ["1.5", "1.6", "1.7", "1.8", "1.9", "1.10"];
 const categoryIds = [];
-for (var i=0;i<20;i++) {
+for (var i=0;i<200;i++) {
   categoryIds.push(uuid.v4());
 }
 const marketIds = [];
-for (i=0;i<5;i++) {
+for (var i=0;i<5;i++) {
   marketIds.push(uuid.v4());
 }
 
@@ -147,7 +147,8 @@ function generateJSON(id) {
   		}
   	],
   	"versions": solutions,
-  	"category_ids": splice(categoryIds).splice(0,Math.ceil(Math.random()*5)+1)
+	"market_ids": splice(marketIds).splice(0,Math.ceil(Math.random()*2)),
+  	"category_ids": splice(categoryIds).splice(0,Math.ceil(Math.random()*5))
   };
 }
 
@@ -163,8 +164,7 @@ function generateMarketJSON(id) {
   return {
     "id": id,
     "name": randomWords({exactly:1, wordsPerString:Math.ceil(Math.random()*4)})[0],
-    "url": "https://www.eclipse.org",
-    "category_ids": splice(categoryIds).splice(0,Math.ceil(Math.random()*5)+1)
+    "url": "https://www.eclipse.org"
   };
 }
 

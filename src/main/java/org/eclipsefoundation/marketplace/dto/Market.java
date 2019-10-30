@@ -26,7 +26,6 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
  */
 @RegisterForReflection
 public class Market extends NodeBase {
-	private List<String> categoryIds;
 	private List<Category> categories;
 
 
@@ -36,7 +35,6 @@ public class Market extends NodeBase {
 	 */
 	public Market() {
 		this.categories = new LinkedList<>();
-		this.categoryIds = new LinkedList<>();
 	}
 
 	/**
@@ -54,26 +52,11 @@ public class Market extends NodeBase {
 		this.categories = new ArrayList<>(categories);
 	}
 
-	/**
-	 * @return the categoryIds
-	 */
-	@JsonbTransient
-	public List<String> getCategoryIds() {
-		return new ArrayList<>(categoryIds);
-	}
-
-	/**
-	 * @param categoryIds the categoryIds to set
-	 */
-	public void setCategoryIds(List<String> categoryIds) {
-		this.categoryIds = new ArrayList<>(categoryIds);
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + Objects.hash(categories, categoryIds);
+		result = prime * result + Objects.hash(categories);
 		return result;
 	}
 
@@ -89,6 +72,6 @@ public class Market extends NodeBase {
 			return false;
 		}
 		Market other = (Market) obj;
-		return Objects.equals(categories, other.categories) && Objects.equals(categoryIds, other.categoryIds);
+		return Objects.equals(categories, other.categories);
 	}
 }
