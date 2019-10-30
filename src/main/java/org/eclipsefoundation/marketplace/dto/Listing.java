@@ -57,6 +57,7 @@ public class Listing extends NodeBase {
 	private long updateDate;
 	@JsonbProperty(DatabaseFieldNames.LICENSE_TYPE)
 	private String license;
+	private List<String> marketIds;
 	private List<String> categoryIds;
 	private List<Category> categories;
 	private Organization organization;
@@ -71,6 +72,7 @@ public class Listing extends NodeBase {
 		this.authors = new ArrayList<>();
 		this.tags = new ArrayList<>();
 		this.versions = new ArrayList<>();
+		this.marketIds = new ArrayList<>();
 		this.categoryIds = new ArrayList<>();
 		this.categories = new ArrayList<>();
 	}
@@ -271,6 +273,21 @@ public class Listing extends NodeBase {
 	 */
 	public void setCategoryIds(List<String> categoryIds) {
 		this.categoryIds = new ArrayList<>(categoryIds);
+	}
+
+
+	/**
+	 * @return the categoryIds
+	 */
+	public List<String> getMarketIds() {
+		return new ArrayList<>(marketIds);
+	}
+
+	/**
+	 * @param marketIds the categoryIds to set
+	 */
+	public void setMarketIds(List<String> marketIds) {
+		this.marketIds = new ArrayList<>(marketIds);
 	}
 
 	/**

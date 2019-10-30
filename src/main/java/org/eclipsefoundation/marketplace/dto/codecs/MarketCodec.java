@@ -7,6 +7,7 @@
 package org.eclipsefoundation.marketplace.dto.codecs;
 
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonReader;
@@ -19,6 +20,7 @@ import org.bson.codecs.CollectibleCodec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.eclipsefoundation.marketplace.dto.Market;
+import org.eclipsefoundation.marketplace.dto.converters.CategoryConverter;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 
 import com.mongodb.MongoClient;
@@ -32,6 +34,7 @@ import com.mongodb.MongoClient;
  */
 public class MarketCodec implements CollectibleCodec<Market> {
 	private final Codec<Document> documentCodec;
+	private final CategoryConverter categoryConverter;
 
 	/**
 	 * Creates the codec and initializes the codecs and converters needed to create
@@ -39,6 +42,7 @@ public class MarketCodec implements CollectibleCodec<Market> {
 	 */
 	public MarketCodec() {
 		this.documentCodec = MongoClient.getDefaultCodecRegistry().get(Document.class);
+		this.categoryConverter = new CategoryConverter();
 	}
 	
 	@Override
@@ -48,7 +52,6 @@ public class MarketCodec implements CollectibleCodec<Market> {
 		doc.put(DatabaseFieldNames.DOCID, value.getId());
 		doc.put(DatabaseFieldNames.URL, value.getUrl());
 		doc.put(DatabaseFieldNames.TITLE, value.getTitle());
-		doc.put(DatabaseFieldNames.CATEGORY_IDS, value.getCategoryIds());
 
 		documentCodec.encode(writer, doc, encoderContext);
 	}
@@ -61,10 +64,13 @@ public class MarketCodec implements CollectibleCodec<Market> {
 	@Override
 	public Market decode(BsonReader reader, DecoderContext decoderContext) {
 		Document document = documentCodec.decode(reader, decoderContext);
+
 		Market out = new Market();
 		out.setId(document.getString(DatabaseFieldNames.DOCID));
 		out.setUrl(document.getString(DatabaseFieldNames.URL));
 		out.setTitle(document.getString(DatabaseFieldNames.TITLE));
+		out.setCategories(document.getList(DatabaseFieldNames.LISTING_CATEGORIES, Document.class).stream()
+				.map(categoryConverter::convert).collect(Collectors.toList()));
 		
 		return out;
 	}
