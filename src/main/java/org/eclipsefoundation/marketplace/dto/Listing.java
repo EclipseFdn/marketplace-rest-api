@@ -59,6 +59,7 @@ public class Listing extends NodeBase {
 	private String license;
 	private List<String> marketIds;
 	private List<String> categoryIds;
+	private List<String> screenshots;
 	private List<Category> categories;
 	private Organization organization;
 	private List<Author> authors;
@@ -75,6 +76,7 @@ public class Listing extends NodeBase {
 		this.marketIds = new ArrayList<>();
 		this.categoryIds = new ArrayList<>();
 		this.categories = new ArrayList<>();
+		this.screenshots = new ArrayList<>();
 	}
 
 	/**
@@ -291,6 +293,20 @@ public class Listing extends NodeBase {
 	}
 
 	/**
+	 * @return the screenshots
+	 */
+	public List<String> getScreenshots() {
+		return new ArrayList<>(screenshots);
+	}
+
+	/**
+	 * @param screenshots the screenshots to set
+	 */
+	public void setScreenshots(List<String> screenshots) {
+		this.screenshots = new ArrayList<>(screenshots);
+	}
+
+	/**
 	 * @return the categories
 	 */
 	public List<Category> getCategories() {
@@ -394,7 +410,8 @@ public class Listing extends NodeBase {
 				&& Objects.equals(logo, other.logo) && Objects.equals(organization, other.organization)
 				&& Objects.equals(status, other.status) && Objects.equals(supportUrl, other.supportUrl)
 				&& Objects.equals(tags, other.tags) && Objects.equals(teaser, other.teaser)
-				&& updateDate == other.updateDate && Objects.equals(versions, other.versions);
+				&& updateDate == other.updateDate && Objects.equals(versions, other.versions)
+				&& Objects.equals(screenshots, other.screenshots);
 	}
 
 	@Override
@@ -421,6 +438,7 @@ public class Listing extends NodeBase {
 		sb.append(", authors=").append(authors);
 		sb.append(", tags=").append(tags);
 		sb.append(", versions=").append(versions);
+		sb.append(", screenshots=").append(screenshots);
 		sb.append(']');
 		return sb.toString();
 	}

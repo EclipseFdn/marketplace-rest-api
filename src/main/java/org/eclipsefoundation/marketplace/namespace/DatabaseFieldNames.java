@@ -48,6 +48,7 @@ public final class DatabaseFieldNames {
 	public static final String FEATURE_IDS = "feature_ids";
 	public static final String FEATURE_ID = "feature_id";
 	public static final String INSTALL_STATE = "install_state";
+	public static final String SCREENSHOTS = "screenshots";
 
 	// catalog fields
 	public static final String CATALOG_TABS = "tabs";
