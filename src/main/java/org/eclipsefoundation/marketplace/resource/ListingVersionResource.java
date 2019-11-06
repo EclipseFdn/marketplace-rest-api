@@ -23,7 +23,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.eclipsefoundation.marketplace.dao.MongoDao;
-import org.eclipsefoundation.marketplace.dto.Catalog;
+import org.eclipsefoundation.marketplace.dto.ListingVersion;
 import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
 import org.eclipsefoundation.marketplace.model.Error;
@@ -38,33 +38,35 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.client.result.DeleteResult;
 
 /**
- * @author martin
- *
+ * Resource for retrieving {@linkplain ListingVersion}s from the MongoDB
+ * instance.
+ * 
+ * @author Martin Lowe
  */
-@Path("/catalogs")
+@RequestScoped
+@Path("/listing_versions")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RequestScoped
-public class CatalogResource {
-	private static final Logger LOGGER = LoggerFactory.getLogger(CatalogResource.class);
+public class ListingVersionResource {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ListingVersionResource.class);
 
 	@Inject
 	MongoDao dao;
 	@Inject
-	CachingService<List<Catalog>> cachingService;
+	CachingService<List<ListingVersion>> cachingService;
 	@Inject
 	RequestWrapper params;
 	@Inject
-	DtoFilter<Catalog> dtoFilter;
+	DtoFilter<ListingVersion> dtoFilter;
 
 	@GET
 	public Response select() {
-		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<ListingVersion> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// retrieve the possible cached object
-		Optional<List<Catalog>> cachedResults = cachingService.get("all", params,
+		Optional<List<ListingVersion>> cachedResults = cachingService.get("all", params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
-			LOGGER.error("Error while retrieving cached Catalogs");
+			LOGGER.error("Error while retrieving cached ListingVersions");
 			return Response.serverError().build();
 		}
 
@@ -73,39 +75,39 @@ public class CatalogResource {
 	}
 
 	/**
-	 * Endpoint for /Catalog/ to post a new Catalog to the persistence layer.
+	 * Endpoint for /ListingVersion/ to post a new ListingVersion to the persistence layer.
 	 * 
-	 * @param catalog the Catalog object to insert into the database.
+	 * @param listingVersion the ListingVersion object to insert into the database.
 	 * @return response for the browser
 	 */
 	@PUT
-	public Response putCatalog(Catalog catalog) {
-		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter, cachingService);
+	public Response putListingVersion(ListingVersion listingVersion) {
+		MongoQuery<ListingVersion> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// add the object, and await the result
-		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(catalog)));
+		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(listingVersion)));
 
 		// return the results as a response
 		return Response.ok().build();
 	}
 
 	/**
-	 * Endpoint for /catalogs/\<catalogId\> to retrieve a specific Catalog from
-	 * the database.
+	 * Endpoint for /listingVersions/\<listingVersionId\> to retrieve a specific ListingVersion from the
+	 * database.
 	 * 
-	 * @param catalogId the Catalog ID
+	 * @param listingVersionId the ListingVersion ID
 	 * @return response for the browser
 	 */
 	@GET
-	@Path("/{catalogId}")
-	public Response select(@PathParam("catalogId") String catalogId) {
-		params.addParam(UrlParameterNames.ID, catalogId);
+	@Path("/{listingVersionId}")
+	public Response select(@PathParam("listingVersionId") String listingVersionId) {
+		params.addParam(UrlParameterNames.ID, listingVersionId);
 
-		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<ListingVersion> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// retrieve a cached version of the value for the current listing
-		Optional<List<Catalog>> cachedResults = cachingService.get(catalogId, params,
+		Optional<List<ListingVersion>> cachedResults = cachingService.get(listingVersionId, params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
-			LOGGER.error("Error while retrieving cached listing for ID {}", catalogId);
+			LOGGER.error("Error while retrieving cached listing for ID {}", listingVersionId);
 			return Response.serverError().build();
 		}
 
@@ -114,18 +116,18 @@ public class CatalogResource {
 	}
 
 	/**
-	 * Endpoint for /catalogs/\<catalogId\> to retrieve a specific Catalog from
-	 * the database.
+	 * Endpoint for /listingVersions/\<listingVersionId\> to retrieve a specific ListingVersion from the
+	 * database.
 	 * 
-	 * @param catalogId the catalog ID
+	 * @param listingVersionId the listingVersion ID
 	 * @return response for the browser
 	 */
 	@DELETE
-	@Path("/{catalogId}")
-	public Response delete(@PathParam("catalogId") String catalogId) {
-		params.addParam(UrlParameterNames.ID, catalogId);
+	@Path("/{listingVersionId}")
+	public Response delete(@PathParam("listingVersionId") String listingVersionId) {
+		params.addParam(UrlParameterNames.ID, listingVersionId);
 
-		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<ListingVersion> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// delete the currently selected asset
 		DeleteResult result = StreamHelper.awaitCompletionStage(dao.delete(q));
 		if (result.getDeletedCount() == 0 || !result.wasAcknowledged()) {

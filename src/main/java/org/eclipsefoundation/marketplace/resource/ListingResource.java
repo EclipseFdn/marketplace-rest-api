@@ -32,7 +32,6 @@ import org.eclipsefoundation.marketplace.helper.StreamHelper;
 import org.eclipsefoundation.marketplace.model.Error;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
-import org.eclipsefoundation.marketplace.model.ResourceDataType;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.eclipsefoundation.marketplace.service.CachingService;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
@@ -46,7 +45,6 @@ import com.mongodb.client.result.DeleteResult;
  * 
  * @author Martin Lowe
  */
-@ResourceDataType(Listing.class)
 @Path("/listings")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

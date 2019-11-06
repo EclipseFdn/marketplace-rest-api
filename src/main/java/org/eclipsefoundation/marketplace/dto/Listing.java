@@ -38,11 +38,9 @@ public class Listing extends NodeBase {
 	private boolean foundationMember;
 
 	@SortableField(name = "installs_count")
-	@JsonbProperty("installs_count")
 	private long installsTotal;
 
 	@SortableField(name = "installs_count_recent")
-	@JsonbProperty("installs_count_recent")
 	private long installsRecent;
 
 	@SortableField
@@ -64,7 +62,7 @@ public class Listing extends NodeBase {
 	private Organization organization;
 	private List<Author> authors;
 	private List<Tag> tags;
-	private List<SolutionVersion> versions;
+	private List<ListingVersion> versions;
 
 	/**
 	 * Default constructor, sets lists to empty lists to stop null pointers
@@ -180,6 +178,7 @@ public class Listing extends NodeBase {
 	/**
 	 * @return the installsTotal
 	 */
+	@JsonbProperty("installs_count")
 	public long getInstallsTotal() {
 		return installsTotal;
 	}
@@ -187,6 +186,7 @@ public class Listing extends NodeBase {
 	/**
 	 * @param installsTotal the installsTotal to set
 	 */
+	@JsonbTransient
 	public void setInstallsTotal(long installsTotal) {
 		this.installsTotal = installsTotal;
 	}
@@ -194,6 +194,7 @@ public class Listing extends NodeBase {
 	/**
 	 * @return the installsRecent
 	 */
+	@JsonbProperty("installs_count_recent")
 	public long getInstallsRecent() {
 		return installsRecent;
 	}
@@ -201,6 +202,7 @@ public class Listing extends NodeBase {
 	/**
 	 * @param installsRecent the installsRecent to set
 	 */
+	@JsonbTransient
 	public void setInstallsRecent(long installsRecent) {
 		this.installsRecent = installsRecent;
 	}
@@ -215,7 +217,6 @@ public class Listing extends NodeBase {
 	/**
 	 * @param favoriteCount the favoriteCount to set
 	 */
-	@JsonbTransient
 	public void setFavoriteCount(long favoriteCount) {
 		this.favoriteCount = favoriteCount;
 	}
@@ -368,14 +369,15 @@ public class Listing extends NodeBase {
 	/**
 	 * @return the versions
 	 */
-	public List<SolutionVersion> getVersions() {
+	public List<ListingVersion> getVersions() {
 		return new ArrayList<>(versions);
 	}
 
 	/**
 	 * @param versions the versions to set
 	 */
-	public void setVersions(List<SolutionVersion> versions) {
+	@JsonbTransient
+	public void setVersions(List<ListingVersion> versions) {
 		Objects.requireNonNull(versions);
 		this.versions = new ArrayList<>(versions);
 	}

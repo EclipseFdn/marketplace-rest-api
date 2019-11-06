@@ -1,6 +1,6 @@
 const axios = require('axios');
 const instance = axios.create({
-  timeout: 1000,
+  timeout: 2500,
   headers: {'User-Agent': 'mpc/0.0.0'}
 });
 const randomWords = require('random-words');
@@ -65,7 +65,7 @@ function splice(arr) {
   return out;
 }
 
-function createListing(count) {
+async function createListing(count) {
   if (count >= max) {
     return;
   }
@@ -73,12 +73,23 @@ function createListing(count) {
   console.log(`Generating listing ${count} of ${max}`);
   var json = generateJSON(uuid.v4());
   instance.put(argv.s+"/listings/", json)
-    .then(() => {
-      var installs = Math.floor(Math.random()*argv.i);
-      console.log(`Generating ${installs} install records for listing '${json.id}'`);
-      createInstall(0, installs, json, () => createListing(count+1));
-    })
+    .then(listingCallback(json, count))
     .catch(err => console.log(err));
+}
+
+async function listingCallback(json, count) {
+  var installs = Math.floor(Math.random()*argv.i);
+  var solsCount = Math.floor(Math.random()*5) + 1;
+  var versions = [];
+  for (var j=0;j<solsCount;j++) {
+    var v = await createVersion(j, solsCount, json.id);
+    if (v != null) {
+      versions.push(v);
+    }
+  }
+  
+  console.log(`Generating ${installs} install records for listing '${json.id}'`);
+  createInstall(0, installs, json, versions, () => createListing(count+1));
 }
 
 function createCategory(count) {
@@ -101,28 +112,27 @@ function createMarket(count) {
     .catch(err => console.log(err));
 }
 
-function createInstall(curr, max, listing, callback) {
+function createInstall(curr, max, listing, versions, callback) {
   if (curr >= max) {
     return callback();
   }
-  var json = generateInstallJSON(listing);
+  var json = generateInstallJSON(listing, versions);
   instance.post(`${argv.s}/installs/${json['listing_id']}/${json.version}`, json)
-    .then(createInstall(curr+1,max,listing,callback))
+    .then(createInstall(curr+1,max,listing,versions,callback))
+    .catch(err => console.log(err));
+}
+
+async function createVersion(curr, max, id) {
+  if (curr >= max) {
+    return;
+  }
+  var json = generateVersionJSON(curr, id);
+  return instance.put(`${argv.s}/listing_versions`, json)
+    .then(() => {return json})
     .catch(err => console.log(err));
 }
 
 function generateJSON(id) {
-  var solutions = [];
-  var solsCount = Math.floor(Math.random()*5) + 1;
-  for (var i=0; i < solsCount; i++) {
-    solutions.push({
-      "version": i,
-      "eclipse_versions": splice(eclipseVs),
-      "min_java_version": javaVs[Math.floor(Math.random()*javaVs.length)],
-      "platforms": splice(platforms)
-    });
-  }
-  
   return {
     "id": id,
   	"title": "Sample",
@@ -150,7 +160,6 @@ function generateJSON(id) {
   			"url": ""
   		}
   	],
-  	"versions": solutions,
 	"market_ids": splice(marketIds).splice(0,Math.ceil(Math.random()*2)),
   "category_ids": splice(categoryIds).splice(0,Math.ceil(Math.random()*5)+1),
 	"screenshots": ["http://www.example.com/img/sample.png"]
@@ -160,7 +169,7 @@ function generateJSON(id) {
 function generateCategoryJSON(id) {
   return {
     "id": id,
-    "name": randomWords({exactly:1, wordsPerString:Math.ceil(Math.random()*4)})[0],
+    "title": randomWords({exactly:1, wordsPerString:Math.ceil(Math.random()*4)})[0],
     "url": "https://www.eclipse.org"
   };
 }
@@ -168,13 +177,13 @@ function generateCategoryJSON(id) {
 function generateMarketJSON(id) {
   return {
     "id": id,
-    "name": randomWords({exactly:1, wordsPerString:Math.ceil(Math.random()*4)})[0],
+    "title": randomWords({exactly:1, wordsPerString:Math.ceil(Math.random()*4)})[0],
     "url": "https://www.eclipse.org"
   };
 }
 
-function generateInstallJSON(listing) {
-  var version = listing.versions[Math.floor(Math.random()*listing.versions.length)];
+function generateInstallJSON(listing,versions) {
+  var version = versions[Math.floor(Math.random()*versions.length)];
   var javaVersions = Array.from(javaVs).splice(javaVs.indexOf(version["min_java_version"]));
   var eclipseVersions = Array.from(eclipseVs).splice(eclipseVs.indexOf(version["eclipse_version"]));
   
@@ -184,5 +193,15 @@ function generateInstallJSON(listing) {
     "java_version": shuff(javaVersions)[0],
     "os": shuff(version.platforms)[0],
     "eclipse_version": shuff(eclipseVersions)[0]
+  };
+}
+
+function generateVersionJSON(name, listingId) {
+  return {
+    "version": name,
+    "listing_id": listingId,
+    "eclipse_versions": splice(eclipseVs),
+    "min_java_version": javaVs[Math.floor(Math.random()*javaVs.length)],
+    "platforms": splice(platforms)
   };
 }

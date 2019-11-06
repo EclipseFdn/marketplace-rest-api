@@ -11,9 +11,11 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import org.bson.conversions.Bson;
 import org.eclipsefoundation.marketplace.dto.Listing;
+import org.eclipsefoundation.marketplace.dto.ListingVersion;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 import org.eclipsefoundation.marketplace.namespace.DtoTableNames;
@@ -23,35 +25,26 @@ import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 
 /**
- * Filter implementation for the Listing class. Checks the following fields:
- * 
- * <ul>
- * <li>platform_version
- * <li>java_version
- * <li>os
- * <li>license_type
- * <li>q
- * <li>ids
- * <li>tags
- * </ul>
- * 
- * <p>
- * Injects categories into the results by way of aggregate pipeline.
- * </p>
+ * Filter implementation for the {@linkplain Listing} class.
  * 
  * @author Martin Lowe
  */
 @ApplicationScoped
 public class ListingFilter implements DtoFilter<Listing> {
 
+	@Inject
+	DtoFilter<ListingVersion> listingVersionFilter;
+	
 	@Override
-	public List<Bson> getFilters(RequestWrapper wrap) {
+	public List<Bson> getFilters(RequestWrapper wrap, String root) {
 		List<Bson> filters = new ArrayList<>();
-
-		// Listing ID check
-		Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
-		if (id.isPresent()) {
-			filters.add(Filters.eq(DatabaseFieldNames.DOCID, id.get()));
+		// perform following checks only if there is no doc root
+		if (root == null) {
+			// ID check
+			Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
+			if (id.isPresent()) {
+				filters.add(Filters.eq(DatabaseFieldNames.DOCID, id.get()));
+			}
 		}
 
 		// select by multiple IDs
@@ -64,29 +57,6 @@ public class ListingFilter implements DtoFilter<Listing> {
 		Optional<String> licType = wrap.getFirstParam(DatabaseFieldNames.LICENSE_TYPE);
 		if (licType.isPresent()) {
 			filters.add(Filters.eq(DatabaseFieldNames.LICENSE_TYPE, licType.get()));
-		}
-
-		// handle version sub document selection
-		List<Bson> versionFilters = new ArrayList<>();
-		// solution version - OS filter
-		Optional<String> os = wrap.getFirstParam(UrlParameterNames.OS);
-		if (os.isPresent()) {
-			versionFilters.add(Filters.eq("platforms", os.get()));
-		}
-		// solution version - eclipse version
-		Optional<String> eclipseVersion = wrap.getFirstParam(UrlParameterNames.ECLIPSE_VERSION);
-		if (eclipseVersion.isPresent()) {
-			versionFilters.add(Filters.eq("compatible_versions", eclipseVersion.get()));
-		}
-		// TODO this sorts by naturally by character rather than by actual number (e.g.
-		// 1.9 is technically greater than 1.10)
-		// solution version - Java version
-		Optional<String> javaVersion = wrap.getFirstParam(UrlParameterNames.JAVA_VERSION);
-		if (javaVersion.isPresent()) {
-			versionFilters.add(Filters.gte("min_java_version", javaVersion.get()));
-		}
-		if (!versionFilters.isEmpty()) {
-			filters.add(Filters.elemMatch("versions", Filters.and(versionFilters)));
 		}
 
 		// select by multiple tags
@@ -107,6 +77,9 @@ public class ListingFilter implements DtoFilter<Listing> {
 	public List<Bson> getAggregates(RequestWrapper wrap) {
 		List<Bson> aggs = new ArrayList<>();
 		// adds a $lookup aggregate, joining categories on categoryIDS as "categories"
+		aggs.add(Aggregates.lookup(DtoTableNames.LISTING_VERSION.getTableName(), DatabaseFieldNames.DOCID, DatabaseFieldNames.LISTING_ID,
+				DatabaseFieldNames.LISTING_VERSIONS));
+		aggs.addAll(listingVersionFilter.wrapFiltersToAggregate(wrap, DatabaseFieldNames.LISTING_VERSIONS));
 		aggs.add(Aggregates.lookup(DtoTableNames.CATEGORY.getTableName(), DatabaseFieldNames.CATEGORY_IDS, DatabaseFieldNames.DOCID,
 				DatabaseFieldNames.LISTING_CATEGORIES));
 		List<String> marketIds = wrap.getParams(UrlParameterNames.MARKET_IDS);

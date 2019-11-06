@@ -29,12 +29,15 @@ import com.mongodb.client.model.Filters;
 public class CategoryFilter implements DtoFilter<Category> {
 
 	@Override
-	public List<Bson> getFilters(RequestWrapper wrap) {
+	public List<Bson> getFilters(RequestWrapper wrap, String root) {
 		List<Bson> filters = new ArrayList<>();
-		// ID check
-		Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
-		if (id.isPresent()) {
-			filters.add(Filters.eq(DatabaseFieldNames.DOCID, id.get()));
+		// perform following checks only if there is no doc root
+		if (root == null) {
+			// ID check
+			Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
+			if (id.isPresent()) {
+				filters.add(Filters.eq(DatabaseFieldNames.DOCID, id.get()));
+			}
 		}
 		return filters;
 	}

@@ -30,7 +30,7 @@ import com.mongodb.client.model.Filters;
 public class ErrorReportFilter implements DtoFilter<ErrorReport> {
 
 	@Override
-	public List<Bson> getFilters(RequestWrapper wrap) {
+	public List<Bson> getFilters(RequestWrapper wrap, String root) {
 		List<Bson> filters = new ArrayList<>();
 
 		// ErrorReport ID check

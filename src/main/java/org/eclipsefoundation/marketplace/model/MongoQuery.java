@@ -17,7 +17,6 @@ import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
 import org.eclipsefoundation.marketplace.helper.SortableHelper;
 import org.eclipsefoundation.marketplace.helper.SortableHelper.Sortable;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
-import org.eclipsefoundation.marketplace.resource.AnnotationClassInjectionFilter;
 import org.eclipsefoundation.marketplace.service.CachingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +49,6 @@ public class MongoQuery<T> {
 		this.dtoFilter = dtoFilter;
 		this.cache = cache;
 		this.aggregates = new ArrayList<>();
-
 		init();
 	}
 
@@ -68,7 +66,7 @@ public class MongoQuery<T> {
 
 		// get the filters for the current DTO
 		List<Bson> filters = new ArrayList<>();
-		filters.addAll(dtoFilter.getFilters(wrapper));
+		filters.addAll(dtoFilter.getFilters(wrapper, null));
 		
 		// get fields that make up the required fields to enable pagination and check
 		Optional<String> sortOpt = wrapper.getFirstParam(UrlParameterNames.SORT);
@@ -186,7 +184,7 @@ public class MongoQuery<T> {
 	 * @return the docType
 	 */
 	public Class<T> getDocType() {
-		return (Class<T>) wrapper.getAttribute(AnnotationClassInjectionFilter.ATTRIBUTE_NAME).get();
+		return dtoFilter.getType();
 	}
 
 	/**

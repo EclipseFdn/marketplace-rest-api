@@ -26,7 +26,6 @@ import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
-import org.eclipsefoundation.marketplace.model.ResourceDataType;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.eclipsefoundation.marketplace.service.CachingService;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
@@ -40,7 +39,6 @@ import org.slf4j.LoggerFactory;
  */
 @RequestScoped
 @Path("/error")
-@ResourceDataType(ErrorReport.class)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ErrorReportResource {

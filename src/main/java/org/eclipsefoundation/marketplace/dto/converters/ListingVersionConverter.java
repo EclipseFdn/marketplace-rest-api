@@ -9,21 +9,23 @@ package org.eclipsefoundation.marketplace.dto.converters;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
-import org.eclipsefoundation.marketplace.dto.SolutionVersion;
+import org.eclipsefoundation.marketplace.dto.ListingVersion;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 
 /**
- * Converter implementation for the {@link SolutionVersion} object.
+ * Converter implementation for the {@link ListingVersion} object.
  * 
  * @author Martin Lowe
  */
-public class SolutionVersionConverter implements Converter<SolutionVersion> {
+public class ListingVersionConverter implements Converter<ListingVersion> {
 
 	private final FeatureIdConverter featureIdConverter = new FeatureIdConverter();
 
 	@Override
-	public SolutionVersion convert(Document src) {
-		SolutionVersion version = new SolutionVersion();
+	public ListingVersion convert(Document src) {
+		ListingVersion version = new ListingVersion();
+		version.setId(src.getString(DatabaseFieldNames.DOCID));
+		version.setListingId(src.getString(DatabaseFieldNames.LISTING_ID));
 		version.setEclipseVersions(src.getList("compatible_versions", String.class));
 		version.setPlatforms(src.getList("platforms", String.class));
 		version.setMinJavaVersion(src.getString("min_java_version"));
@@ -35,8 +37,10 @@ public class SolutionVersionConverter implements Converter<SolutionVersion> {
 	}
 
 	@Override
-	public Document convert(SolutionVersion src) {
+	public Document convert(ListingVersion src) {
 		Document doc = new Document();
+		doc.put(DatabaseFieldNames.DOCID, src.getId());
+		doc.put(DatabaseFieldNames.LISTING_ID, src.getListingId());
 		doc.put("compatible_versions", src.getEclipseVersions());
 		doc.put("platforms", src.getPlatforms());
 		doc.put("min_java_version", src.getMinJavaVersion());
