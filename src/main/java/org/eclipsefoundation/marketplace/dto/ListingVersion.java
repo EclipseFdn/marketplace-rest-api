@@ -11,12 +11,14 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Domain object representing a marketplace listing solution version
+ * Domain object representing a marketplace listing version
  * 
  * @author Martin Lowe
  */
-public class SolutionVersion {
+public class ListingVersion {
 
+	private String id;
+	private String listingId;
 	private String version;
 	private List<String> eclipseVersions;
 	private List<String> platforms;
@@ -24,10 +26,38 @@ public class SolutionVersion {
 	private String updateSiteUrl;
 	private List<FeatureId> featureIds;
 	
-	public SolutionVersion() {
+	public ListingVersion() {
 		this.eclipseVersions = new ArrayList<>();
 		this.platforms = new ArrayList<>();
 		this.featureIds = new ArrayList<>();
+	}
+
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return the listingId
+	 */
+	public String getListingId() {
+		return listingId;
+	}
+
+	/**
+	 * @param listingId the listingId to set
+	 */
+	public void setListingId(String listingId) {
+		this.listingId = listingId;
 	}
 
 	/**
@@ -106,14 +136,15 @@ public class SolutionVersion {
 	 * @return the featureIds
 	 */
 	public List<FeatureId> getFeatureIds() {
-		return featureIds;
+		return new ArrayList<>(featureIds);
 	}
 
 	/**
 	 * @param featureIds the featureIds to set
 	 */
 	public void setFeatureIds(List<FeatureId> featureIds) {
-		this.featureIds = featureIds;
+		Objects.requireNonNull(featureIds);
+		this.featureIds = new ArrayList<>(featureIds);
 	}
 
 }

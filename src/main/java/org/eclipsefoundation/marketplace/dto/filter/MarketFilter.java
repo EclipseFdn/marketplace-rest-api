@@ -27,6 +27,7 @@ import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Variable;
 
@@ -39,12 +40,15 @@ import com.mongodb.client.model.Variable;
 public class MarketFilter implements DtoFilter<Market> {
 
 	@Override
-	public List<Bson> getFilters(RequestWrapper wrap) {
+	public List<Bson> getFilters(RequestWrapper wrap, String root) {
 		List<Bson> filters = new ArrayList<>();
-		// ID check
-		Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
-		if (id.isPresent()) {
-			filters.add(eq(DatabaseFieldNames.DOCID, id.get()));
+		// perform following checks only if there is no doc root
+		if (root == null) {
+			// ID check
+			Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
+			if (id.isPresent()) {
+				filters.add(Filters.eq(DatabaseFieldNames.DOCID, id.get()));
+			}
 		}
 		return filters;
 	}
@@ -63,7 +67,7 @@ public class MarketFilter implements DtoFilter<Market> {
 				Projections.fields(Projections.excludeId(), Projections.include(DatabaseFieldNames.CATEGORY_IDS))));
 
 		// set up a var reference for the _id
-		Variable<String> id = new Variable<String>("market_id", "$" + DatabaseFieldNames.DOCID);
+		Variable<String> id = new Variable<>("market_id", "$" + DatabaseFieldNames.DOCID);
 		// lookup all category IDS from listings with the given market ID
 		aggs.add(Aggregates.lookup(DtoTableNames.LISTING.getTableName(), Arrays.asList(id), pipeline, tempFieldName));
 		// explode all category IDS for collection

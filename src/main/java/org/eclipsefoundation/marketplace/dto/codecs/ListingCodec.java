@@ -23,7 +23,7 @@ import org.eclipsefoundation.marketplace.dto.Listing;
 import org.eclipsefoundation.marketplace.dto.converters.AuthorConverter;
 import org.eclipsefoundation.marketplace.dto.converters.CategoryConverter;
 import org.eclipsefoundation.marketplace.dto.converters.OrganizationConverter;
-import org.eclipsefoundation.marketplace.dto.converters.SolutionVersionConverter;
+import org.eclipsefoundation.marketplace.dto.converters.ListingVersionConverter;
 import org.eclipsefoundation.marketplace.dto.converters.TagConverter;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 
@@ -43,7 +43,7 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 	private final AuthorConverter authorConverter;
 	private final OrganizationConverter organizationConverter;
 	private final TagConverter tagConverter;
-	private final SolutionVersionConverter versionConverter;
+	private final ListingVersionConverter versionConverter;
 	private final CategoryConverter categoryConverter;
 
 	/**
@@ -55,7 +55,7 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		this.authorConverter = new AuthorConverter();
 		this.organizationConverter = new OrganizationConverter();
 		this.tagConverter = new TagConverter();
-		this.versionConverter = new SolutionVersionConverter();
+		this.versionConverter = new ListingVersionConverter();
 		this.categoryConverter = new CategoryConverter();
 	}
 
@@ -90,8 +90,6 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 				value.getAuthors().stream().map(authorConverter::convert).collect(Collectors.toList()));
 		doc.put(DatabaseFieldNames.LISTING_TAGS,
 				value.getTags().stream().map(tagConverter::convert).collect(Collectors.toList()));
-		doc.put(DatabaseFieldNames.LISTING_VERSIONS,
-				value.getVersions().stream().map(versionConverter::convert).collect(Collectors.toList()));
 		documentCodec.encode(writer, doc, encoderContext);
 	}
 
