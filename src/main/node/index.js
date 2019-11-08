@@ -1,6 +1,7 @@
 const axios = require('axios');
+const time = require('moment');
 const instance = axios.create({
-  timeout: 2500,
+  timeout: 5000,
   headers: {'User-Agent': 'mpc/0.0.0'}
 });
 const randomWords = require('random-words');
@@ -190,7 +191,10 @@ function generateInstallJSON(listing,versions) {
   var javaVersions = Array.from(javaVs).splice(javaVs.indexOf(version["min_java_version"]));
   var eclipseVersions = Array.from(eclipseVs).splice(eclipseVs.indexOf(version["eclipse_version"]));
   
+  var daysAgo = Math.floor(Math.random() * (365*2));
+  
   return {
+    "install_date": time().subtract(daysAgo, 'days').format(),
     "listing_id": listing.id,
     "version": version.version,
     "java_version": shuff(javaVersions)[0],

@@ -61,13 +61,13 @@ public class MongoQuery<T> {
 		// clear old values if set to default
 		this.filter = null;
 		this.sort = null;
-		this.order= SortOrder.NONE;
+		this.order = SortOrder.NONE;
 		this.aggregates = new ArrayList<>();
 
 		// get the filters for the current DTO
 		List<Bson> filters = new ArrayList<>();
 		filters.addAll(dtoFilter.getFilters(wrapper, null));
-		
+
 		// get fields that make up the required fields to enable pagination and check
 		Optional<String> sortOpt = wrapper.getFirstParam(UrlParameterNames.SORT);
 		if (sortOpt.isPresent()) {
@@ -85,7 +85,7 @@ public class MongoQuery<T> {
 			this.filter = Filters.and(filters);
 		}
 		this.aggregates = dtoFilter.getAggregates(wrapper);
-		
+
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("MongoDB query initialized with filter: {}", this.filter);
 		}
@@ -110,7 +110,7 @@ public class MongoQuery<T> {
 		// add base aggregates (joins)
 		out.addAll(aggregates);
 		// add sample if we aren't sorting
-		if (sort == null || SortOrder.RANDOM.equals(order)) {
+		if ((sort == null || SortOrder.RANDOM.equals(order)) && dtoFilter.useLimit()) {
 			out.add(Aggregates.sample(limit));
 		}
 		if (sort != null) {
@@ -136,7 +136,7 @@ public class MongoQuery<T> {
 
 	private void setSort(String sortField, String sortOrder, List<Bson> filters) {
 		Optional<String> lastOpt = wrapper.getFirstParam(UrlParameterNames.LAST_SEEN);
-		
+
 		List<Sortable<?>> fields = SortableHelper.getSortableFields(getDocType());
 		Optional<Sortable<?>> fieldContainer = SortableHelper.getSortableFieldByName(fields, sortField);
 		if (fieldContainer.isPresent()) {
@@ -178,6 +178,13 @@ public class MongoQuery<T> {
 	 */
 	public Bson getFilter() {
 		return this.filter;
+	}
+
+	/**
+	 * @return the DTO filter
+	 */
+	public DtoFilter<T> getDTOFilter() {
+		return this.dtoFilter;
 	}
 
 	/**

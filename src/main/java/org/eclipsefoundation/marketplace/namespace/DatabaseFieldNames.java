@@ -30,8 +30,8 @@ public final class DatabaseFieldNames {
 	public static final String LISTING_AUTHORS = "authors";
 	public static final String LISTING_STATUS = "status";
 	public static final String LISTING_ORGANIZATIONS = "organization";
-	public static final String RECENT_NSTALLS = "installs_recent";
-	public static final String TOTAL_NSTALLS = "installs_total";
+	public static final String RECENT_INSTALLS = "installs_recent";
+	public static final String TOTAL_INSTALLS = "installs_total";
 	public static final String MARKETPLACE_FAVORITES = "favorite_count";
 	public static final String LICENSE_TYPE = "license_type";
 	public static final String PLATFORMS = "platforms";
@@ -77,6 +77,15 @@ public final class DatabaseFieldNames {
 	public static final String INSTALL_DATE = "date";
 	public static final String ECLIPSE_VERSION = "eclipse_version";
 	public static final String LOCALE = "locale";
+	
+	// metric period fields
+	public static final String PERIOD_END = "period_end";
+	public static final String PERIOD_START = "period_start";
+	public static final String PERIOD_COUNT = "count";
+	
+	// install metric fields
+	public static final String METRIC_PERIODS = "periods";
+	public static final String MONTH_OFFSET_PREFIX = "offset_";
 	
 	private DatabaseFieldNames() {
 	}

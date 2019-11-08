@@ -43,7 +43,7 @@ public class DateTimeHelper {
 			return null;
 		}
 	}
-
+	
 	/**
 	 * Converts passed date to RFC 3339 compliant date string. Time is adjusted to
 	 * be in UTC time.

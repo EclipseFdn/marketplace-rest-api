@@ -25,9 +25,10 @@ public class JsonBConfig implements ContextResolver<Jsonb> {
 	@Override
 	public Jsonb getContext(Class<?> type) {
 		JsonbConfig config = new JsonbConfig();
-		
+
 		// following strategy is defined as default by internal API guidelines
-		config.withPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CASE_WITH_UNDERSCORES);
+		config.withPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CASE_WITH_UNDERSCORES)
+				.withDateFormat("uuuu-MM-dd'T'HH:mm:ssXXX", null);
 		return JsonbBuilder.create(config);
 	}
 }

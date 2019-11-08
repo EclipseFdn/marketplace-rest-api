@@ -10,9 +10,11 @@ import org.eclipsefoundation.marketplace.dto.Catalog;
 import org.eclipsefoundation.marketplace.dto.Category;
 import org.eclipsefoundation.marketplace.dto.ErrorReport;
 import org.eclipsefoundation.marketplace.dto.Install;
+import org.eclipsefoundation.marketplace.dto.InstallMetrics;
 import org.eclipsefoundation.marketplace.dto.Listing;
 import org.eclipsefoundation.marketplace.dto.ListingVersion;
 import org.eclipsefoundation.marketplace.dto.Market;
+import org.eclipsefoundation.marketplace.dto.MetricPeriod;
 
 /**
  * Mapping of DTO classes to their respective tables in the DB.
@@ -23,6 +25,7 @@ import org.eclipsefoundation.marketplace.dto.Market;
 public enum DtoTableNames {
 	LISTING(Listing.class, "listings"), CATEGORY(Category.class, "categories"), CATALOG(Catalog.class, "catalogs"),
 	MARKET(Market.class, "markets"), ERRORREPORT(ErrorReport.class, "errorreports"), INSTALL(Install.class, "installs"),
+	INSTALL_METRIC(InstallMetrics.class, "install_metrics"), METRIC_PERIOD(MetricPeriod.class, "installs"),
 	LISTING_VERSION(ListingVersion.class, "listing_versions");
 
 	private Class<?> baseClass;

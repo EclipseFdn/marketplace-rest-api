@@ -22,7 +22,9 @@ import org.eclipsefoundation.marketplace.namespace.DtoTableNames;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 
 import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Field;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
 
 /**
  * Filter implementation for the {@linkplain Listing} class.
@@ -80,13 +82,21 @@ public class ListingFilter implements DtoFilter<Listing> {
 		aggs.add(Aggregates.lookup(DtoTableNames.LISTING_VERSION.getTableName(), DatabaseFieldNames.DOCID, DatabaseFieldNames.LISTING_ID,
 				DatabaseFieldNames.LISTING_VERSIONS));
 		aggs.addAll(listingVersionFilter.wrapFiltersToAggregate(wrap, DatabaseFieldNames.LISTING_VERSIONS));
-		aggs.add(Aggregates.lookup(DtoTableNames.CATEGORY.getTableName(), DatabaseFieldNames.CATEGORY_IDS, DatabaseFieldNames.DOCID,
-				DatabaseFieldNames.LISTING_CATEGORIES));
+		aggs.add(Aggregates.lookup(DtoTableNames.CATEGORY.getTableName(), DatabaseFieldNames.CATEGORY_IDS,
+				DatabaseFieldNames.DOCID, DatabaseFieldNames.LISTING_CATEGORIES));
 		List<String> marketIds = wrap.getParams(UrlParameterNames.MARKET_IDS);
 		if (!marketIds.isEmpty()) {
 			aggs.add(Aggregates.match(Filters.in("categories.market_ids", marketIds)));
 		}
-		
+		// adds a $lookup aggregate, joining install metrics on ids as "installs"
+		aggs.add(Aggregates.lookup(DtoTableNames.INSTALL_METRIC.getTableName(), DatabaseFieldNames.DOCID,
+				DatabaseFieldNames.DOCID, "installs"));
+		// unwinds the installs out of arrays
+		aggs.add(Aggregates.unwind("$installs"));
+		// push the installs counts to the listing, and remove the installs merged in
+		aggs.add(Aggregates.addFields(new Field<String>(DatabaseFieldNames.RECENT_INSTALLS, "$installs.offset_0.count"),
+				new Field<String>(DatabaseFieldNames.TOTAL_INSTALLS, "$installs.count")));
+		aggs.add(Aggregates.project(Projections.exclude("installs")));
 		return aggs;
 	}
 

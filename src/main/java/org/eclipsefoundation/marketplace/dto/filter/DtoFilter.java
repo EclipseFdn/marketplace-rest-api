@@ -71,4 +71,15 @@ public interface DtoFilter<T> {
 	default String getPath(String root, String fieldName) {
 		return StringUtils.isBlank(root) ? fieldName : root + '.' + fieldName;
 	}
+	
+	/**
+	 * Whether this type of data should be restrained to a limited set, or return
+	 * all data that is found.
+	 * 
+	 * @return true if limit should be used, false otherwise.
+	 */
+	default boolean useLimit() {
+		return true;
+	}
+
 }

@@ -135,4 +135,28 @@ public class Install {
 	public void setLocale(String locale) {
 		this.locale = locale;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Install [id=");
+		builder.append(id);
+		builder.append(", installDate=");
+		builder.append(installDate);
+		builder.append(", os=");
+		builder.append(os);
+		builder.append(", version=");
+		builder.append(version);
+		builder.append(", listingId=");
+		builder.append(listingId);
+		builder.append(", javaVersion=");
+		builder.append(javaVersion);
+		builder.append(", eclipseVersion=");
+		builder.append(eclipseVersion);
+		builder.append(", locale=");
+		builder.append(locale);
+		builder.append("]");
+		return builder.toString();
+	}
+
 }

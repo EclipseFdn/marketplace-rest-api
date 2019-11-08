@@ -100,7 +100,6 @@ public class RequestWrapper {
 	 * Adds the given value for the given key, preserving previous values if they
 	 * exist.
 	 * 
-	 * @param wrapper map containing parameters to update
 	 * @param key     string key to add the value to, must not be null
 	 * @param value   the value to add to the key
 	 */
@@ -110,6 +109,23 @@ public class RequestWrapper {
 		}
 		Objects.requireNonNull(value);
 		getParams().computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+	}
+
+	/**
+	 * Sets the value as the value for the given key, removing previous values if
+	 * they exist.
+	 * 
+	 * @param key     string key to add the value to, must not be null
+	 * @param value   the value to add to the key
+	 */
+	public void setParam(String key, String value) {
+		if (StringUtils.isBlank(key)) {
+			throw new IllegalArgumentException(EMPTY_KEY_MESSAGE);
+		}
+		Objects.requireNonNull(value);
+		// remove current value, and add new value in its place
+		getParams().remove(key);
+		addParam(key, value);
 	}
 
 	/**

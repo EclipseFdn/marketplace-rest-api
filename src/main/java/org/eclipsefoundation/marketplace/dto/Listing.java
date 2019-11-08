@@ -38,10 +38,10 @@ public class Listing extends NodeBase {
 	private boolean foundationMember;
 
 	@SortableField(name = "installs_count")
-	private long installsTotal;
+	private Integer installsTotal;
 
 	@SortableField(name = "installs_count_recent")
-	private long installsRecent;
+	private Integer installsRecent;
 
 	@SortableField
 	private long favoriteCount;
@@ -179,7 +179,7 @@ public class Listing extends NodeBase {
 	 * @return the installsTotal
 	 */
 	@JsonbProperty("installs_count")
-	public long getInstallsTotal() {
+	public Integer getInstallsTotal() {
 		return installsTotal;
 	}
 
@@ -187,7 +187,7 @@ public class Listing extends NodeBase {
 	 * @param installsTotal the installsTotal to set
 	 */
 	@JsonbTransient
-	public void setInstallsTotal(long installsTotal) {
+	public void setInstallsTotal(Integer installsTotal) {
 		this.installsTotal = installsTotal;
 	}
 
@@ -195,7 +195,7 @@ public class Listing extends NodeBase {
 	 * @return the installsRecent
 	 */
 	@JsonbProperty("installs_count_recent")
-	public long getInstallsRecent() {
+	public Integer getInstallsRecent() {
 		return installsRecent;
 	}
 
@@ -203,7 +203,7 @@ public class Listing extends NodeBase {
 	 * @param installsRecent the installsRecent to set
 	 */
 	@JsonbTransient
-	public void setInstallsRecent(long installsRecent) {
+	public void setInstallsRecent(Integer installsRecent) {
 		this.installsRecent = installsRecent;
 	}
 

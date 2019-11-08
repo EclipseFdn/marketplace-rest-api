@@ -6,10 +6,17 @@
  */
 package org.eclipsefoundation.marketplace.resource;
 
-import java.sql.Date;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -26,7 +33,10 @@ import javax.ws.rs.core.Response.Status;
 
 import org.eclipsefoundation.marketplace.dao.MongoDao;
 import org.eclipsefoundation.marketplace.dto.Install;
+import org.eclipsefoundation.marketplace.dto.InstallMetrics;
+import org.eclipsefoundation.marketplace.dto.MetricPeriod;
 import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
+import org.eclipsefoundation.marketplace.helper.DateTimeHelper;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
 import org.eclipsefoundation.marketplace.model.Error;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
@@ -53,32 +63,38 @@ public class InstallResource {
 	MongoDao dao;
 	@Inject
 	RequestWrapper wrapper;
+
+	// insert required filters for different objects + states
 	@Inject
 	DtoFilter<Install> dtoFilter;
+	@Inject
+	DtoFilter<MetricPeriod> periodFilter;
+	@Inject
+	DtoFilter<InstallMetrics> metricFilter;
 
 	// Inject 2 caching service references, as we want to cache count results.
 	@Inject
 	CachingService<Long> countCache;
 	@Inject
-	CachingService<List<Install>> installCache;
+	CachingService<List<InstallMetrics>> installCache;
 
 	/**
-	 * Endpoint for /listing/\<listingId\>/installs to retrieve install metrics for
-	 * a specific listing from the database.
+	 * Endpoint for /installs/${listingId} to retrieve install counts for a specific
+	 * listing from the database with given filters.
 	 * 
-	 * @param listingId int version of the listing ID
+	 * @param listingId the listing ID
 	 * @return response for the browser
 	 */
 	@GET
 	@PermitAll
 	@Path("/{listingId}")
-	public Response selectInstallMetrics(@PathParam("listingId") String listingId) {
+	public Response selectInstallCount(@PathParam("listingId") String listingId) {
 		wrapper.addParam(UrlParameterNames.ID, listingId);
-		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter, installCache);
+		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter, null);
 		Optional<Long> cachedResults = countCache.get(listingId, wrapper,
 				() -> StreamHelper.awaitCompletionStage(dao.count(q)));
 		if (!cachedResults.isPresent()) {
-			LOGGER.error("Error while retrieving cached listing for ID {}", listingId);
+			LOGGER.error("Error while retrieving cached install metrics for ID {}", listingId);
 			return Response.serverError().build();
 		}
 
@@ -88,21 +104,20 @@ public class InstallResource {
 
 	/**
 	 * 
-	 * Endpoint for /listing/\<listingId\>/installs/\<version\> to retrieve install
-	 * metrics for a specific listing version from the database.
+	 * Endpoint for /installs/${listingId}/${version} to retrieve install counts for
+	 * a specific listing version from the database.
 	 * 
-	 * @param listingId int version of the listing ID
-	 * @param version   int version of the listing version number
+	 * @param listingId the listing ID
+	 * @param version   the listing version number
 	 * @return response for the browser
 	 */
 	@GET
 	@PermitAll
 	@Path("/{listingId}/{version}")
-	public Response selectInstallMetrics(@PathParam("listingId") String listingId,
-			@PathParam("version") String version) {
+	public Response selectInstallCount(@PathParam("listingId") String listingId, @PathParam("version") String version) {
 		wrapper.addParam(UrlParameterNames.ID, listingId);
 		wrapper.addParam(UrlParameterNames.VERSION, version);
-		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter, installCache);
+		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter, null);
 		Optional<Long> cachedResults = countCache.get(getCompositeKey(listingId, version), wrapper,
 				() -> StreamHelper.awaitCompletionStage(dao.count(q)));
 		if (!cachedResults.isPresent()) {
@@ -115,11 +130,35 @@ public class InstallResource {
 	}
 
 	/**
-	 * Endpoint for /listing/\<listingId\>/installs/\<version\> to post install
-	 * metrics for a specific listing version to a database.
+	 * Endpoint for /installs/${listingId}/metrics to retrieve install metrics for a
+	 * specific listing from the database.
 	 * 
-	 * @param listingId int version of the listing ID
-	 * @param version   int version of the listing version number
+	 * @param listingId the listing ID
+	 * @return response for the browser
+	 */
+	@GET
+	@PermitAll
+	@Path("/{listingId}/metrics")
+	public Response selectInstallMetrics(@PathParam("listingId") String listingId) {
+		wrapper.addParam(UrlParameterNames.ID, listingId);
+		MongoQuery<InstallMetrics> q = new MongoQuery<>(wrapper, metricFilter, null);
+		Optional<List<InstallMetrics>> cachedResults = installCache.get(listingId, wrapper,
+				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+		if (!cachedResults.isPresent()) {
+			LOGGER.error("Error while retrieving cached install metrics for ID {}", listingId);
+			return Response.serverError().build();
+		}
+
+		// return the results as a response
+		return Response.ok(cachedResults.get()).build();
+	}
+
+	/**
+	 * Endpoint for /installs/${listingId}/${version} to post install metrics for a
+	 * specific listing version to a database.
+	 * 
+	 * @param listingId the listing ID
+	 * @param version   the listing version number
 	 * @return response for the browser
 	 */
 	@POST
@@ -145,16 +184,89 @@ public class InstallResource {
 		}
 
 		// update the install details to reflect the current request
-		record.setInstallDate(new Date(System.currentTimeMillis()));
 		record.setListingId(listingId);
 		record.setVersion(version);
 
 		// create the query wrapper to pass to DB dao
-		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter, installCache);
+		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter, null);
 
 		// add the object, and await the result
 		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(record)));
 
+		// return the results as a response
+		return Response.ok().build();
+	}
+
+	/**
+	 * Regenerates the install_metrics table, using the install table as the base.
+	 * Creates 12 columns for metric periods, to provide users with a count of
+	 * installs over the past year. For months with no installs, an empty metric
+	 * period is generated to avoid gaps in the stats.
+	 * 
+	 * TODO: This should be moved to a separate job resource and be callable through
+	 * a service that tracks last run time. https://github.com/EclipseFdn/marketplace-rest-api/issues/54
+	 * 
+	 * @return an OK response when finished
+	 */
+	@GET
+	@RolesAllowed("marketplace_admin_access")
+	@Path("/generate_metrics")
+	public Response generateInstallStats() {
+		List<CompletionStage<List<MetricPeriod>>> stages = new ArrayList<>();
+		// get total install count for all listings available
+		Map<String, Integer> overallCounts = new HashMap<>();
+		CompletionStage<List<MetricPeriod>> stage = dao.get(new MongoQuery<>(wrapper, periodFilter, null));
+		stage.whenComplete((metrics, e) -> {
+			// if theres an error, immediately stop processing
+			if (e != null) {
+				throw new RuntimeException(e);
+			}
+			// for each metric, insert total count into the map
+			for (MetricPeriod metric : metrics) {
+				overallCounts.put(metric.getListingId(), metric.getCount());
+			}
+		});
+		stages.add(stage);
+
+		// use thread safe map impl for storing metrics
+		Map<String, List<MetricPeriod>> r = new ConcurrentHashMap<>();
+		// get the last 12 months of stats for installs asynchronously
+		Calendar c = Calendar.getInstance();
+		for (int m = 0; m < 12; m++) {
+			// set up the date ranges for the current call
+			String end = DateTimeHelper.toRFC3339(c.getTime());
+			c.add(Calendar.MONTH, -1);
+			String start = DateTimeHelper.toRFC3339(c.getTime());
+			wrapper.setParam(UrlParameterNames.END, end);
+			wrapper.setParam(UrlParameterNames.START, start);
+
+			// create the query wrapper to pass to DB dao. No cache needed as this info
+			// won't be cached
+			MongoQuery<MetricPeriod> q = new MongoQuery<>(wrapper, periodFilter, null);
+			// run query, and set up a completion activity to record data
+			CompletionStage<List<MetricPeriod>> statStage = dao.get(q);
+			statStage.whenComplete((metrics, e) -> {
+				// if theres an error, immediately stop processing
+				if (e != null) {
+					throw new RuntimeException(e);
+				}
+				// for each metric, insert into the map
+				for (MetricPeriod metric : metrics) {
+					r.computeIfAbsent(metric.getListingId(), k -> new ArrayList<MetricPeriod>()).add(metric);
+				}
+			});
+			// keep stage reference to check when complete
+			stages.add(statStage);
+		}
+		// wrap futures and await all calls to finish
+		StreamHelper.awaitCompletionStage(CompletableFuture.allOf(stages.toArray(new CompletableFuture[] {})));
+
+		// convert the map to a list of install metric objects, adding in total count
+		List<InstallMetrics> installMetrics = r.entrySet().stream().map(entry -> new InstallMetrics(entry.getKey(),
+				entry.getValue(), overallCounts.getOrDefault(entry.getKey(), 0))).collect(Collectors.toList());
+
+		// push the content to the database, and await for it to finish
+		StreamHelper.awaitCompletionStage(dao.add(new MongoQuery<>(wrapper, metricFilter, null), installMetrics));
 		// return the results as a response
 		return Response.ok().build();
 	}
