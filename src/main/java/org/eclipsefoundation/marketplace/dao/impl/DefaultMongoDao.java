@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
+import org.eclipse.microprofile.reactive.streams.operators.PublisherBuilder;
 import org.eclipsefoundation.marketplace.dao.MongoDao;
 import org.eclipsefoundation.marketplace.exception.MaintenanceException;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
@@ -59,10 +60,16 @@ public class DefaultMongoDao implements MongoDao {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Querying MongoDB using the following query: {}", q);
 		}
-		
+
 		LOGGER.debug("Getting aggregate results");
-		return getCollection(q.getDocType()).aggregate(q.getPipeline(getLimit(q)), q.getDocType()).limit(getLimit(q))
-				.distinct().toList().run();
+		// build base query
+		PublisherBuilder<T> builder = getCollection(q.getDocType()).aggregate(q.getPipeline(getLimit(q)), q.getDocType());
+		// check if result set should be limited
+		if (q.getDTOFilter().useLimit()) {
+			builder = builder.limit(getLimit(q));
+		}
+		// run the query
+		return builder.distinct().toList().run();
 	}
 
 	@Override

@@ -32,6 +32,8 @@ public final class UrlParameterNames {
 	public static final String FEATURE_ID = "feature_id";
 	public static final String VERSION = "version";
 	public static final String DATE_FROM = "from";
+	public static final String END = "end";
+	public static final String START = "start";
 	
 	private UrlParameterNames() {
 	}
