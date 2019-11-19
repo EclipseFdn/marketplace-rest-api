@@ -25,6 +25,7 @@ import javax.ws.rs.core.Response;
 import org.eclipsefoundation.marketplace.dao.MongoDao;
 import org.eclipsefoundation.marketplace.dto.ErrorReport;
 import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
+import org.eclipsefoundation.marketplace.helper.ResponseHelper;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
@@ -54,6 +55,8 @@ public class ErrorReportResource {
 	RequestWrapper params;
 	@Inject
 	DtoFilter<ErrorReport> dtoFilter;
+	@Inject
+	ResponseHelper responseBuider;
 
 	/**
 	 * Endpoint for /error/ to retrieve all ErrorReports from the database along with
@@ -65,7 +68,7 @@ public class ErrorReportResource {
 	@GET
 	@PermitAll
 	public Response select() {
-		MongoQuery<ErrorReport> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<ErrorReport> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
 		Optional<List<ErrorReport>> cachedResults = cachingService.get("all", params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
@@ -75,7 +78,7 @@ public class ErrorReportResource {
 		}
 
 		// return the results as a response
-		return Response.ok(cachedResults.get()).build();
+		return responseBuider.build("all", params, cachedResults.get());
 	}
 
 	/**
@@ -87,7 +90,7 @@ public class ErrorReportResource {
 	@PUT
 	@RolesAllowed("error_put")
 	public Response putErrorReport(ErrorReport errorReport) {
-		MongoQuery<ErrorReport> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<ErrorReport> q = new MongoQuery<>(params, dtoFilter);
 
 		// add the object, and await the result
 		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(errorReport)));
@@ -109,7 +112,7 @@ public class ErrorReportResource {
 	public Response select(@PathParam("errorReportId") String errorReportId) {
 		params.addParam(UrlParameterNames.ID, errorReportId);
 
-		MongoQuery<ErrorReport> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<ErrorReport> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current ErrorReport
 		Optional<List<ErrorReport>> cachedResults = cachingService.get(errorReportId, params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
@@ -119,6 +122,6 @@ public class ErrorReportResource {
 		}
 
 		// return the results as a response
-		return Response.ok(cachedResults.get()).build();
+		return responseBuider.build(errorReportId, params, cachedResults.get());
 	}
 }

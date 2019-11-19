@@ -37,6 +37,7 @@ import org.eclipsefoundation.marketplace.dto.InstallMetrics;
 import org.eclipsefoundation.marketplace.dto.MetricPeriod;
 import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
 import org.eclipsefoundation.marketplace.helper.DateTimeHelper;
+import org.eclipsefoundation.marketplace.helper.ResponseHelper;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
 import org.eclipsefoundation.marketplace.model.Error;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
@@ -63,6 +64,8 @@ public class InstallResource {
 	MongoDao dao;
 	@Inject
 	RequestWrapper wrapper;
+	@Inject
+	ResponseHelper responseBuider;
 
 	// insert required filters for different objects + states
 	@Inject
@@ -90,7 +93,7 @@ public class InstallResource {
 	@Path("/{listingId}")
 	public Response selectInstallCount(@PathParam("listingId") String listingId) {
 		wrapper.addParam(UrlParameterNames.ID, listingId);
-		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter, null);
+		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter);
 		Optional<Long> cachedResults = countCache.get(listingId, wrapper,
 				() -> StreamHelper.awaitCompletionStage(dao.count(q)));
 		if (!cachedResults.isPresent()) {
@@ -99,7 +102,7 @@ public class InstallResource {
 		}
 
 		// return the results as a response
-		return Response.ok(cachedResults.get()).build();
+		return responseBuider.build(listingId, wrapper, cachedResults.get());
 	}
 
 	/**
@@ -117,7 +120,7 @@ public class InstallResource {
 	public Response selectInstallCount(@PathParam("listingId") String listingId, @PathParam("version") String version) {
 		wrapper.addParam(UrlParameterNames.ID, listingId);
 		wrapper.addParam(UrlParameterNames.VERSION, version);
-		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter, null);
+		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter);
 		Optional<Long> cachedResults = countCache.get(getCompositeKey(listingId, version), wrapper,
 				() -> StreamHelper.awaitCompletionStage(dao.count(q)));
 		if (!cachedResults.isPresent()) {
@@ -126,7 +129,7 @@ public class InstallResource {
 		}
 
 		// return the results as a response
-		return Response.ok(cachedResults.get()).build();
+		return responseBuider.build(getCompositeKey(listingId, version), wrapper, cachedResults.get());
 	}
 
 	/**
@@ -141,7 +144,7 @@ public class InstallResource {
 	@Path("/{listingId}/metrics")
 	public Response selectInstallMetrics(@PathParam("listingId") String listingId) {
 		wrapper.addParam(UrlParameterNames.ID, listingId);
-		MongoQuery<InstallMetrics> q = new MongoQuery<>(wrapper, metricFilter, null);
+		MongoQuery<InstallMetrics> q = new MongoQuery<>(wrapper, metricFilter);
 		Optional<List<InstallMetrics>> cachedResults = installCache.get(listingId, wrapper,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
@@ -188,7 +191,7 @@ public class InstallResource {
 		record.setVersion(version);
 
 		// create the query wrapper to pass to DB dao
-		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter, null);
+		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter);
 
 		// add the object, and await the result
 		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(record)));
@@ -215,7 +218,7 @@ public class InstallResource {
 		List<CompletionStage<List<MetricPeriod>>> stages = new ArrayList<>();
 		// get total install count for all listings available
 		Map<String, Integer> overallCounts = new HashMap<>();
-		CompletionStage<List<MetricPeriod>> stage = dao.get(new MongoQuery<>(wrapper, periodFilter, null));
+		CompletionStage<List<MetricPeriod>> stage = dao.get(new MongoQuery<>(wrapper, periodFilter));
 		stage.whenComplete((metrics, e) -> {
 			// if theres an error, immediately stop processing
 			if (e != null) {
@@ -242,7 +245,7 @@ public class InstallResource {
 
 			// create the query wrapper to pass to DB dao. No cache needed as this info
 			// won't be cached
-			MongoQuery<MetricPeriod> q = new MongoQuery<>(wrapper, periodFilter, null);
+			MongoQuery<MetricPeriod> q = new MongoQuery<>(wrapper, periodFilter);
 			// run query, and set up a completion activity to record data
 			CompletionStage<List<MetricPeriod>> statStage = dao.get(q);
 			statStage.whenComplete((metrics, e) -> {
@@ -266,7 +269,7 @@ public class InstallResource {
 				entry.getValue(), overallCounts.getOrDefault(entry.getKey(), 0))).collect(Collectors.toList());
 
 		// push the content to the database, and await for it to finish
-		StreamHelper.awaitCompletionStage(dao.add(new MongoQuery<>(wrapper, metricFilter, null), installMetrics));
+		StreamHelper.awaitCompletionStage(dao.add(new MongoQuery<>(wrapper, metricFilter), installMetrics));
 		// return the results as a response
 		return Response.ok().build();
 	}
