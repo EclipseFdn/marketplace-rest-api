@@ -30,6 +30,7 @@ import javax.ws.rs.core.Response.Status;
 import org.eclipsefoundation.marketplace.dao.MongoDao;
 import org.eclipsefoundation.marketplace.dto.Listing;
 import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
+import org.eclipsefoundation.marketplace.helper.ResponseHelper;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
 import org.eclipsefoundation.marketplace.model.Error;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
@@ -62,6 +63,8 @@ public class ListingResource {
 	RequestWrapper params;
 	@Inject
 	DtoFilter<Listing> dtoFilter;
+	@Inject
+	ResponseHelper responseBuider;
 
 	/**
 	 * Endpoint for /listing/ to retrieve all listings from the database along with
@@ -73,7 +76,7 @@ public class ListingResource {
 	@GET
 	@PermitAll
 	public Response select() {
-		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
 		Optional<List<Listing>> cachedResults = cachingService.get("all", params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
@@ -83,7 +86,7 @@ public class ListingResource {
 		}
 
 		// return the results as a response
-		return Response.ok(cachedResults.get()).build();
+		return responseBuider.build("all", params, cachedResults.get());
 	}
 
 	/**
@@ -95,7 +98,7 @@ public class ListingResource {
 	@PUT
 	@RolesAllowed({ "marketplace_listing_put", "marketplace_admin_access" })
 	public Response putListing(Listing listing) {
-		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter);
 
 		// add the object, and await the result
 		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(listing)));
@@ -117,7 +120,7 @@ public class ListingResource {
 	public Response select(@PathParam("listingId") String listingId) {
 		params.addParam(UrlParameterNames.ID, listingId);
 
-		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current listing
 		Optional<List<Listing>> cachedResults = cachingService.get(listingId, params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
@@ -127,7 +130,7 @@ public class ListingResource {
 		}
 
 		// return the results as a response
-		return Response.ok(cachedResults.get()).build();
+		return responseBuider.build(listingId, params, cachedResults.get());
 	}
 
 	/**
@@ -142,7 +145,7 @@ public class ListingResource {
 	@Path("/{listingId}")
 	public Response delete(@PathParam("listingId") String listingId) {
 		params.addParam(UrlParameterNames.ID, listingId);
-		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter);
 		// delete the currently selected asset
 		DeleteResult result = StreamHelper.awaitCompletionStage(dao.delete(q));
 		if (result.getDeletedCount() == 0 || !result.wasAcknowledged()) {

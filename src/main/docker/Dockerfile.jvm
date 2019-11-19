@@ -3,27 +3,18 @@
 #
 # Before building the docker image run:
 #
-# mvn package
+# mvn package -Dconfig.secret.path=<full path to secret file>
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.jvm -t quarkus/sample-jvm .
+# docker build -f src/main/docker/Dockerfile.jvm -t quarkus/mpc-rest-api-jvm .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/sample-jvm
+# docker run -i --rm -p 8090:8090 quarkus/mpc-rest-api-jvm
 #
 ###
 FROM fabric8/java-alpine-openjdk8-jre
-  
-## Where to source the cert file
-ARG LOCAL_CRT=config/local.crt
-ENV LOCAL_CRT ${LOCAL_CRT}
-
-## copy to a temp ssl dir for container usage
-WORKDIR /tmp
-RUN mkdir ssl
-COPY $LOCAL_CRT ssl/local.crt
 
 ## Where to copy the secret file, default to tmp
 ARG SECRET_LOCATION=/tmp

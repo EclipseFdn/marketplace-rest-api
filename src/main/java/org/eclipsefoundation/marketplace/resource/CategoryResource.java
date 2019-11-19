@@ -27,6 +27,7 @@ import javax.ws.rs.core.Response.Status;
 import org.eclipsefoundation.marketplace.dao.MongoDao;
 import org.eclipsefoundation.marketplace.dto.Category;
 import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
+import org.eclipsefoundation.marketplace.helper.ResponseHelper;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
 import org.eclipsefoundation.marketplace.model.Error;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
@@ -58,11 +59,13 @@ public class CategoryResource {
 	RequestWrapper params;
 	@Inject
 	DtoFilter<Category> dtoFilter;
+	@Inject
+	ResponseHelper responseBuider;
 
 	@GET
 	@PermitAll
 	public Response select() {
-		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
 		Optional<List<Category>> cachedResults = cachingService.get("all", params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
@@ -72,7 +75,7 @@ public class CategoryResource {
 		}
 
 		// return the results as a response
-		return Response.ok(cachedResults.get()).build();
+		return responseBuider.build("all", params, cachedResults.get());
 	}
 
 	/**
@@ -84,7 +87,7 @@ public class CategoryResource {
 	@PUT
 	@RolesAllowed({"marketplace_category_put", "marketplace_admin_access"})
 	public Response putCategory(Category category) {
-		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter);
 		// add the object, and await the result
 		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(category)));
 
@@ -104,7 +107,7 @@ public class CategoryResource {
 	public Response select(@PathParam("categoryId") String categoryId) {
 		params.addParam(UrlParameterNames.ID, categoryId);
 
-		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current listing
 		Optional<List<Category>> cachedResults = cachingService.get(categoryId, params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
@@ -114,7 +117,7 @@ public class CategoryResource {
 		}
 
 		// return the results as a response
-		return Response.ok(cachedResults.get()).build();
+		return responseBuider.build(categoryId, params, cachedResults.get());
 	}
 
 	/**
@@ -130,7 +133,7 @@ public class CategoryResource {
 	public Response delete(@PathParam("categoryId") String categoryId) {
 		params.addParam(UrlParameterNames.ID, categoryId);
 
-		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter);
 		// delete the currently selected asset
 		DeleteResult result = StreamHelper.awaitCompletionStage(dao.delete(q));
 		if (result.getDeletedCount() == 0 || !result.wasAcknowledged()) {

@@ -6,11 +6,12 @@
  */
 package org.eclipsefoundation.marketplace.service.impl;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
@@ -47,24 +48,26 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 public class GuavaCachingService<T> implements CachingService<T> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GuavaCachingService.class);
 
-	@ConfigProperty(name = "cache.max", defaultValue = "2500")
+	@ConfigProperty(name = "cache.max.size", defaultValue = "10000")
 	long maxSize;
-	@ConfigProperty(name = "cache.ttl.access", defaultValue = "21600")
-	long ttlAccess;
-	@ConfigProperty(name = "cache.ttl.write", defaultValue = "86400")
+	@ConfigProperty(name = "cache.ttl.write.seconds", defaultValue = "900")
 	long ttlWrite;
 
 	// actual cache object
 	Cache<String, T> cache = null;
+	Map<String, Long> ttl;
 
 	@PostConstruct
 	public void init() {
+		this.ttl = new HashMap<>();
+		// create cache with configured settings that maintains a TTL map
 		cache = CacheBuilder
-				.newBuilder()
-				.maximumSize(maxSize)
-				.expireAfterAccess(ttlAccess, TimeUnit.SECONDS)
-				.expireAfterWrite(ttlWrite, TimeUnit.SECONDS)
-				.build();
+					.newBuilder()
+					.maximumSize(maxSize)
+					.expireAfterWrite(ttlWrite, TimeUnit.SECONDS)
+					.removalListener(not -> ttl.remove(not.getKey()))
+					.build();
+
 	}
 
 	@Override
@@ -72,18 +75,38 @@ public class GuavaCachingService<T> implements CachingService<T> {
 		Objects.requireNonNull(id);
 		Objects.requireNonNull(params);
 		Objects.requireNonNull(callable);
-		
-		String cacheKey = getCacheKey(id, params);		
+
+		String cacheKey = getCacheKey(id, params);
 		try {
+			// check if the cache is bypassed for the request
+			if (params.isCacheBypass()) {
+				T result = callable.call();
+				// if the cache has a value for key, update it
+				if (cache.asMap().containsKey(cacheKey)) {
+					cache.put(cacheKey, result);
+				}
+				return Optional.of(result);
+			}
+			
+			// get entry, and enter a ttl as soon as it returns
+			T data = cache.get(cacheKey, callable);
+			if (data != null) {
+				ttl.putIfAbsent(cacheKey, System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(ttlWrite, TimeUnit.SECONDS));
+			}
 			return Optional.of(cache.get(cacheKey, callable));
-		} catch (ExecutionException e) {
-			LOGGER.error("Error while retrieving value of callback", e);
 		} catch (InvalidCacheLoadException | UncheckedExecutionException e) {
 			LOGGER.error("Error while retrieving fresh value for cachekey: {}", cacheKey, e);
+		} catch (Exception e) {
+			LOGGER.error("Error while retrieving value of callback", e);
 		}
 		return Optional.empty();
 	}
 
+	@Override
+	public Optional<Long> getExpiration(String id, RequestWrapper params) {
+		return Optional.ofNullable(ttl.get(getCacheKey(Objects.requireNonNull(id), Objects.requireNonNull(params))));
+	}
+	
 	@Override
 	public Set<String> getCacheKeys() {
 		return cache.asMap().keySet();
@@ -99,4 +122,8 @@ public class GuavaCachingService<T> implements CachingService<T> {
 		cache.invalidateAll();
 	}
 
+	@Override
+	public long getMaxAge() {
+		return ttlWrite;
+	}
 }

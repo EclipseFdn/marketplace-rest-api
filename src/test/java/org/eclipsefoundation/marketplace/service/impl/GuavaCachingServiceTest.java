@@ -40,10 +40,10 @@ public class GuavaCachingServiceTest {
 	@BeforeEach
 	public void pre() {
 		// inject empty objects into the Request context before creating a mock object
-		ResteasyContext.pushContext(UriInfo.class, new ResteasyUriInfo("",""));
-		
+		ResteasyContext.pushContext(UriInfo.class, new ResteasyUriInfo("", ""));
+
 		ResteasyContext.pushContext(HttpServletRequest.class, new HttpServletRequestImpl(null, null));
-		
+
 		this.sample = new RequestWrapperMock();
 		// expire all active key values
 		gcs.removeAll();
@@ -60,18 +60,19 @@ public class GuavaCachingServiceTest {
 
 		// without post construct init via javax management, cache will not be properly
 		// set
-		Assertions.assertThrows(NullPointerException.class, () -> {
-			gcsManual.get("sampleKey", sample, Object::new);
-		});
+		Assertions.assertTrue(!gcsManual.get("sampleKey", sample, Object::new).isPresent(),
+				"Object should not be generated when there is no cache initialized");
 
 		// initialize the cache w/ configs
 		gcsManual.init();
 
 		// run a command to interact with cache
-		gcsManual.get("sampleKey", sample, Object::new);
+		Assertions.assertTrue(gcsManual.get("sampleKey", sample, Object::new).isPresent(),
+				"Object should be generated once cache is instantiated");
 
 		// test the injected cache service (which is the normal use case)
-		gcs.get("sampleKey", sample, Object::new);
+		Assertions.assertTrue(gcs.get("sampleKey", sample, Object::new).isPresent(),
+				"Object should be generated once cache is instantiated");
 	}
 
 	@Test
@@ -98,7 +99,7 @@ public class GuavaCachingServiceTest {
 		Optional<Object> emptyObj = gcs.get("failure key", sample, () -> null);
 		Assertions.assertFalse(emptyObj.isPresent());
 	}
-	
+
 	@Test
 	public void testGetExceptionalCallable() {
 		Optional<Object> emptyObj = gcs.get("k", sample, () -> {

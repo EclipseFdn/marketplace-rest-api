@@ -25,6 +25,7 @@ import javax.ws.rs.core.Response.Status;
 import org.eclipsefoundation.marketplace.dao.MongoDao;
 import org.eclipsefoundation.marketplace.dto.ListingVersion;
 import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
+import org.eclipsefoundation.marketplace.helper.ResponseHelper;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
 import org.eclipsefoundation.marketplace.model.Error;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
@@ -58,10 +59,12 @@ public class ListingVersionResource {
 	RequestWrapper params;
 	@Inject
 	DtoFilter<ListingVersion> dtoFilter;
+	@Inject
+	ResponseHelper responseBuider;
 
 	@GET
 	public Response select() {
-		MongoQuery<ListingVersion> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<ListingVersion> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
 		Optional<List<ListingVersion>> cachedResults = cachingService.get("all", params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
@@ -82,7 +85,7 @@ public class ListingVersionResource {
 	 */
 	@PUT
 	public Response putListingVersion(ListingVersion listingVersion) {
-		MongoQuery<ListingVersion> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<ListingVersion> q = new MongoQuery<>(params, dtoFilter);
 		// add the object, and await the result
 		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(listingVersion)));
 
@@ -102,7 +105,7 @@ public class ListingVersionResource {
 	public Response select(@PathParam("listingVersionId") String listingVersionId) {
 		params.addParam(UrlParameterNames.ID, listingVersionId);
 
-		MongoQuery<ListingVersion> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<ListingVersion> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current listing
 		Optional<List<ListingVersion>> cachedResults = cachingService.get(listingVersionId, params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
@@ -127,7 +130,7 @@ public class ListingVersionResource {
 	public Response delete(@PathParam("listingVersionId") String listingVersionId) {
 		params.addParam(UrlParameterNames.ID, listingVersionId);
 
-		MongoQuery<ListingVersion> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<ListingVersion> q = new MongoQuery<>(params, dtoFilter);
 		// delete the currently selected asset
 		DeleteResult result = StreamHelper.awaitCompletionStage(dao.delete(q));
 		if (result.getDeletedCount() == 0 || !result.wasAcknowledged()) {

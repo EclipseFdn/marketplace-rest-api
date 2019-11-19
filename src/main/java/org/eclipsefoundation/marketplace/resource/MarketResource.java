@@ -27,6 +27,7 @@ import javax.ws.rs.core.Response.Status;
 import org.eclipsefoundation.marketplace.dao.MongoDao;
 import org.eclipsefoundation.marketplace.dto.Market;
 import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
+import org.eclipsefoundation.marketplace.helper.ResponseHelper;
 import org.eclipsefoundation.marketplace.helper.StreamHelper;
 import org.eclipsefoundation.marketplace.model.Error;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
@@ -58,12 +59,13 @@ public class MarketResource {
 	RequestWrapper params;
 	@Inject
 	DtoFilter<Market> dtoFilter;
+	@Inject
+	ResponseHelper responseBuider;
 
-	
 	@GET
 	@PermitAll
 	public Response select() {
-		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
 		Optional<List<Market>> cachedResults = cachingService.get("all", params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
@@ -73,7 +75,7 @@ public class MarketResource {
 		}
 
 		// return the results as a response
-		return Response.ok(cachedResults.get()).build();
+		return responseBuider.build("all", params, cachedResults.get());
 	}
 
 	/**
@@ -85,7 +87,7 @@ public class MarketResource {
 	@PUT
 	@RolesAllowed("market_put")
 	public Response putMarket(Market market) {
-		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter);
 
 		// add the object, and await the result
 		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(market)));
@@ -107,7 +109,7 @@ public class MarketResource {
 	public Response select(@PathParam("marketId") String marketId) {
 		params.addParam(UrlParameterNames.ID, marketId);
 
-		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current listing
 		Optional<List<Market>> cachedResults = cachingService.get(marketId, params,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
@@ -117,7 +119,7 @@ public class MarketResource {
 		}
 
 		// return the results as a response
-		return Response.ok(cachedResults.get()).build();
+		return responseBuider.build(marketId, params, cachedResults.get());
 	}
 
 	/**
@@ -132,7 +134,7 @@ public class MarketResource {
 	public Response delete(@PathParam("marketId") String marketId) {
 		params.addParam(UrlParameterNames.ID, marketId);
 
-		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter, cachingService);
+		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter);
 		// delete the currently selected asset
 		DeleteResult result = StreamHelper.awaitCompletionStage(dao.delete(q));
 		if (result.getDeletedCount() == 0 || !result.wasAcknowledged()) {

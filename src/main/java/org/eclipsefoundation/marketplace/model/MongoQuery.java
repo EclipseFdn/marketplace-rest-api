@@ -17,7 +17,6 @@ import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
 import org.eclipsefoundation.marketplace.helper.SortableHelper;
 import org.eclipsefoundation.marketplace.helper.SortableHelper.Sortable;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
-import org.eclipsefoundation.marketplace.service.CachingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,6 @@ import com.mongodb.client.model.Filters;
 public class MongoQuery<T> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MongoQuery.class);
 
-	private CachingService<List<T>> cache;
 	private RequestWrapper wrapper;
 	private DtoFilter<T> dtoFilter;
 
@@ -44,10 +42,9 @@ public class MongoQuery<T> {
 	private SortOrder order;
 	private List<Bson> aggregates;
 
-	public MongoQuery(RequestWrapper wrapper, DtoFilter<T> dtoFilter, CachingService<List<T>> cache) {
+	public MongoQuery(RequestWrapper wrapper, DtoFilter<T> dtoFilter) {
 		this.wrapper = wrapper;
 		this.dtoFilter = dtoFilter;
-		this.cache = cache;
 		this.aggregates = new ArrayList<>();
 		init();
 	}
@@ -72,12 +69,13 @@ public class MongoQuery<T> {
 		Optional<String> sortOpt = wrapper.getFirstParam(UrlParameterNames.SORT);
 		if (sortOpt.isPresent()) {
 			String sortVal = sortOpt.get();
+			SortOrder ord = SortOrder.getOrderFromValue(sortOpt.get());
 			// split sort string of `<fieldName> <SortOrder>`
 			int idx = sortVal.indexOf(' ');
 			// check if the sort string matches the RANDOM sort order
-			if (SortOrder.RANDOM.equals(SortOrder.getOrderByName(sortVal))) {
+			if (SortOrder.RANDOM.equals(ord)) {
 				this.order = SortOrder.RANDOM;
-			} else if (idx > 0) {
+			} else if (ord != SortOrder.NONE) {
 				setSort(sortVal.substring(0, idx), sortVal.substring(idx + 1), filters);
 			}
 		}
@@ -143,13 +141,6 @@ public class MongoQuery<T> {
 			this.order = SortOrder.getOrderByName(sortOrder);
 			// add sorting query if the sortOrder matches a defined order
 			switch (order) {
-			case RANDOM:
-				// TODO support for random, implement the following (in this order)
-				// 1. Add not in clause that checks Cache for previously read objects
-				// 2. Set useAggregate flag to true to signal to DAO to use aggregate selection
-				// rather than traditional find
-
-				break;
 			case ASCENDING:
 				// if last seen is set, add a filter to shift the results
 				if (lastOpt.isPresent()) {

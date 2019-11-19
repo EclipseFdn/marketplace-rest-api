@@ -23,6 +23,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipsefoundation.marketplace.namespace.DeprecatedHeader;
 import org.eclipsefoundation.marketplace.namespace.RequestHeaderNames;
+import org.eclipsefoundation.marketplace.request.CacheBypassFilter;
 import org.jboss.resteasy.core.ResteasyContext;
 
 /**
@@ -168,7 +169,18 @@ public class RequestWrapper {
 	}
 
 	/**
-	 * Retrieve a request header value as an optional value.
+	 * Check whether the current request should bypass caching
+	 * 
+	 * @return true if cache should be bypassed, otherwise false
+	 */
+	public boolean isCacheBypass() {
+		Object attr = request.getAttribute(CacheBypassFilter.ATTRIBUTE_NAME);
+		// if we have the attribute set on the request, return it. otherwise, false.
+		return attr instanceof Boolean ? (boolean) attr : Boolean.FALSE;
+	}
+
+	/**
+	 * Retrieve a request header value.
 	 * 
 	 * @param key the headers key value
 	 * @return the value, or an empty optional if missing.

@@ -53,4 +53,24 @@ public enum SortOrder {
 		}
 		return NONE;
 	}
+
+	/**
+	 * Gets the SortOrder value associated with a sort parameter value if one
+	 * exists.
+	 * 
+	 * @param value the value of the sort parameter
+	 * @return the SortOrder associated with the request, or
+	 *         {@linkplain SortOrder.NONE}
+	 */
+	public static SortOrder getOrderFromValue(String value) {
+		// get the index of the space separator 
+		int idx = value.indexOf(' ');
+		// check if the sort string matches the RANDOM sort order
+		if (SortOrder.RANDOM.equals(SortOrder.getOrderByName(value))) {
+			return SortOrder.RANDOM;
+		} else if (idx > 0) {
+			return SortOrder.getOrderByName(value.substring(idx + 1));
+		}
+		return SortOrder.NONE;
+	}
 }
