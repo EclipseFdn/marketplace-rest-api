@@ -8,6 +8,7 @@ package org.eclipsefoundation.marketplace.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,9 +17,12 @@ import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipsefoundation.marketplace.namespace.DeprecatedHeader;
+import org.eclipsefoundation.marketplace.namespace.RequestHeaderNames;
 import org.jboss.resteasy.core.ResteasyContext;
 
 /**
@@ -37,6 +41,7 @@ public class RequestWrapper {
 
 	private UriInfo uriInfo;
 	private HttpServletRequest request;
+	private HttpServletResponse response;
 	private UserAgent userAgent;
 
 	/**
@@ -47,6 +52,7 @@ public class RequestWrapper {
 	RequestWrapper() {
 		this.uriInfo = ResteasyContext.getContextData(UriInfo.class);
 		this.request = ResteasyContext.getContextData(HttpServletRequest.class);
+		this.response = ResteasyContext.getContextData(HttpServletResponse.class);
 		this.userAgent = null;
 	}
 
@@ -54,7 +60,7 @@ public class RequestWrapper {
 	 * Retrieves the first value set in a list from the map for a given key.
 	 * 
 	 * @param wrapper the parameter map containing the value
-	 * @param key    the key to retrieve the value for
+	 * @param key     the key to retrieve the value for
 	 * @return the first value set in the parameter map for the given key, or null
 	 *         if absent.
 	 */
@@ -74,7 +80,7 @@ public class RequestWrapper {
 	 * Retrieves the value list from the map for a given key.
 	 * 
 	 * @param wrapper the parameter map containing the values
-	 * @param key    the key to retrieve the values for
+	 * @param key     the key to retrieve the values for
 	 * @return the value list for the given key if it exists, or an empty collection
 	 *         if none exists.
 	 */
@@ -95,8 +101,8 @@ public class RequestWrapper {
 	 * exist.
 	 * 
 	 * @param wrapper map containing parameters to update
-	 * @param key    string key to add the value to, must not be null
-	 * @param value  the value to add to the key
+	 * @param key     string key to add the value to, must not be null
+	 * @param value   the value to add to the key
 	 */
 	public void addParam(String key, String value) {
 		if (StringUtils.isBlank(key)) {
@@ -156,6 +162,16 @@ public class RequestWrapper {
 	}
 
 	/**
+	 * Retrieve the request version from the
+	 * 
+	 * @param key the headers key value
+	 * @return the version passed from the access version header
+	 */
+	public String getRequestVersion() {
+		return request.getHeader(RequestHeaderNames.ACCESS_VERSION);
+	}
+
+	/**
 	 * Get the wrapped user agent object for the current request.
 	 * 
 	 * @return the wrapped UserAgent object.
@@ -166,7 +182,17 @@ public class RequestWrapper {
 		}
 		return this.userAgent;
 	}
-	
+
+	/**
+	 * Set the deprecation header in the response object for the client.
+	 * 
+	 * @param d   the date that the endpoint was deprecated
+	 * @param msg information about the deprecation
+	 */
+	public void setDeprecatedHeader(Date d, String msg) {
+		response.setHeader(DeprecatedHeader.NAME, DeprecatedHeader.getValue(d, msg));
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

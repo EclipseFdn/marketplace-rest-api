@@ -14,6 +14,7 @@ package org.eclipsefoundation.marketplace.namespace;
 public class RequestHeaderNames {
 
 	public static final String ACCESS_TOKEN = "Eclipse-Access-Token";
+	public static final String ACCESS_VERSION = "Access-Version";
 	
 	private RequestHeaderNames() {}
 }
