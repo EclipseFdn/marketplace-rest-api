@@ -18,6 +18,7 @@ import org.bson.codecs.CollectibleCodec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.eclipsefoundation.marketplace.dto.Install;
+import org.eclipsefoundation.marketplace.helper.JavaVersionHelper;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 
 import com.mongodb.MongoClient;
@@ -45,7 +46,7 @@ public class InstallCodec implements CollectibleCodec<Install> {
 		Document doc = new Document();
 
 		doc.put(DatabaseFieldNames.DOCID, value.getId());
-		doc.put(DatabaseFieldNames.INSTALL_JAVA_VERSION, value.getJavaVersion());
+		doc.put(DatabaseFieldNames.INSTALL_JAVA_VERSION, JavaVersionHelper.convertToDBSafe(value.getJavaVersion()));
 		doc.put(DatabaseFieldNames.INSTALL_VERSION, value.getVersion());
 		doc.put(DatabaseFieldNames.INSTALL_LISTING_ID, value.getListingId());
 		doc.put(DatabaseFieldNames.INSTALL_DATE, value.getInstallDate());
@@ -65,7 +66,7 @@ public class InstallCodec implements CollectibleCodec<Install> {
 		Document document = documentCodec.decode(reader, decoderContext);
 		Install out = new Install();
 		out.setId(document.getString(DatabaseFieldNames.DOCID));
-		out.setJavaVersion(document.getString(DatabaseFieldNames.INSTALL_JAVA_VERSION));
+		out.setJavaVersion(JavaVersionHelper.convertToDisplayValue(document.getString(DatabaseFieldNames.INSTALL_JAVA_VERSION)));
 		out.setVersion(document.getString(DatabaseFieldNames.INSTALL_VERSION));
 		out.setListingId(document.getString(DatabaseFieldNames.INSTALL_LISTING_ID));
 		out.setInstallDate(document.getDate(DatabaseFieldNames.INSTALL_DATE));
