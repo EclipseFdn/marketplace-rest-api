@@ -108,7 +108,17 @@ db.listings.createIndex(
      },
      name: "TextIndex"
   });
-db.categories.createIndex({id:1});
+db.listings.createIndex({ listing_id: 1 }, {name: "lid"});
+db.listings.createIndex({ changed: 1 }, {name: "updated"});
+db.listings.createIndex({ created: 1 }, {name: "created"});
+db.listings.createIndex({ license_type: 1 }, {name: "lic_type"});
+db.listings.createIndex({ category_ids: 1 }, {name: "cats"});
+db.listings.createIndex({ market_ids: 1 }, {name: "mkts"});
+db.listing_versions.createIndex({ listing_id: 1 }, {name: "lid"});
+db.listing_versions.createIndex({ compatible_versions: 1 }, {name: "compat"});
+db.listing_versions.createIndex({ min_java_version: 1 }, {name: "min_java"});
+db.listing_versions.createIndex({ platforms: 1 }, {name: "platforms"});
+db.installs.createIndex({listing_id: 1 }, {name: "lid"});
 ```
 
 ## Copyright 
