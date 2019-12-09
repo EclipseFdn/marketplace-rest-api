@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bson.conversions.Bson;
 import org.eclipsefoundation.marketplace.dto.ListingVersion;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
@@ -45,21 +46,19 @@ public class ListingVersionFilter implements DtoFilter<ListingVersion> {
 		// solution version - OS filter
 		Optional<String> os = wrap.getFirstParam(UrlParameterNames.OS);
 		if (os.isPresent()) {
-			filters.add(Filters.eq(getPath(root, "platforms"), os.get()));
+			filters.add(Filters.eq("platforms", os.get()));
 		}
 		// solution version - eclipse version
 		Optional<String> eclipseVersion = wrap.getFirstParam(UrlParameterNames.ECLIPSE_VERSION);
 		if (eclipseVersion.isPresent()) {
-			filters.add(Filters.eq(getPath(root, "compatible_versions"), eclipseVersion.get()));
+			filters.add(Filters.eq("compatible_versions", eclipseVersion.get()));
 		}
-		// TODO this sorts by naturally by character rather than by actual number (e.g.
-		// 1.9 is technically greater than 1.10)
 		// solution version - Java version
 		Optional<String> javaVersion = wrap.getFirstParam(UrlParameterNames.JAVA_VERSION);
-		if (javaVersion.isPresent()) {
-			filters.add(Filters.gte(getPath(root, "min_java_version"), javaVersion.get()));
+		if (javaVersion.isPresent() && StringUtils.isNumeric(javaVersion.get())) {
+			filters.add(Filters.gte("min_java_version", Integer.valueOf(javaVersion.get())));
 		}
-		
+
 		return filters;
 	}
 

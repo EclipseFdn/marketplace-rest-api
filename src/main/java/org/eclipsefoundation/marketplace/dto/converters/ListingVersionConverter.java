@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.eclipsefoundation.marketplace.dto.ListingVersion;
+import org.eclipsefoundation.marketplace.helper.JavaVersionHelper;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 
 /**
@@ -28,7 +29,7 @@ public class ListingVersionConverter implements Converter<ListingVersion> {
 		version.setListingId(src.getString(DatabaseFieldNames.LISTING_ID));
 		version.setEclipseVersions(src.getList("compatible_versions", String.class));
 		version.setPlatforms(src.getList("platforms", String.class));
-		version.setMinJavaVersion(src.getString("min_java_version"));
+		version.setMinJavaVersion(JavaVersionHelper.convertToDisplayValue(Integer.toString(src.getInteger("min_java_version"))));
 		version.setUpdateSiteUrl(src.getString("update_site_url"));
 		version.setVersion(src.getString("version"));
 		version.setFeatureIds(src.getList(DatabaseFieldNames.FEATURE_IDS, Document.class).stream()
@@ -43,7 +44,7 @@ public class ListingVersionConverter implements Converter<ListingVersion> {
 		doc.put(DatabaseFieldNames.LISTING_ID, src.getListingId());
 		doc.put("compatible_versions", src.getEclipseVersions());
 		doc.put("platforms", src.getPlatforms());
-		doc.put("min_java_version", src.getMinJavaVersion());
+		doc.put("min_java_version", Integer.valueOf(JavaVersionHelper.convertToDBSafe(src.getMinJavaVersion())));
 		doc.put("update_site_url", src.getUpdateSiteUrl());
 		doc.put("version", src.getVersion());
 		doc.put(DatabaseFieldNames.FEATURE_IDS,

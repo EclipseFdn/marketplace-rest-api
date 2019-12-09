@@ -7,13 +7,12 @@
 package org.eclipsefoundation.marketplace.dto.filter;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.bson.conversions.Bson;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
 
 import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Filters;
 
 /**
  * Filter interface for usage when querying data.
@@ -35,7 +34,7 @@ public interface DtoFilter<T> {
 	/**
 	 * Retrieve aggregate filter operations for the current arguments.
 	 * 
-	 * @param wrap       wrapper for the current request
+	 * @param wrap wrapper for the current request
 	 * @return list of aggregates for the current request, or empty if there are no
 	 *         applicable aggregates.
 	 */
@@ -58,18 +57,12 @@ public interface DtoFilter<T> {
 	 * @return a list of aggregate pipeline operations representing the filters for
 	 *         the current request.
 	 */
-	default List<Bson> wrapFiltersToAggregate(RequestWrapper wrap, String nestedPath) {
-		return getFilters(wrap, nestedPath).stream().map(Aggregates::match).collect(Collectors.toList());
-	}
-
-	/**
-	 * 
-	 * @param root
-	 * @param fieldName
-	 * @return
-	 */
-	default String getPath(String root, String fieldName) {
-		return StringUtils.isBlank(root) ? fieldName : root + '.' + fieldName;
+	default Bson wrapFiltersToAggregate(RequestWrapper wrap, String nestedPath) {
+		List<Bson> filters = getFilters(wrap, nestedPath);
+		if (!filters.isEmpty()) {
+			return Aggregates.match(Filters.elemMatch(nestedPath, Filters.and(filters)));
+		}
+		return null;
 	}
 	
 	/**

@@ -81,7 +81,10 @@ public class ListingFilter implements DtoFilter<Listing> {
 		// adds a $lookup aggregate, joining categories on categoryIDS as "categories"
 		aggs.add(Aggregates.lookup(DtoTableNames.LISTING_VERSION.getTableName(), DatabaseFieldNames.DOCID, DatabaseFieldNames.LISTING_ID,
 				DatabaseFieldNames.LISTING_VERSIONS));
-		aggs.addAll(listingVersionFilter.wrapFiltersToAggregate(wrap, DatabaseFieldNames.LISTING_VERSIONS));
+		Bson filters = listingVersionFilter.wrapFiltersToAggregate(wrap, DatabaseFieldNames.LISTING_VERSIONS);
+		if (filters != null) {
+			aggs.add(filters);
+		}
 		aggs.add(Aggregates.lookup(DtoTableNames.CATEGORY.getTableName(), DatabaseFieldNames.CATEGORY_IDS,
 				DatabaseFieldNames.DOCID, DatabaseFieldNames.LISTING_CATEGORIES));
 		List<String> marketIds = wrap.getParams(UrlParameterNames.MARKET_IDS);
