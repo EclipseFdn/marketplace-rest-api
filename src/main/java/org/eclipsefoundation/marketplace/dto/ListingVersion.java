@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Domain object representing a marketplace listing version
  * 
@@ -25,7 +27,7 @@ public class ListingVersion {
 	private String minJavaVersion;
 	private String updateSiteUrl;
 	private List<FeatureId> featureIds;
-	
+
 	public ListingVersion() {
 		this.eclipseVersions = new ArrayList<>();
 		this.platforms = new ArrayList<>();
@@ -145,6 +147,11 @@ public class ListingVersion {
 	public void setFeatureIds(List<FeatureId> featureIds) {
 		Objects.requireNonNull(featureIds);
 		this.featureIds = new ArrayList<>(featureIds);
+	}
+
+	public boolean validate() {
+		return version != null && listingId != null && StringUtils.isAnyBlank(minJavaVersion) && platforms.isEmpty()
+				&& !eclipseVersions.isEmpty();
 	}
 
 }

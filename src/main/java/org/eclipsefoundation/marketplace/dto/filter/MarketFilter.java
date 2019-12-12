@@ -61,13 +61,13 @@ public class MarketFilter implements DtoFilter<Market> {
 		List<Bson> pipeline = new ArrayList<>();
 		// match the listings on the given market_id
 		pipeline.add(
-				Aggregates.match(expr(eq("$in", Arrays.asList("$$market_id", "$" + DatabaseFieldNames.MARKET_IDS)))));
+				Aggregates.match(expr(eq("$in", Arrays.asList("$" + DatabaseFieldNames.DOCID, "$$listing_ids")))));
 		// suppress all fields except category_ids
 		pipeline.add(Aggregates.project(
 				Projections.fields(Projections.excludeId(), Projections.include(DatabaseFieldNames.CATEGORY_IDS))));
 
 		// set up a var reference for the _id
-		Variable<String> id = new Variable<>("market_id", "$" + DatabaseFieldNames.DOCID);
+		Variable<String> id = new Variable<>("listing_ids", "$listing_ids");
 		// lookup all category IDS from listings with the given market ID
 		aggs.add(Aggregates.lookup(DtoTableNames.LISTING.getTableName(), Arrays.asList(id), pipeline, tempFieldName));
 		// explode all category IDS for collection

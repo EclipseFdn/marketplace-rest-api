@@ -25,6 +25,10 @@ public class Catalog extends NodeBase {
 	private String description;
 	private String dependenciesRepository;
 	private List<Tab> tabs;
+	
+	public Catalog() {
+		this.tabs = new ArrayList<>();
+	}
 
 	/**
 	 * @return the selfContained
@@ -108,6 +112,11 @@ public class Catalog extends NodeBase {
 	 */
 	public void setTabs(List<Tab> tabs) {
 		this.tabs = new ArrayList<>(tabs);
+	}
+
+	@Override
+	public boolean validate() {
+		return super.validate() && tabs != null && !tabs.isEmpty();
 	}
 
 	@Override

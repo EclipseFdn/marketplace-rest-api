@@ -8,12 +8,14 @@ package org.eclipsefoundation.marketplace.dto;
 
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Contains the basic fields for a node within Mongo
  * 
  * @author Martin Lowe
  */
-public class NodeBase {
+public abstract class NodeBase {
 	private String id;
 	private String title;
 	private String url;
@@ -58,6 +60,15 @@ public class NodeBase {
 	 */
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	/**
+	 * Call to check whether the current node is valid.
+	 * 
+	 * @return whether the current node is valid.
+	 */
+	public boolean validate() {
+		return StringUtils.isAnyEmpty(title, url);
 	}
 
 	@Override

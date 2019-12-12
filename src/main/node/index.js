@@ -38,12 +38,14 @@ for (var i=0;i<200;i++) {
 }
 const marketIds = [];
 for (var i=0;i<5;i++) {
-  marketIds.push(uuid.v4());
+  marketIds.push({uuid: uuid.v4(), listings:[]});
 }
 
-createListing(0);
-createCategory(0);
-createMarket(0);
+run();
+
+async function run() {
+  var a = await createListing(0);
+}
 
 function shuff(arr) {
   var out = Array.from(arr);
@@ -69,13 +71,14 @@ function splice(arr) {
 
 async function createListing(count) {
   if (count >= max) {
+    createCategory(0);
     return;
   }
   
   console.log(`Generating listing ${count} of ${max}`);
   var json = generateJSON(uuid.v4());
   instance.put(argv.s+"/listings/", json)
-    .then(listingCallback(json, count))
+    .then(await listingCallback(json, count))
     .catch(err => console.log(err));
 }
 
@@ -96,6 +99,7 @@ async function listingCallback(json, count) {
 
 function createCategory(count) {
   if (count >= categoryIds.length) {
+    createMarket(0);
     return;
   }
 
@@ -135,6 +139,16 @@ async function createVersion(curr, max, id) {
 }
 
 function generateJSON(id) {
+  var markets = splice(marketIds).splice(0,Math.ceil(Math.random()*2));
+  for (var marketIdx in markets) {
+    var currUuid = markets[marketIdx].uuid;
+    for (var actualMarketIdx in marketIds) {
+      if (marketIds[actualMarketIdx].uuid === currUuid) {
+        marketIds[actualMarketIdx].listings.push(id);
+        break;
+      }
+    }
+  }
   return {
     "id": id,
   	"title": "Sample",
@@ -164,7 +178,6 @@ function generateJSON(id) {
   			"url": ""
   		}
   	],
-	"market_ids": splice(marketIds).splice(0,Math.ceil(Math.random()*2)),
   "category_ids": splice(categoryIds).splice(0,Math.ceil(Math.random()*5)+1),
 	"screenshots": ["http://www.example.com/img/sample.png"]
   };
@@ -178,11 +191,12 @@ function generateCategoryJSON(id) {
   };
 }
 
-function generateMarketJSON(id) {
+function generateMarketJSON(market) {
   return {
-    "id": id,
+    "id": market.uuid,
     "title": randomWords({exactly:1, wordsPerString:Math.ceil(Math.random()*4)})[0],
-    "url": "https://www.eclipse.org"
+    "url": "https://www.eclipse.org",
+    "listing_ids": market.listings
   };
 }
 

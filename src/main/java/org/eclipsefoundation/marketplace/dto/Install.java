@@ -23,7 +23,7 @@ public class Install {
 	private String javaVersion;
 	private String eclipseVersion;
 	private String locale;
-	
+
 	/**
 	 * @return the id
 	 */
@@ -134,6 +134,11 @@ public class Install {
 	 */
 	public void setLocale(String locale) {
 		this.locale = locale;
+	}
+
+	public boolean validate() {
+		return version != null && listingId != null && os != null && eclipseVersion.isEmpty() && javaVersion != null
+				&& installDate != null;
 	}
 
 	@Override
