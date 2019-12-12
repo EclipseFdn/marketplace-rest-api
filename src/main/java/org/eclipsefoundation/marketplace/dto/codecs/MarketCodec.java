@@ -52,6 +52,7 @@ public class MarketCodec implements CollectibleCodec<Market> {
 		doc.put(DatabaseFieldNames.DOCID, value.getId());
 		doc.put(DatabaseFieldNames.URL, value.getUrl());
 		doc.put(DatabaseFieldNames.TITLE, value.getTitle());
+		doc.put(DatabaseFieldNames.LISTING_IDS, value.getListingIds());
 
 		documentCodec.encode(writer, doc, encoderContext);
 	}
@@ -69,6 +70,7 @@ public class MarketCodec implements CollectibleCodec<Market> {
 		out.setId(document.getString(DatabaseFieldNames.DOCID));
 		out.setUrl(document.getString(DatabaseFieldNames.URL));
 		out.setTitle(document.getString(DatabaseFieldNames.TITLE));
+		out.setListingIds(document.getList(DatabaseFieldNames.LISTING_IDS, String.class));
 		out.setCategories(document.getList(DatabaseFieldNames.LISTING_CATEGORIES, Document.class).stream()
 				.map(categoryConverter::convert).collect(Collectors.toList()));
 		

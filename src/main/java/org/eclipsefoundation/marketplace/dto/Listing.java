@@ -278,7 +278,6 @@ public class Listing extends NodeBase {
 		this.categoryIds = new ArrayList<>(categoryIds);
 	}
 
-
 	/**
 	 * @return the categoryIds
 	 */
@@ -380,6 +379,12 @@ public class Listing extends NodeBase {
 	public void setVersions(List<ListingVersion> versions) {
 		Objects.requireNonNull(versions);
 		this.versions = new ArrayList<>(versions);
+	}
+
+	@Override
+	public boolean validate() {
+		return super.validate() && license != null && !authors.isEmpty() && !categoryIds.isEmpty()
+				&& !versions.isEmpty();
 	}
 
 	@Override

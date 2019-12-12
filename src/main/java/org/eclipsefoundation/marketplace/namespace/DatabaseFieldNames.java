@@ -86,6 +86,7 @@ public final class DatabaseFieldNames {
 	// install metric fields
 	public static final String METRIC_PERIODS = "periods";
 	public static final String MONTH_OFFSET_PREFIX = "offset_";
+	public static final String LISTING_IDS = "listing_ids";
 	
 	private DatabaseFieldNames() {
 	}

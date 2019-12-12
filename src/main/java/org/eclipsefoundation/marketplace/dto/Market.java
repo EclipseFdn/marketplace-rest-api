@@ -26,15 +26,30 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
  */
 @RegisterForReflection
 public class Market extends NodeBase {
+	private List<String> listingIds;
 	private List<Category> categories;
-
 
 	/**
 	 * Default constructor. Creates an empty linkedlist for categories, as its
 	 * unknown how many categories the market will reference.
 	 */
 	public Market() {
+		this.listingIds = new LinkedList<>();
 		this.categories = new LinkedList<>();
+	}
+
+	/**
+	 * @return the listingIds
+	 */
+	public List<String> getListingIds() {
+		return new ArrayList<>(listingIds);
+	}
+
+	/**
+	 * @param listingIds the listingIds to set
+	 */
+	public void setListingIds(List<String> listingIds) {
+		this.listingIds = new ArrayList<>(listingIds);
 	}
 
 	/**
@@ -56,7 +71,7 @@ public class Market extends NodeBase {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + Objects.hash(categories);
+		result = prime * result + Objects.hash(categories, listingIds);
 		return result;
 	}
 
@@ -72,6 +87,6 @@ public class Market extends NodeBase {
 			return false;
 		}
 		Market other = (Market) obj;
-		return Objects.equals(categories, other.categories);
+		return Objects.equals(categories, other.categories) && Objects.equals(listingIds, other.listingIds);
 	}
 }

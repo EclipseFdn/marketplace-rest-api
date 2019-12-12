@@ -39,7 +39,7 @@ public class InstallFilter implements DtoFilter<Install> {
 			// ID check
 			Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
 			if (id.isPresent()) {
-				filters.add(Filters.eq(DatabaseFieldNames.DOCID, id.get()));
+				filters.add(Filters.eq(DatabaseFieldNames.LISTING_ID, id.get()));
 			}
 		}
 		// version check
