@@ -93,7 +93,7 @@ public class ListingResource {
 	 * @return response for the browser
 	 */
 	@PUT
-	@RolesAllowed({ "marketplace_listing_put", "marketplace_admin_access" })
+	@PermitAll
 	public Response putListing(Listing listing) {
 		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter, cachingService);
 

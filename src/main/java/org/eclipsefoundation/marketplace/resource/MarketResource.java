@@ -83,7 +83,7 @@ public class MarketResource {
 	 * @return response for the browser
 	 */
 	@PUT
-	@RolesAllowed("market_put")
+	@PermitAll
 	public Response putMarket(Market market) {
 		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter, cachingService);
 

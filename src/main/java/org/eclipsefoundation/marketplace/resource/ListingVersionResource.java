@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.security.PermitAll;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -81,6 +82,7 @@ public class ListingVersionResource {
 	 * @return response for the browser
 	 */
 	@PUT
+	@PermitAll
 	public Response putListingVersion(ListingVersion listingVersion) {
 		MongoQuery<ListingVersion> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// add the object, and await the result

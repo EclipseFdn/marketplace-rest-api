@@ -82,7 +82,7 @@ public class CategoryResource {
 	 * @return response for the browser
 	 */
 	@PUT
-	@RolesAllowed({"marketplace_category_put", "marketplace_admin_access"})
+	@PermitAll
 	public Response putCategory(Category category) {
 		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// add the object, and await the result

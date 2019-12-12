@@ -82,7 +82,7 @@ public class CatalogResource {
 	 * @return response for the browser
 	 */
 	@PUT
-	@RolesAllowed({ "marketplace_catalog_put", "marketplace_admin_access" })
+	@PermitAll
 	public Response putCatalog(Catalog catalog) {
 		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter, cachingService);
 		// add the object, and await the result
