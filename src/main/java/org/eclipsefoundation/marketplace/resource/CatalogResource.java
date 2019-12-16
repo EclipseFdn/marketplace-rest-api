@@ -87,6 +87,9 @@ public class CatalogResource {
 	@PUT
 	@RolesAllowed({ "marketplace_catalog_put", "marketplace_admin_access" })
 	public Response putCatalog(Catalog catalog) {
+		if (catalog.getId() != null) {
+			params.addParam(UrlParameterNames.ID, catalog.getId());
+		}
 		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter);
 		// add the object, and await the result
 		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(catalog)));

@@ -98,6 +98,9 @@ public class ListingResource {
 	@PUT
 	@RolesAllowed({ "marketplace_listing_put", "marketplace_admin_access" })
 	public Response putListing(Listing listing) {
+		if (listing.getId() != null) {
+			params.addParam(UrlParameterNames.ID, listing.getId());
+		}
 		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter);
 
 		// add the object, and await the result

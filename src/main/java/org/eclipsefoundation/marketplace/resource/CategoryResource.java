@@ -87,6 +87,9 @@ public class CategoryResource {
 	@PUT
 	@RolesAllowed({"marketplace_category_put", "marketplace_admin_access"})
 	public Response putCategory(Category category) {
+		if (category.getId() != null) {
+			params.addParam(UrlParameterNames.ID, category.getId());
+		}
 		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter);
 		// add the object, and await the result
 		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(category)));

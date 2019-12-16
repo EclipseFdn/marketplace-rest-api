@@ -165,7 +165,7 @@ public class InstallResource {
 	 * @return response for the browser
 	 */
 	@POST
-	@RolesAllowed({ "marketplace_install_put", "marketplace_admin_access" })
+	@PermitAll
 	@Path("/{listingId}/{version}")
 	public Response postInstallMetrics(@PathParam("listingId") String listingId, @PathParam("version") String version,
 			Install installDetails) {
