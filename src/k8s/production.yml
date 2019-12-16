@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marketplace-rest-api
+  namespace: webapps
+spec:
+  selector:
+    matchLabels:
+      app: marketplace-rest-api
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: marketplace-rest-api
+        environment: production
+    spec:
+      containers:
+      - name: app
+        image: eclipsefdn/marketplace-rest-api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: '2'
+            memory: 2048Mi
+          requests:
+            cpu: 200m
+            memory: 2048Mi
+---
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  name: marketplace-rest-api
+  namespace: webapps
+spec:
+  ports:
+  - name: "http"
+    port: 80
+    protocol: "TCP"
+    targetPort: 8080
+  selector:
+    app: marketplace-rest-api
+    environment: production
+---
+apiVersion: "route.openshift.io/v1"
+kind: "Route"
+metadata:
+  name: marketplace-rest-api
+  namespace: webapps
+  annotations:
+    haproxy.router.openshift.io/timeout: 20s
+spec:
+  host: "api.eclipse.org"
+  path: "/marketplace"
+  port:
+    targetPort: "http"
+  tls:
+    insecureEdgeTerminationPolicy: "Redirect"
+    termination: "edge"
+  to:
+    kind: "Service"
+    name: marketplace-rest-api
+    weight: 100
