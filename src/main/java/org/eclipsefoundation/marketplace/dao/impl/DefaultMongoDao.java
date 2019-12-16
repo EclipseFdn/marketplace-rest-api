@@ -6,12 +6,18 @@
  */
 package org.eclipsefoundation.marketplace.dao.impl;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.conversions.Bson;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
@@ -23,6 +29,7 @@ import org.eclipsefoundation.marketplace.namespace.DtoTableNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.result.DeleteResult;
 
 import io.quarkus.mongodb.ReactiveMongoClient;
@@ -50,6 +57,9 @@ public class DefaultMongoDao implements MongoDao {
 	boolean maintenanceFlag;
 
 	@Inject
+	Instance<CodecProvider> providers;
+
+	@Inject
 	ReactiveMongoClient mongoClient;
 
 	@Override
@@ -63,7 +73,8 @@ public class DefaultMongoDao implements MongoDao {
 
 		LOGGER.debug("Getting aggregate results");
 		// build base query
-		PublisherBuilder<T> builder = getCollection(q.getDocType()).aggregate(q.getPipeline(getLimit(q)), q.getDocType());
+		PublisherBuilder<T> builder = getCollection(q.getDocType()).aggregate(q.getPipeline(getLimit(q)),
+				q.getDocType());
 		// check if result set should be limited
 		if (q.getDTOFilter().useLimit()) {
 			builder = builder.limit(getLimit(q));
@@ -80,7 +91,25 @@ public class DefaultMongoDao implements MongoDao {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Adding {} documents to MongoDB of type {}", documents.size(), q.getDocType().getSimpleName());
 		}
-		return getCollection(q.getDocType()).insertMany(documents);
+
+		// set up upserting to not fail on updates
+		ReplaceOptions ro = new ReplaceOptions().upsert(true).bypassDocumentValidation(true);
+
+		// maintain a list of updates
+		List<CompletionStage<?>> stages = new ArrayList<>(documents.size());
+		Bson filter = q.getFilter();
+		for (T doc : documents) {
+			if (filter == null) {
+				stages.add(getCollection(q.getDocType()).insertOne(doc));
+			} else {
+				stages.add(getCollection(q.getDocType()).replaceOne(filter, doc, ro));
+			}
+		}
+
+		// convert the stages to futures, and wrap them in a completable future
+		List<CompletableFuture<?>> all = stages.stream().map(CompletionStage::toCompletableFuture)
+				.collect(Collectors.toList());
+		return CompletableFuture.allOf(all.toArray(new CompletableFuture[all.size()]));
 	}
 
 	@Override

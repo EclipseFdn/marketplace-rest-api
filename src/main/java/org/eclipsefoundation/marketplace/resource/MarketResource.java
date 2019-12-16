@@ -61,7 +61,7 @@ public class MarketResource {
 	DtoFilter<Market> dtoFilter;
 	@Inject
 	ResponseHelper responseBuider;
-
+	
 	@GET
 	@PermitAll
 	public Response select() {
@@ -85,8 +85,11 @@ public class MarketResource {
 	 * @return response for the browser
 	 */
 	@PUT
-	@RolesAllowed("market_put")
+	@RolesAllowed({ "marketplace_market_put", "marketplace_admin_access" })
 	public Response putMarket(Market market) {
+		if (market.getId() != null) {
+			params.addParam(UrlParameterNames.ID, market.getId());
+		}
 		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter);
 
 		// add the object, and await the result

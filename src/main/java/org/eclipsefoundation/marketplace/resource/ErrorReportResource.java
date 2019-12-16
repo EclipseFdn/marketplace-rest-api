@@ -11,12 +11,11 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -41,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * @author Martin Lowe
  */
 @RequestScoped
-@Path("/error")
+@Path("/error_reports")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ErrorReportResource {
@@ -87,9 +86,13 @@ public class ErrorReportResource {
 	 * @param errorReport the ErrorReport object to insert into the database.
 	 * @return response for the browser
 	 */
-	@PUT
-	@RolesAllowed("error_put")
+	@POST
+	@PermitAll
 	public Response putErrorReport(ErrorReport errorReport) {
+		// attach ID if present for update
+		if (errorReport.getId() != null) {
+			params.addParam(UrlParameterNames.ID, errorReport.getId());
+		}
 		MongoQuery<ErrorReport> q = new MongoQuery<>(params, dtoFilter);
 
 		// add the object, and await the result
