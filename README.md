@@ -121,6 +121,46 @@ db.listing_versions.createIndex({ platforms: 1 }, {name: "platforms"});
 db.installs.createIndex({listing_id: 1 }, {name: "lid"});
 ```
 
+### Creating a backup
+
+In order to create a backup of an existing data set, read access to the MongoDB instance is required, and is best done with shell access.  
+
+To use the following commands, replace `<user>` with the name of the user with write access to the MPC data set. Each of these commands will initiate a password challenge request, and cannot be together in a script easily. Adding the `--password=<>` is not recommended as it is a vulnerability as the logs will remain on the server with plain text passwords. Additionally, the `<date>` placeholder should be replaced with whatever date stamp has been set in the snapshot .gz files.  
+
+In container:  
+
+```
+mkdir snapshot
+mongodump --username=<user> --archive=snapshot/listings.<date>.gz --db=mpc --collection=listings --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
+mongodump --username=<user> --archive=snapshot/markets.<date>.gz --db=mpc --collection=markets --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
+mongodump --username=<user> --archive=snapshot/categories.<date>.gz --db=mpc --collection=categories --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
+mongodump --username=<user> --archive=snapshot/catalogs.<date>.gz --db=mpc --collection=catalogs --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
+mongodump --username=<user> --archive=snapshot/listing_versions.<date>.gz --db=mpc --collection=listing_versions --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
+```
+
+If using Docker to host:
+`docker cp dev_mongo_1:/snapshot ./snapshot`
+
+### Restoring from backup
+
+In order to restore data from backup snapshot, write access to the MongoDB instance is required, and is best done with shell access. As `mongorestore` doesn't update or overwrite records, the existing data set should be wiped before proceeding with restoring from backup snapshots. 
+
+To use the following commands, replace `<user>` with the name of the user with write access to the MPC data set. Each of these commands will initiate a password challenge request, and cannot be together in a script easily. Adding the `--password=<>` is not recommended as it is a vulnerability as the logs will remain on the server with plain text passwords. Additionally, the `<date>` placeholder should be replaced with whatever date stamp has been set in the snapshot .gz files.
+
+From host machine to Docker:
+`docker cp ./snapshot dev_mongo_1:/`
+
+In container:  
+
+```
+mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/listings.<date>.gz
+mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/markets.<date>.gz
+mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/catalogs.<date>.gz
+mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/categories.<date>.gz
+mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/listing_versions.<date>.gz
+```
+
+
 ## Copyright 
 
 Copyright (c) 2019 Eclipse Foundation and others.
