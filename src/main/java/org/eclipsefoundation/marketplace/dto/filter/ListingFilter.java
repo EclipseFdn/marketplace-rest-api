@@ -25,6 +25,7 @@ import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Field;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
+import com.mongodb.client.model.UnwindOptions;
 
 /**
  * Filter implementation for the {@linkplain Listing} class.
@@ -95,7 +96,7 @@ public class ListingFilter implements DtoFilter<Listing> {
 		aggs.add(Aggregates.lookup(DtoTableNames.INSTALL_METRIC.getTableName(), DatabaseFieldNames.DOCID,
 				DatabaseFieldNames.DOCID, "installs"));
 		// unwinds the installs out of arrays
-		aggs.add(Aggregates.unwind("$installs"));
+		aggs.add(Aggregates.unwind("$installs", new UnwindOptions().preserveNullAndEmptyArrays(true)));
 		// push the installs counts to the listing, and remove the installs merged in
 		aggs.add(Aggregates.addFields(new Field<String>(DatabaseFieldNames.RECENT_INSTALLS, "$installs.offset_0.count"),
 				new Field<String>(DatabaseFieldNames.TOTAL_INSTALLS, "$installs.count")));

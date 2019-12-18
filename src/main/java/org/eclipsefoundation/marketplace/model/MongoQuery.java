@@ -106,13 +106,24 @@ public class MongoQuery<T> {
 			out.add(Aggregates.match(filter));
 		}
 		// add base aggregates (joins)
-		out.addAll(aggregates);
+		out.addAll(aggregates); 
+		if (sort != null) {
+			out.add(Aggregates.sort(sort));
+		}
+		// check if the page param has been set, defaulting to the first page if not set
+		Optional<String> pageOpt = wrapper.getFirstParam(UrlParameterNames.PAGE);
+		int page = 1;
+		if (pageOpt.isPresent() && StringUtils.isNumeric(pageOpt.get())) {
+			int tmpPage = Integer.parseInt(pageOpt.get());
+			if (tmpPage > 0) {
+				page = tmpPage;
+				LOGGER.debug("Found a set page of {} for current query",page);
+			}
+		}
+		out.add(Aggregates.skip((page - 1) * limit));
 		// add sample if we aren't sorting
 		if ((sort == null || SortOrder.RANDOM.equals(order)) && dtoFilter.useLimit()) {
 			out.add(Aggregates.sample(limit));
-		}
-		if (sort != null) {
-			out.add(Aggregates.sort(sort));
 		}
 		return out;
 	}
@@ -133,8 +144,6 @@ public class MongoQuery<T> {
 	}
 
 	private void setSort(String sortField, String sortOrder, List<Bson> filters) {
-		Optional<String> lastOpt = wrapper.getFirstParam(UrlParameterNames.LAST_SEEN);
-
 		List<Sortable<?>> fields = SortableHelper.getSortableFields(getDocType());
 		Optional<Sortable<?>> fieldContainer = SortableHelper.getSortableFieldByName(fields, sortField);
 		if (fieldContainer.isPresent()) {
@@ -142,17 +151,9 @@ public class MongoQuery<T> {
 			// add sorting query if the sortOrder matches a defined order
 			switch (order) {
 			case ASCENDING:
-				// if last seen is set, add a filter to shift the results
-				if (lastOpt.isPresent()) {
-					filters.add(Filters.gte(sortField, fieldContainer.get().castValue(lastOpt.get())));
-				}
 				this.sort = Filters.eq(sortField, order.getOrder());
 				break;
 			case DESCENDING:
-				// if last seen is set, add a filter to shift the results
-				if (lastOpt.isPresent()) {
-					filters.add(Filters.lte(sortField, fieldContainer.get().castValue(lastOpt.get())));
-				}
 				this.sort = Filters.eq(sortField, order.getOrder());
 				break;
 			default:

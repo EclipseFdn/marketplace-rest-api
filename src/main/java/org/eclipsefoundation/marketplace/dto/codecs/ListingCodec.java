@@ -72,8 +72,6 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		doc.put(DatabaseFieldNames.LISTING_BODY, value.getTeaser());
 		doc.put(DatabaseFieldNames.LISTING_TEASER, value.getBody());
 		doc.put(DatabaseFieldNames.MARKETPLACE_FAVORITES, value.getFavoriteCount());
-		doc.put(DatabaseFieldNames.RECENT_INSTALLS, value.getInstallsRecent());
-		doc.put(DatabaseFieldNames.TOTAL_INSTALLS, value.getInstallsTotal());
 		doc.put(DatabaseFieldNames.LICENSE_TYPE, value.getLicense());
 		doc.put(DatabaseFieldNames.LISTING_STATUS, value.getStatus());
 		doc.put(DatabaseFieldNames.UPDATE_DATE, DateTimeHelper.toRFC3339(value.getUpdateDate()));
@@ -112,8 +110,8 @@ public class ListingCodec implements CollectibleCodec<Listing> {
 		out.setTeaser(document.getString(DatabaseFieldNames.LISTING_TEASER));
 		out.setBody(document.getString(DatabaseFieldNames.LISTING_BODY));
 		out.setStatus(document.getString(DatabaseFieldNames.LISTING_STATUS));
-		out.setInstallsRecent(document.getInteger(DatabaseFieldNames.RECENT_INSTALLS));
-		out.setInstallsTotal(document.getInteger(DatabaseFieldNames.TOTAL_INSTALLS));
+		out.setInstallsRecent(document.getInteger(DatabaseFieldNames.RECENT_INSTALLS,0));
+		out.setInstallsTotal(document.getInteger(DatabaseFieldNames.TOTAL_INSTALLS,0));
 		out.setLicense(document.getString(DatabaseFieldNames.LICENSE_TYPE));
 		out.setFavoriteCount(document.getLong(DatabaseFieldNames.MARKETPLACE_FAVORITES));
 		out.setFoundationMember(document.getBoolean(DatabaseFieldNames.FOUNDATION_MEMBER_FLAG));
