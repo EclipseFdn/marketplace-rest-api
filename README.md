@@ -131,11 +131,11 @@ In container:
 
 ```
 mkdir snapshot
-mongodump --username=<user> --archive=snapshot/listings.<date>.gz --db=mpc --collection=listings --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
-mongodump --username=<user> --archive=snapshot/markets.<date>.gz --db=mpc --collection=markets --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
-mongodump --username=<user> --archive=snapshot/categories.<date>.gz --db=mpc --collection=categories --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
-mongodump --username=<user> --archive=snapshot/catalogs.<date>.gz --db=mpc --collection=catalogs --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
-mongodump --username=<user> --archive=snapshot/listing_versions.<date>.gz --db=mpc --collection=listing_versions --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
+mongodump --username=<user> --archive=snapshot/listings_<date>.gz --db=mpc --collection=listings --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
+mongodump --username=<user> --archive=snapshot/markets_<date>.gz --db=mpc --collection=markets --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
+mongodump --username=<user> --archive=snapshot/categories_<date>.gz --db=mpc --collection=categories --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
+mongodump --username=<user> --archive=snapshot/catalogs_<date>.gz --db=mpc --collection=catalogs --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
+mongodump --username=<user> --archive=snapshot/listing_versions_<date>.gz --db=mpc --collection=listing_versions --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
 ```
 
 If using Docker to host:
@@ -153,11 +153,11 @@ From host machine to Docker:
 In container:  
 
 ```
-mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/listings.<date>.gz
-mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/markets.<date>.gz
-mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/catalogs.<date>.gz
-mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/categories.<date>.gz
-mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/listing_versions.<date>.gz
+mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/listings_<date>.gz
+mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/markets_<date>.gz
+mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/catalogs_<date>.gz
+mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/categories_<date>.gz
+mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/listing_versions_<date>.gz
 ```
 
 
