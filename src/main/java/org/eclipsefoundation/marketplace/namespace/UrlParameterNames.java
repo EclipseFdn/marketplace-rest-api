@@ -17,7 +17,7 @@ package org.eclipsefoundation.marketplace.namespace;
 public final class UrlParameterNames {
 
 	public static final String QUERY_STRING = "q";
-	public static final String LAST_SEEN = "last";
+	public static final String PAGE = "page";
 	public static final String LIMIT = "limit";
 	public static final String SORT = "sort";
 	public static final String OS = "os";

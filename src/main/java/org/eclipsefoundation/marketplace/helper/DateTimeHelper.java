@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ public class DateTimeHelper {
 	 *         3339 format.
 	 */
 	public static Date toRFC3339(String dateString) {
+		if (StringUtils.isBlank(dateString)) return null;
 		try {
 			return Date.from(ZonedDateTime.parse(dateString, formatter).toInstant());
 		} catch (DateTimeParseException e) {
@@ -52,6 +54,7 @@ public class DateTimeHelper {
 	 * @return the RFC 3339 format date string.
 	 */
 	public static String toRFC3339(Date date) {
+		if (date == null) return null;
 		return formatter.format(date.toInstant().atZone(ZoneId.of("UTC")));
 	}
 
