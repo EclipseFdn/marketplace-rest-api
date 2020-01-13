@@ -9,6 +9,7 @@
 */
 package org.eclipsefoundation.marketplace.resource;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -35,8 +36,10 @@ import org.eclipsefoundation.marketplace.helper.StreamHelper;
 import org.eclipsefoundation.marketplace.model.Error;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
+import org.eclipsefoundation.marketplace.model.SortOrder;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.eclipsefoundation.marketplace.service.CachingService;
+import org.eclipsefoundation.marketplace.service.PromotionService;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,16 +61,20 @@ public class ListingResource {
 	@Inject
 	MongoDao dao;
 	@Inject
+	DtoFilter<Listing> dtoFilter;
+	@Inject
 	CachingService<List<Listing>> cachingService;
+
+	@Inject
+	PromotionService promoService;
+
 	@Inject
 	RequestWrapper params;
-	@Inject
-	DtoFilter<Listing> dtoFilter;
 	@Inject
 	ResponseHelper responseBuider;
 
 	/**
-	 * Endpoint for /listing/ to retrieve all listings from the database along with
+	 * Endpoint for /listings/ to retrieve all listings from the database along with
 	 * the given query string parameters.
 	 * 
 	 * @param listingId int version of the listing ID
@@ -78,19 +85,36 @@ public class ListingResource {
 	public Response select() {
 		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
-		Optional<List<Listing>> cachedResults = cachingService.get("all", params,
+		Optional<List<Listing>> cachedResults = cachingService.get("all", params, null,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listings");
 			return Response.serverError().build();
 		}
+		// make a copy to inject promotions and not affect cached copies
+		List<Listing> listings = new ArrayList<>(cachedResults.get());
+
+		// check if promotions should be injected
+		List<UrlParameterNames> active = params.getActiveParameters();
+		Optional<String> pageOpt = params.getFirstParam(UrlParameterNames.PAGE);
+		Optional<String> sortOpt = params.getFirstParam(UrlParameterNames.SORT);
+		if (active.stream().anyMatch(p -> !UrlParameterNames.PAGE.equals(p) && !UrlParameterNames.SORT.equals(p))) {
+			LOGGER.debug("Not injecting promotions, only '{}' and '{}' are allowed. Passed: {}",
+					UrlParameterNames.PAGE.getParameterName(), UrlParameterNames.SORT.getParameterName(), active);
+		} else if (pageOpt.isPresent() && !pageOpt.get().equals("1")) {
+			LOGGER.debug("Not injecting promotions, promotions are only injected on the first page");
+		} else if (sortOpt.isPresent() && !SortOrder.getOrderFromValue(sortOpt.get()).equals(SortOrder.RANDOM)) {
+			LOGGER.debug("Not injecting promotions, promotions are only injected in unsorted results");
+		} else {
+			listings = promoService.retrievePromotions(params, listings);
+		}
 
 		// return the results as a response
-		return responseBuider.build("all", params, cachedResults.get());
+		return responseBuider.build("all", params, listings);
 	}
 
 	/**
-	 * Endpoint for /listing/ to post a new listing to the persistence layer.
+	 * Endpoint for /listings/ to post a new listing to the persistence layer.
 	 * 
 	 * @param listing the listing object to insert into the database.
 	 * @return response for the browser
@@ -99,7 +123,7 @@ public class ListingResource {
 	@RolesAllowed({ "marketplace_listing_put", "marketplace_admin_access" })
 	public Response putListing(Listing listing) {
 		if (listing.getId() != null) {
-			params.addParam(UrlParameterNames.ID, listing.getId());
+			params.addParam(UrlParameterNames.ID.getParameterName(), listing.getId());
 		}
 		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter);
 
@@ -111,7 +135,7 @@ public class ListingResource {
 	}
 
 	/**
-	 * Endpoint for /listing/\<listingId\> to retrieve a specific listing from the
+	 * Endpoint for /listings/\<listingId\> to retrieve a specific listing from the
 	 * database.
 	 * 
 	 * @param listingId the listing ID
@@ -121,11 +145,11 @@ public class ListingResource {
 	@PermitAll
 	@Path("/{listingId}")
 	public Response select(@PathParam("listingId") String listingId) {
-		params.addParam(UrlParameterNames.ID, listingId);
+		params.addParam(UrlParameterNames.ID.getParameterName(), listingId);
 
 		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current listing
-		Optional<List<Listing>> cachedResults = cachingService.get(listingId, params,
+		Optional<List<Listing>> cachedResults = cachingService.get(listingId, params, null,
 				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listing for ID {}", listingId);
@@ -137,7 +161,7 @@ public class ListingResource {
 	}
 
 	/**
-	 * Endpoint for /listing/\<listingId\> to delete a specific listing from the
+	 * Endpoint for /listings/\<listingId\> to delete a specific listing from the
 	 * database.
 	 * 
 	 * @param listingId the listing ID
@@ -147,7 +171,7 @@ public class ListingResource {
 	@RolesAllowed({ "marketplace_listing_delete", "marketplace_admin_access" })
 	@Path("/{listingId}")
 	public Response delete(@PathParam("listingId") String listingId) {
-		params.addParam(UrlParameterNames.ID, listingId);
+		params.addParam(UrlParameterNames.ID.getParameterName(), listingId);
 		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter);
 		// delete the currently selected asset
 		DeleteResult result = StreamHelper.awaitCompletionStage(dao.delete(q));

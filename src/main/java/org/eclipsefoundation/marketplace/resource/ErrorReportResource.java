@@ -70,7 +70,7 @@ public class ErrorReportResource {
 		MongoQuery<ErrorReport> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
 		Optional<List<ErrorReport>> cachedResults = cachingService.get("all", params,
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+				null, () -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached ErrorReports");
 			return Response.serverError().build();
@@ -91,7 +91,7 @@ public class ErrorReportResource {
 	public Response putErrorReport(ErrorReport errorReport) {
 		// attach ID if present for update
 		if (errorReport.getId() != null) {
-			params.addParam(UrlParameterNames.ID, errorReport.getId());
+			params.addParam(UrlParameterNames.ID.getParameterName(), errorReport.getId());
 		}
 		MongoQuery<ErrorReport> q = new MongoQuery<>(params, dtoFilter);
 
@@ -113,12 +113,12 @@ public class ErrorReportResource {
 	@PermitAll
 	@Path("/{errorReportId}")
 	public Response select(@PathParam("errorReportId") String errorReportId) {
-		params.addParam(UrlParameterNames.ID, errorReportId);
+		params.addParam(UrlParameterNames.ID.getParameterName(), errorReportId);
 
 		MongoQuery<ErrorReport> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current ErrorReport
 		Optional<List<ErrorReport>> cachedResults = cachingService.get(errorReportId, params,
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+				null, () -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached ErrorReport for ID {}", errorReportId);
 			return Response.serverError().build();

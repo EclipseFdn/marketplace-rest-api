@@ -19,7 +19,7 @@ import org.bson.BsonDocument;
 import org.bson.BsonString;
 import org.bson.conversions.Bson;
 import org.eclipsefoundation.marketplace.dto.MetricPeriod;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
+import org.eclipsefoundation.marketplace.model.QueryParameters;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 
@@ -38,15 +38,15 @@ import com.mongodb.client.model.Projections;
 public class MetricPeriodFilter implements DtoFilter<MetricPeriod> {
 
 	@Override
-	public List<Bson> getFilters(RequestWrapper wrap, String root) {
+	public List<Bson> getFilters(QueryParameters params, String root) {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public List<Bson> getAggregates(RequestWrapper wrap) {
+	public List<Bson> getAggregates(QueryParameters params) {
 		// check that we have required fields first
-		Optional<String> startDate = wrap.getFirstParam(UrlParameterNames.START);
-		Optional<String> endDate = wrap.getFirstParam(UrlParameterNames.END);
+		Optional<String> startDate = params.getFirstIfPresent(UrlParameterNames.START.getParameterName());
+		Optional<String> endDate = params.getFirstIfPresent(UrlParameterNames.END.getParameterName());
 		List<Bson> aggregates = new ArrayList<>();
 		if (startDate.isPresent() && endDate.isPresent()) {
 			// check for all listings that are after the start date

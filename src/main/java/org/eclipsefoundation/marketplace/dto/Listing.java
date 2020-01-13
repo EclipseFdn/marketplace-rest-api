@@ -63,6 +63,7 @@ public class Listing extends NodeBase {
 	private List<Author> authors;
 	private List<Tag> tags;
 	private List<ListingVersion> versions;
+	private boolean isPromotion;
 
 	/**
 	 * Default constructor, sets lists to empty lists to stop null pointers
@@ -381,6 +382,21 @@ public class Listing extends NodeBase {
 		this.versions = new ArrayList<>(versions);
 	}
 
+	/**
+	 * @return the isPromotion
+	 */
+	public boolean isPromotion() {
+		return isPromotion;
+	}
+
+	/**
+	 * @param isPromotion the isPromotion to set
+	 */
+	@JsonbTransient
+	public void setPromotion(boolean isPromotion) {
+		this.isPromotion = isPromotion;
+	}
+
 	@Override
 	public boolean validate() {
 		return super.validate() && license != null && !authors.isEmpty() && !categoryIds.isEmpty()
@@ -446,6 +462,7 @@ public class Listing extends NodeBase {
 		sb.append(", tags=").append(tags);
 		sb.append(", versions=").append(versions);
 		sb.append(", screenshots=").append(screenshots);
+		sb.append(", isPromotion=").append(isPromotion);
 		sb.append(']');
 		return sb.toString();
 	}

@@ -68,7 +68,7 @@ public class CategoryResource {
 		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
 		Optional<List<Category>> cachedResults = cachingService.get("all", params,
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+				null, () -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached Categorys");
 			return Response.serverError().build();
@@ -88,7 +88,7 @@ public class CategoryResource {
 	@RolesAllowed({"marketplace_category_put", "marketplace_admin_access"})
 	public Response putCategory(Category category) {
 		if (category.getId() != null) {
-			params.addParam(UrlParameterNames.ID, category.getId());
+			params.addParam(UrlParameterNames.ID.getParameterName(), category.getId());
 		}
 		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter);
 		// add the object, and await the result
@@ -108,12 +108,12 @@ public class CategoryResource {
 	@GET
 	@Path("/{categoryId}")
 	public Response select(@PathParam("categoryId") String categoryId) {
-		params.addParam(UrlParameterNames.ID, categoryId);
+		params.addParam(UrlParameterNames.ID.getParameterName(), categoryId);
 
 		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current listing
 		Optional<List<Category>> cachedResults = cachingService.get(categoryId, params,
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+				null, () -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listing for ID {}", categoryId);
 			return Response.serverError().build();
@@ -134,7 +134,7 @@ public class CategoryResource {
 	@RolesAllowed({ "marketplace_category_delete", "marketplace_admin_access" })
 	@Path("/{categoryId}")
 	public Response delete(@PathParam("categoryId") String categoryId) {
-		params.addParam(UrlParameterNames.ID, categoryId);
+		params.addParam(UrlParameterNames.ID.getParameterName(), categoryId);
 
 		MongoQuery<Category> q = new MongoQuery<>(params, dtoFilter);
 		// delete the currently selected asset

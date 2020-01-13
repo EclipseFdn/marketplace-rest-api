@@ -17,7 +17,7 @@ import javax.enterprise.context.ApplicationScoped;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.conversions.Bson;
 import org.eclipsefoundation.marketplace.dto.Install;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
+import org.eclipsefoundation.marketplace.model.QueryParameters;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 
@@ -32,39 +32,39 @@ import com.mongodb.client.model.Filters;
 public class InstallFilter implements DtoFilter<Install> {
 
 	@Override
-	public List<Bson> getFilters(RequestWrapper wrap, String root) {
+	public List<Bson> getFilters(QueryParameters params, String root) {
 		List<Bson> filters = new ArrayList<>();
 		// perform following checks only if there is no doc root
 		if (root == null) {
 			// ID check
-			Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
+			Optional<String> id = params.getFirstIfPresent(UrlParameterNames.ID.getParameterName());
 			if (id.isPresent()) {
 				filters.add(Filters.eq(DatabaseFieldNames.LISTING_ID, id.get()));
 			}
 		}
 		// version check
-		Optional<String> version = wrap.getFirstParam(UrlParameterNames.VERSION);
+		Optional<String> version = params.getFirstIfPresent(UrlParameterNames.VERSION.getParameterName());
 		if (version.isPresent()) {
 			filters.add(Filters.eq(DatabaseFieldNames.INSTALL_VERSION, version.get()));
 		}
 		// OS filter
-		Optional<String> os = wrap.getFirstParam(UrlParameterNames.OS);
+		Optional<String> os = params.getFirstIfPresent(UrlParameterNames.OS.getParameterName());
 		if (os.isPresent()) {
 			filters.add(Filters.eq(DatabaseFieldNames.OS, os.get()));
 		}
 		// eclipse version
-		Optional<String> eclipseVersion = wrap.getFirstParam(UrlParameterNames.ECLIPSE_VERSION);
+		Optional<String> eclipseVersion = params.getFirstIfPresent(UrlParameterNames.ECLIPSE_VERSION.getParameterName());
 		if (eclipseVersion.isPresent()) {
 			filters.add(Filters.eq(DatabaseFieldNames.ECLIPSE_VERSION, eclipseVersion.get()));
 		}
 		// TODO this sorts by naturally by character rather than by actual number (e.g.
 		// 1.9 is technically greater than 1.10)
 		// solution version - Java version
-		Optional<String> javaVersion = wrap.getFirstParam(UrlParameterNames.JAVA_VERSION);
+		Optional<String> javaVersion = params.getFirstIfPresent(UrlParameterNames.JAVA_VERSION.getParameterName());
 		if (javaVersion.isPresent()) {
 			filters.add(Filters.gte(DatabaseFieldNames.INSTALL_JAVA_VERSION, javaVersion.get()));
 		}
-		Optional<String> date = wrap.getFirstParam(UrlParameterNames.DATE_FROM);
+		Optional<String> date = params.getFirstIfPresent(UrlParameterNames.DATE_FROM.getParameterName());
 		if (date.isPresent() && StringUtils.isNumeric(date.get())) {
 			filters.add(Filters.gte(DatabaseFieldNames.INSTALL_DATE, new Date(Integer.valueOf(date.get()))));
 		}
@@ -72,7 +72,7 @@ public class InstallFilter implements DtoFilter<Install> {
 	}
 
 	@Override
-	public List<Bson> getAggregates(RequestWrapper wrap) {
+	public List<Bson> getAggregates(QueryParameters params) {
 		return Collections.emptyList();
 	}
 

@@ -68,7 +68,7 @@ public class CatalogResource {
 		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
 		Optional<List<Catalog>> cachedResults = cachingService.get("all", params,
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+				null, () -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached Catalogs");
 			return Response.serverError().build();
@@ -88,7 +88,7 @@ public class CatalogResource {
 	@RolesAllowed({ "marketplace_catalog_put", "marketplace_admin_access" })
 	public Response putCatalog(Catalog catalog) {
 		if (catalog.getId() != null) {
-			params.addParam(UrlParameterNames.ID, catalog.getId());
+			params.addParam(UrlParameterNames.ID.getParameterName(), catalog.getId());
 		}
 		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter);
 		// add the object, and await the result
@@ -108,12 +108,12 @@ public class CatalogResource {
 	@GET
 	@Path("/{catalogId}")
 	public Response select(@PathParam("catalogId") String catalogId) {
-		params.addParam(UrlParameterNames.ID, catalogId);
+		params.addParam(UrlParameterNames.ID.getParameterName(), catalogId);
 
 		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current listing
 		Optional<List<Catalog>> cachedResults = cachingService.get(catalogId, params,
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+				null, () -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listing for ID {}", catalogId);
 			return Response.serverError().build();
@@ -134,7 +134,7 @@ public class CatalogResource {
 	@RolesAllowed({ "marketplace_catalog_delete", "marketplace_admin_access" })
 	@Path("/{catalogId}")
 	public Response delete(@PathParam("catalogId") String catalogId) {
-		params.addParam(UrlParameterNames.ID, catalogId);
+		params.addParam(UrlParameterNames.ID.getParameterName(), catalogId);
 
 		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter);
 		// delete the currently selected asset

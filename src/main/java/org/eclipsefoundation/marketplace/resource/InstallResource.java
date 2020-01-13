@@ -92,10 +92,10 @@ public class InstallResource {
 	@PermitAll
 	@Path("/{listingId}")
 	public Response selectInstallCount(@PathParam("listingId") String listingId) {
-		wrapper.addParam(UrlParameterNames.ID, listingId);
+		wrapper.addParam(UrlParameterNames.ID.getParameterName(), listingId);
 		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter);
 		Optional<Long> cachedResults = countCache.get(listingId, wrapper,
-				() -> StreamHelper.awaitCompletionStage(dao.count(q)));
+				null, () -> StreamHelper.awaitCompletionStage(dao.count(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached install metrics for ID {}", listingId);
 			return Response.serverError().build();
@@ -118,11 +118,11 @@ public class InstallResource {
 	@PermitAll
 	@Path("/{listingId}/{version}")
 	public Response selectInstallCount(@PathParam("listingId") String listingId, @PathParam("version") String version) {
-		wrapper.addParam(UrlParameterNames.ID, listingId);
-		wrapper.addParam(UrlParameterNames.VERSION, version);
+		wrapper.addParam(UrlParameterNames.ID.getParameterName(), listingId);
+		wrapper.addParam(UrlParameterNames.VERSION.getParameterName(), version);
 		MongoQuery<Install> q = new MongoQuery<>(wrapper, dtoFilter);
 		Optional<Long> cachedResults = countCache.get(getCompositeKey(listingId, version), wrapper,
-				() -> StreamHelper.awaitCompletionStage(dao.count(q)));
+				null, () -> StreamHelper.awaitCompletionStage(dao.count(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listing for ID {}", listingId);
 			return Response.serverError().build();
@@ -143,10 +143,10 @@ public class InstallResource {
 	@PermitAll
 	@Path("/{listingId}/metrics")
 	public Response selectInstallMetrics(@PathParam("listingId") String listingId) {
-		wrapper.addParam(UrlParameterNames.ID, listingId);
+		wrapper.addParam(UrlParameterNames.ID.getParameterName(), listingId);
 		MongoQuery<InstallMetrics> q = new MongoQuery<>(wrapper, metricFilter);
 		Optional<List<InstallMetrics>> cachedResults = installCache.get(listingId, wrapper,
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+				null, () -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached install metrics for ID {}", listingId);
 			return Response.serverError().build();
@@ -240,8 +240,8 @@ public class InstallResource {
 			String end = DateTimeHelper.toRFC3339(c.getTime());
 			c.add(Calendar.MONTH, -1);
 			String start = DateTimeHelper.toRFC3339(c.getTime());
-			wrapper.setParam(UrlParameterNames.END, end);
-			wrapper.setParam(UrlParameterNames.START, start);
+			wrapper.setParam(UrlParameterNames.END.getParameterName(), end);
+			wrapper.setParam(UrlParameterNames.START.getParameterName(), start);
 
 			// create the query wrapper to pass to DB dao. No cache needed as this info
 			// won't be cached

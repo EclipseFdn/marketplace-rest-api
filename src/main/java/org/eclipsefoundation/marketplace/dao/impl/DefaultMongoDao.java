@@ -26,6 +26,7 @@ import org.eclipsefoundation.marketplace.dao.MongoDao;
 import org.eclipsefoundation.marketplace.exception.MaintenanceException;
 import org.eclipsefoundation.marketplace.model.MongoQuery;
 import org.eclipsefoundation.marketplace.namespace.DtoTableNames;
+import org.eclipsefoundation.marketplace.namespace.MicroprofilePropertyNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,16 +45,16 @@ import io.quarkus.mongodb.ReactiveMongoCollection;
 public class DefaultMongoDao implements MongoDao {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DefaultMongoDao.class);
 
-	@ConfigProperty(name = "mongodb.database")
+	@ConfigProperty(name = MicroprofilePropertyNames.MONGODB_DB_NAME)
 	String databaseName;
 
-	@ConfigProperty(name = "mongodb.default.limit")
+	@ConfigProperty(name = MicroprofilePropertyNames.MONGODB_RETURN_LIMIT)
 	int defaultLimit;
 
-	@ConfigProperty(name = "mongodb.default.limit.max")
+	@ConfigProperty(name = MicroprofilePropertyNames.MONGODB_RETURN_LIMIT_MAX)
 	int defaultMax;
 
-	@ConfigProperty(name = "mongodb.maintenance", defaultValue = "false")
+	@ConfigProperty(name = MicroprofilePropertyNames.MONGODB_MAINTENANCE_FLAG, defaultValue = "false")
 	boolean maintenanceFlag;
 
 	@Inject
