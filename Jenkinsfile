@@ -62,7 +62,7 @@ pipeline {
       }
       steps {
         sh '''
-           ./mvnw package  
+           ./mvnw package -Dconfig.secret.path=config/sample.secret.properties 
            docker build -f src/main/docker/Dockerfile.jvm --no-cache -t ${IMAGE_NAME}:${TAG_NAME} -t ${IMAGE_NAME}:latest .
         '''
       }
