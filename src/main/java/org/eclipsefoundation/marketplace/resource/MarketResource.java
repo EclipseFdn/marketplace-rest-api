@@ -68,7 +68,7 @@ public class MarketResource {
 		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
 		Optional<List<Market>> cachedResults = cachingService.get("all", params,
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+				null, () -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached Categorys");
 			return Response.serverError().build();
@@ -88,7 +88,7 @@ public class MarketResource {
 	@RolesAllowed({ "marketplace_market_put", "marketplace_admin_access" })
 	public Response putMarket(Market market) {
 		if (market.getId() != null) {
-			params.addParam(UrlParameterNames.ID, market.getId());
+			params.addParam(UrlParameterNames.ID.getParameterName(), market.getId());
 		}
 		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter);
 
@@ -110,12 +110,12 @@ public class MarketResource {
 	@PermitAll
 	@Path("/{marketId}")
 	public Response select(@PathParam("marketId") String marketId) {
-		params.addParam(UrlParameterNames.ID, marketId);
+		params.addParam(UrlParameterNames.ID.getParameterName(), marketId);
 
 		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current listing
 		Optional<List<Market>> cachedResults = cachingService.get(marketId, params,
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+				null, () -> StreamHelper.awaitCompletionStage(dao.get(q)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listing for ID {}", marketId);
 			return Response.serverError().build();
@@ -133,9 +133,10 @@ public class MarketResource {
 	 * @return response for the browser
 	 */
 	@DELETE
+	@RolesAllowed({ "marketplace_market_delete", "marketplace_admin_access" })
 	@Path("/{marketId}")
 	public Response delete(@PathParam("marketId") String marketId) {
-		params.addParam(UrlParameterNames.ID, marketId);
+		params.addParam(UrlParameterNames.ID.getParameterName(), marketId);
 
 		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter);
 		// delete the currently selected asset

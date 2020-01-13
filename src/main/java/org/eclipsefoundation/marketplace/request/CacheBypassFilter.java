@@ -39,7 +39,7 @@ public class CacheBypassFilter implements ContainerRequestFilter {
 	@Override
 	public void filter(ContainerRequestContext requestContext) throws IOException {
 		// check for random sort order, which always bypasses cache
-		String[] sortVals = request.getParameterValues(UrlParameterNames.SORT);
+		String[] sortVals = request.getParameterValues(UrlParameterNames.SORT.getParameterName());
 		if (sortVals != null) {
 			for (String sortVal : sortVals) {
 				// check if the sort order for request matches RANDOM

@@ -20,7 +20,7 @@ import javax.enterprise.context.ApplicationScoped;
 import org.bson.BsonArray;
 import org.bson.conversions.Bson;
 import org.eclipsefoundation.marketplace.dto.Market;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
+import org.eclipsefoundation.marketplace.model.QueryParameters;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 import org.eclipsefoundation.marketplace.namespace.DtoTableNames;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
@@ -40,12 +40,12 @@ import com.mongodb.client.model.Variable;
 public class MarketFilter implements DtoFilter<Market> {
 
 	@Override
-	public List<Bson> getFilters(RequestWrapper wrap, String root) {
+	public List<Bson> getFilters(QueryParameters params, String root) {
 		List<Bson> filters = new ArrayList<>();
 		// perform following checks only if there is no doc root
 		if (root == null) {
 			// ID check
-			Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
+			Optional<String> id = params.getFirstIfPresent(UrlParameterNames.ID.getParameterName());
 			if (id.isPresent()) {
 				filters.add(Filters.eq(DatabaseFieldNames.DOCID, id.get()));
 			}
@@ -54,7 +54,7 @@ public class MarketFilter implements DtoFilter<Market> {
 	}
 
 	@Override
-	public List<Bson> getAggregates(RequestWrapper wrap) {
+	public List<Bson> getAggregates(QueryParameters params) {
 		List<Bson> aggs = new ArrayList<>();
 
 		String tempFieldName = "tmp";

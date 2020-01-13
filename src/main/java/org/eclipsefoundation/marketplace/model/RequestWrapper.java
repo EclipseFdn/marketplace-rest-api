@@ -6,7 +6,6 @@
  */
 package org.eclipsefoundation.marketplace.model;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.RequestScoped;
 import javax.servlet.http.HttpServletRequest;
@@ -23,6 +23,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipsefoundation.marketplace.namespace.DeprecatedHeader;
 import org.eclipsefoundation.marketplace.namespace.RequestHeaderNames;
+import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.eclipsefoundation.marketplace.request.CacheBypassFilter;
 import org.jboss.resteasy.core.ResteasyContext;
 
@@ -38,7 +39,7 @@ import org.jboss.resteasy.core.ResteasyContext;
 public class RequestWrapper {
 	private static final String EMPTY_KEY_MESSAGE = "Key must not be null or blank";
 
-	private Map<String, List<String>> params;
+	private QueryParameters params;
 
 	private UriInfo uriInfo;
 	private HttpServletRequest request;
@@ -65,12 +66,12 @@ public class RequestWrapper {
 	 * @return the first value set in the parameter map for the given key, or null
 	 *         if absent.
 	 */
-	public Optional<String> getFirstParam(String key) {
-		if (StringUtils.isBlank(key)) {
+	public Optional<String> getFirstParam(UrlParameterNames parameter) {
+		if (parameter == null) {
 			throw new IllegalArgumentException(EMPTY_KEY_MESSAGE);
 		}
 
-		List<String> vals = getParams().get(key);
+		List<String> vals = getParams().getValues(parameter.getParameterName());
 		if (vals == null || vals.isEmpty()) {
 			return Optional.empty();
 		}
@@ -85,12 +86,12 @@ public class RequestWrapper {
 	 * @return the value list for the given key if it exists, or an empty collection
 	 *         if none exists.
 	 */
-	public List<String> getParams(String key) {
-		if (StringUtils.isBlank(key)) {
+	public List<String> getParams(UrlParameterNames parameter) {
+		if (parameter == null) {
 			throw new IllegalArgumentException(EMPTY_KEY_MESSAGE);
 		}
 
-		List<String> vals = getParams().get(key);
+		List<String> vals = getParams().getValues(parameter.getParameterName());
 		if (vals == null || vals.isEmpty()) {
 			return Collections.emptyList();
 		}
@@ -101,23 +102,23 @@ public class RequestWrapper {
 	 * Adds the given value for the given key, preserving previous values if they
 	 * exist.
 	 * 
-	 * @param key     string key to add the value to, must not be null
-	 * @param value   the value to add to the key
+	 * @param key   string key to add the value to, must not be null
+	 * @param value the value to add to the key
 	 */
 	public void addParam(String key, String value) {
 		if (StringUtils.isBlank(key)) {
 			throw new IllegalArgumentException(EMPTY_KEY_MESSAGE);
 		}
 		Objects.requireNonNull(value);
-		getParams().computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+		getParams().add(key, value);
 	}
 
 	/**
 	 * Sets the value as the value for the given key, removing previous values if
 	 * they exist.
 	 * 
-	 * @param key     string key to add the value to, must not be null
-	 * @param value   the value to add to the key
+	 * @param key   string key to add the value to, must not be null
+	 * @param value the value to add to the key
 	 */
 	public void setParam(String key, String value) {
 		if (StringUtils.isBlank(key)) {
@@ -129,6 +130,11 @@ public class RequestWrapper {
 		addParam(key, value);
 	}
 
+	public List<UrlParameterNames> getActiveParameters() {
+		return params.asMap().keySet().stream().map(UrlParameterNames::getByParameterName).filter(Objects::nonNull)
+				.collect(Collectors.toList());
+	}
+
 	/**
 	 * Returns this QueryParams object as a Map of param values indexed by the param
 	 * name.
@@ -136,15 +142,16 @@ public class RequestWrapper {
 	 * @return a copy of the internal param map
 	 */
 	public Map<String, List<String>> asMap() {
-		return new HashMap<>(getParams());
+		return new HashMap<>(getParams().asMap());
 	}
 
-	private Map<String, List<String>> getParams() {
+	private QueryParameters getParams() {
 		if (params == null) {
-			params = new HashMap<>();
+			Map<String, List<String>> requestParams = new HashMap<>();
 			if (uriInfo != null) {
-				params.putAll(uriInfo.getQueryParameters());
+				requestParams.putAll(uriInfo.getQueryParameters());
 			}
+			params = new QueryParameters(requestParams);
 		}
 		return this.params;
 	}

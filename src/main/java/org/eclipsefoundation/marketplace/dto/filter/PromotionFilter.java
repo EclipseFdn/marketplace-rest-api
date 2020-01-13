@@ -8,20 +8,20 @@ package org.eclipsefoundation.marketplace.dto.filter;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import org.eclipsefoundation.marketplace.dto.InstallMetrics;
+import org.eclipsefoundation.marketplace.dto.Promotion;
+
 
 /**
- * Filter implementation for the {@linkplain InstallMetrics} class.
+ * Filter implementation for the {@link Promotion} class.
  * 
  * @author Martin Lowe
- *
+ * 
  */
 @ApplicationScoped
-public class InstallMetricsFilter implements DtoFilter<InstallMetrics> {
+public class PromotionFilter implements DtoFilter<Promotion> {
 
 	@Override
-	public Class<InstallMetrics> getType() {
-		return InstallMetrics.class;
+	public Class<Promotion> getType() {
+		return Promotion.class;
 	}
-
 }

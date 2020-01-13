@@ -15,7 +15,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import org.bson.conversions.Bson;
 import org.eclipsefoundation.marketplace.dto.ErrorReport;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
+import org.eclipsefoundation.marketplace.model.QueryParameters;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 
@@ -30,40 +30,40 @@ import com.mongodb.client.model.Filters;
 public class ErrorReportFilter implements DtoFilter<ErrorReport> {
 
 	@Override
-	public List<Bson> getFilters(RequestWrapper wrap, String root) {
+	public List<Bson> getFilters(QueryParameters params, String root) {
 		List<Bson> filters = new ArrayList<>();
 
 		// ErrorReport ID check
-		Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
+		Optional<String> id = params.getFirstIfPresent(UrlParameterNames.ID.getParameterName());
 		if (id.isPresent()) {
 			filters.add(Filters.eq(DatabaseFieldNames.DOCID, id.get()));
 		}
 
 		// select by multiple IDs
-		List<String> ids = wrap.getParams(UrlParameterNames.IDS);
+		List<String> ids = params.getValues(UrlParameterNames.IDS.getParameterName());
 		if (!ids.isEmpty()) {
 			filters.add(Filters.in(DatabaseFieldNames.DOCID, ids));
 		}
 
 		// listing ID check
-		Optional<String> listingId = wrap.getFirstParam(UrlParameterNames.LISTING_ID);
+		Optional<String> listingId = params.getFirstIfPresent(UrlParameterNames.LISTING_ID.getParameterName());
 		if (listingId.isPresent()) {
 			filters.add(Filters.eq(DatabaseFieldNames.LISTING_ID, listingId.get()));
 		}
 
 		// listing ID check
-		Optional<String> isRead = wrap.getFirstParam(UrlParameterNames.READ);
+		Optional<String> isRead = params.getFirstIfPresent(UrlParameterNames.READ.getParameterName());
 		if (isRead.isPresent()) {
 			filters.add(Filters.eq(DatabaseFieldNames.ERROR_READ, Boolean.valueOf(isRead.get())));
 		}
 		
 		// select by feature ID
-		List<String> featureId = wrap.getParams(UrlParameterNames.FEATURE_ID);
+		List<String> featureId = params.getValues(UrlParameterNames.FEATURE_ID.getParameterName());
 		if (!featureId.isEmpty()) {
 			filters.add(Filters.in(DatabaseFieldNames.ERROR_FEATURE_IDS, featureId));
 		}
 		// text search
-		Optional<String> text = wrap.getFirstParam(UrlParameterNames.QUERY_STRING);
+		Optional<String> text = params.getFirstIfPresent(UrlParameterNames.QUERY_STRING.getParameterName());
 		if (text.isPresent()) {
 			filters.add(Filters.text(text.get()));
 		}
@@ -71,7 +71,7 @@ public class ErrorReportFilter implements DtoFilter<ErrorReport> {
 	}
 
 	@Override
-	public List<Bson> getAggregates(RequestWrapper wrap) {
+	public List<Bson> getAggregates(QueryParameters params) {
 		return Collections.emptyList();
 	}
 

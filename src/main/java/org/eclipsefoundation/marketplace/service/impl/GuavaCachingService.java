@@ -7,6 +7,7 @@
 package org.eclipsefoundation.marketplace.service.impl;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,6 +20,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipsefoundation.marketplace.model.RequestWrapper;
+import org.eclipsefoundation.marketplace.namespace.MicroprofilePropertyNames;
 import org.eclipsefoundation.marketplace.service.CachingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,9 +50,9 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 public class GuavaCachingService<T> implements CachingService<T> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GuavaCachingService.class);
 
-	@ConfigProperty(name = "cache.max.size", defaultValue = "10000")
+	@ConfigProperty(name = MicroprofilePropertyNames.CACHE_SIZE_MAX, defaultValue = "10000")
 	long maxSize;
-	@ConfigProperty(name = "cache.ttl.write.seconds", defaultValue = "900")
+	@ConfigProperty(name = MicroprofilePropertyNames.CACHE_TTL_MAX_SECONDS, defaultValue = "900")
 	long ttlWrite;
 
 	// actual cache object
@@ -71,15 +73,17 @@ public class GuavaCachingService<T> implements CachingService<T> {
 	}
 
 	@Override
-	public Optional<T> get(String id, RequestWrapper params, Callable<? extends T> callable) {
+	public Optional<T> get(String id, RequestWrapper wrapper, Map<String, List<String>> params,
+			Callable<? extends T> callable) {
 		Objects.requireNonNull(id);
-		Objects.requireNonNull(params);
+		Objects.requireNonNull(wrapper);
 		Objects.requireNonNull(callable);
 
-		String cacheKey = getCacheKey(id, params);
+		String cacheKey = getCacheKey(id, wrapper, params);
+		LOGGER.debug("Retrieving cache value for '{}'", cacheKey);
 		try {
 			// check if the cache is bypassed for the request
-			if (params.isCacheBypass()) {
+			if (wrapper.isCacheBypass()) {
 				T result = callable.call();
 				// if the cache has a value for key, update it
 				if (cache.asMap().containsKey(cacheKey)) {
@@ -104,7 +108,7 @@ public class GuavaCachingService<T> implements CachingService<T> {
 
 	@Override
 	public Optional<Long> getExpiration(String id, RequestWrapper params) {
-		return Optional.ofNullable(ttl.get(getCacheKey(Objects.requireNonNull(id), Objects.requireNonNull(params))));
+		return Optional.ofNullable(ttl.get(getCacheKey(Objects.requireNonNull(id), Objects.requireNonNull(params), null)));
 	}
 	
 	@Override
@@ -126,4 +130,5 @@ public class GuavaCachingService<T> implements CachingService<T> {
 	public long getMaxAge() {
 		return ttlWrite;
 	}
+
 }

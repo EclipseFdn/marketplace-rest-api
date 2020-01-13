@@ -7,7 +7,9 @@
 package org.eclipsefoundation.marketplace.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -26,15 +28,14 @@ import com.mongodb.client.model.Filters;
 
 /**
  * Wrapper for initializing MongoDB BSON filters, sort clauses, and document
- * type when interacting with MongoDB. This should only be called from within
- * the scope of a request with a defined {@link ResourceDataType}
+ * type when interacting with MongoDB.
  * 
  * @author Martin Lowe
  */
 public class MongoQuery<T> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MongoQuery.class);
 
-	private RequestWrapper wrapper;
+	private QueryParameters params;
 	private DtoFilter<T> dtoFilter;
 
 	private Bson filter;
@@ -43,9 +44,14 @@ public class MongoQuery<T> {
 	private List<Bson> aggregates;
 
 	public MongoQuery(RequestWrapper wrapper, DtoFilter<T> dtoFilter) {
-		this.wrapper = wrapper;
+		this(wrapper, Collections.emptyMap(), dtoFilter);
+	}
+
+	public MongoQuery(RequestWrapper wrapper, Map<String, List<String>> params, DtoFilter<T> dtoFilter) {
 		this.dtoFilter = dtoFilter;
 		this.aggregates = new ArrayList<>();
+		// allow for parameters to be either explicitly set or use wrapper params
+		this.params = new QueryParameters(wrapper == null ? params : wrapper.asMap());
 		init();
 	}
 
@@ -54,7 +60,7 @@ public class MongoQuery<T> {
 	 * type object. This can be called again to reset the parameters if needed due
 	 * to updated fields.
 	 */
-	public void init() {
+	private void init() {
 		// clear old values if set to default
 		this.filter = null;
 		this.sort = null;
@@ -63,10 +69,10 @@ public class MongoQuery<T> {
 
 		// get the filters for the current DTO
 		List<Bson> filters = new ArrayList<>();
-		filters.addAll(dtoFilter.getFilters(wrapper, null));
+		filters.addAll(dtoFilter.getFilters(params, null));
 
 		// get fields that make up the required fields to enable pagination and check
-		Optional<String> sortOpt = wrapper.getFirstParam(UrlParameterNames.SORT);
+		Optional<String> sortOpt = params.getFirstIfPresent(UrlParameterNames.SORT.getParameterName());
 		if (sortOpt.isPresent()) {
 			String sortVal = sortOpt.get();
 			SortOrder ord = SortOrder.getOrderFromValue(sortOpt.get());
@@ -76,13 +82,14 @@ public class MongoQuery<T> {
 			if (SortOrder.RANDOM.equals(ord)) {
 				this.order = SortOrder.RANDOM;
 			} else if (ord != SortOrder.NONE) {
-				setSort(sortVal.substring(0, idx), sortVal.substring(idx + 1), filters);
+				setSort(sortVal.substring(0, idx), sortVal.substring(idx + 1));
 			}
 		}
+
 		if (!filters.isEmpty()) {
 			this.filter = Filters.and(filters);
 		}
-		this.aggregates = dtoFilter.getAggregates(wrapper);
+		this.aggregates = dtoFilter.getAggregates(params);
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("MongoDB query initialized with filter: {}", this.filter);
@@ -106,20 +113,21 @@ public class MongoQuery<T> {
 			out.add(Aggregates.match(filter));
 		}
 		// add base aggregates (joins)
-		out.addAll(aggregates); 
+		out.addAll(aggregates);
 		if (sort != null) {
 			out.add(Aggregates.sort(sort));
 		}
 		// check if the page param has been set, defaulting to the first page if not set
-		Optional<String> pageOpt = wrapper.getFirstParam(UrlParameterNames.PAGE);
 		int page = 1;
+		Optional<String> pageOpt = params.getFirstIfPresent(UrlParameterNames.PAGE.getParameterName());
 		if (pageOpt.isPresent() && StringUtils.isNumeric(pageOpt.get())) {
 			int tmpPage = Integer.parseInt(pageOpt.get());
 			if (tmpPage > 0) {
 				page = tmpPage;
-				LOGGER.debug("Found a set page of {} for current query",page);
+				LOGGER.debug("Found a set page of {} for current query", page);
 			}
 		}
+		
 		out.add(Aggregates.skip((page - 1) * limit));
 		// add sample if we aren't sorting
 		if ((sort == null || SortOrder.RANDOM.equals(order)) && dtoFilter.useLimit()) {
@@ -136,14 +144,14 @@ public class MongoQuery<T> {
 	 *         present and numeric, otherwise returns -1.
 	 */
 	public int getLimit() {
-		Optional<String> limitVal = wrapper.getFirstParam(UrlParameterNames.LIMIT);
+		Optional<String> limitVal = params.getFirstIfPresent(UrlParameterNames.LIMIT.getParameterName());
 		if (limitVal.isPresent() && StringUtils.isNumeric(limitVal.get())) {
 			return Integer.parseInt(limitVal.get());
 		}
 		return -1;
 	}
 
-	private void setSort(String sortField, String sortOrder, List<Bson> filters) {
+	private void setSort(String sortField, String sortOrder) {
 		List<Sortable<?>> fields = SortableHelper.getSortableFields(getDocType());
 		Optional<Sortable<?>> fieldContainer = SortableHelper.getSortableFieldByName(fields, sortField);
 		if (fieldContainer.isPresent()) {
@@ -184,20 +192,6 @@ public class MongoQuery<T> {
 	 */
 	public Class<T> getDocType() {
 		return dtoFilter.getType();
-	}
-
-	/**
-	 * @return the wrapper
-	 */
-	public RequestWrapper getWrapper() {
-		return wrapper;
-	}
-
-	/**
-	 * @param wrapper the wrapper to set
-	 */
-	public void setWrapper(RequestWrapper wrapper) {
-		this.wrapper = wrapper;
 	}
 
 	@Override

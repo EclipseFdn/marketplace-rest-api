@@ -6,6 +6,7 @@
  */
 package org.eclipsefoundation.marketplace.service.impl;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -60,18 +61,18 @@ public class GuavaCachingServiceTest {
 
 		// without post construct init via javax management, cache will not be properly
 		// set
-		Assertions.assertTrue(!gcsManual.get("sampleKey", sample, Object::new).isPresent(),
+		Assertions.assertTrue(!gcsManual.get("sampleKey", sample, Collections.emptyMap(), Object::new).isPresent(),
 				"Object should not be generated when there is no cache initialized");
 
 		// initialize the cache w/ configs
 		gcsManual.init();
 
 		// run a command to interact with cache
-		Assertions.assertTrue(gcsManual.get("sampleKey", sample, Object::new).isPresent(),
+		Assertions.assertTrue(gcsManual.get("sampleKey", sample, Collections.emptyMap(), Object::new).isPresent(),
 				"Object should be generated once cache is instantiated");
 
 		// test the injected cache service (which is the normal use case)
-		Assertions.assertTrue(gcs.get("sampleKey", sample, Object::new).isPresent(),
+		Assertions.assertTrue(gcs.get("sampleKey", sample, Collections.emptyMap(), Object::new).isPresent(),
 				"Object should be generated once cache is instantiated");
 	}
 
@@ -81,7 +82,7 @@ public class GuavaCachingServiceTest {
 		String key = "k";
 
 		// get the cached obj from a fresh cache
-		Optional<Object> cachedObj = gcs.get(key, sample, () -> cachableObject);
+		Optional<Object> cachedObj = gcs.get(key, sample, Collections.emptyMap(), () -> cachableObject);
 
 		Assertions.assertTrue(cachedObj.isPresent());
 		Assertions.assertEquals(cachableObject, cachedObj.get());
@@ -90,19 +91,19 @@ public class GuavaCachingServiceTest {
 	@Test
 	public void testGetNullCallable() {
 		Assertions.assertThrows(NullPointerException.class, () -> {
-			gcs.get("key", sample, null);
+			gcs.get("key", sample, Collections.emptyMap(), null);
 		});
 	}
 
 	@Test
 	public void testGetNullCallableResult() {
-		Optional<Object> emptyObj = gcs.get("failure key", sample, () -> null);
+		Optional<Object> emptyObj = gcs.get("failure key", sample, Collections.emptyMap(), () -> null);
 		Assertions.assertFalse(emptyObj.isPresent());
 	}
 
 	@Test
 	public void testGetExceptionalCallable() {
-		Optional<Object> emptyObj = gcs.get("k", sample, () -> {
+		Optional<Object> emptyObj = gcs.get("k", sample, Collections.emptyMap(), () -> {
 			throw new IllegalStateException();
 		});
 		Assertions.assertFalse(emptyObj.isPresent());

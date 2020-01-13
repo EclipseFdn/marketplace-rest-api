@@ -88,6 +88,8 @@ public final class DatabaseFieldNames {
 	public static final String MONTH_OFFSET_PREFIX = "offset_";
 	public static final String LISTING_IDS = "listing_ids";
 	
+	public static final String PROMOTION_WEIGHTING = "weight";
+	
 	private DatabaseFieldNames() {
 	}
 }

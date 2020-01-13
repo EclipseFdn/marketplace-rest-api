@@ -14,27 +14,51 @@ package org.eclipsefoundation.marketplace.namespace;
  * 
  * @author Martin Lowe
  */
-public final class UrlParameterNames {
+public enum UrlParameterNames {
 
-	public static final String QUERY_STRING = "q";
-	public static final String PAGE = "page";
-	public static final String LIMIT = "limit";
-	public static final String SORT = "sort";
-	public static final String OS = "os";
-	public static final String ECLIPSE_VERSION = "eclipse_version";
-	public static final String JAVA_VERSION = "min_java_version";
-	public static final String IDS = "ids";
-	public static final String TAGS = "tags";
-	public static final String MARKET_IDS = "market_ids";
-	public static final String ID = "id";
-	public static final String LISTING_ID = "listing_id";
-	public static final String READ = "read";
-	public static final String FEATURE_ID = "feature_id";
-	public static final String VERSION = "version";
-	public static final String DATE_FROM = "from";
-	public static final String END = "end";
-	public static final String START = "start";
+	QUERY_STRING("q"),
+	PAGE("page"),
+	LIMIT("limit"),
+	SORT("sort"),
+	OS("os"),
+	ECLIPSE_VERSION("eclipse_version"),
+	JAVA_VERSION("min_java_version"),
+	IDS("ids"),
+	TAGS("tags"),
+	MARKET_IDS("market_ids"),
+	ID("id"),
+	LISTING_ID("listing_id"),
+	READ("read"),
+	FEATURE_ID("feature_id"),
+	VERSION("version"),
+	DATE_FROM("from"),
+	END("end"),
+	START("start");
+
+	private String parameterName;
+	private UrlParameterNames(String parameterName) {
+		this.parameterName = parameterName;
+	}
 	
-	private UrlParameterNames() {
+	/**
+	 * @return the URL parameters name
+	 */
+	public String getParameterName() {
+		return parameterName;
+	}
+	
+	/**
+	 * Retrieves the UrlParameterName for the given name.
+	 * 
+	 * @param name the name to retrieve a URL parameter for
+	 * @return the URL parameter name if it exists, or null if no match is found
+	 */
+	public static UrlParameterNames getByParameterName(String name) {
+		for (UrlParameterNames param: values()) {
+			if (param.getParameterName().equalsIgnoreCase(name)) {
+				return param;
+			}
+		}
+		return null;
 	}
 }
