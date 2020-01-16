@@ -40,8 +40,12 @@ public class SecretConfigSource implements ConfigSource {
 		if (secrets == null) {
 			this.secrets = new HashMap<>();
 			String secretPath = System.getProperty("config.secret.path");
+			// Fallback to checking env if not set in JVM
 			if (StringUtils.isEmpty(secretPath)) {
-				LOGGER.error("Configuration 'config.secret.path' not set, cannot generate secret properties");
+				secretPath = System.getenv("config.secret.path");
+			}
+			if (StringUtils.isEmpty(secretPath)) {
+				LOGGER.error("Configuration 'config.secret.path' not set, cannot generate secret properties.");
 				return this.secrets;
 			}
 			// load the secrets file in
