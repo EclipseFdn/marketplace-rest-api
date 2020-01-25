@@ -63,6 +63,8 @@ public class Listing extends NodeBase {
 	private List<Author> authors;
 	private List<Tag> tags;
 	private List<ListingVersion> versions;
+	private String publishStatus;
+	private String moderationStatus;
 
 	/**
 	 * Default constructor, sets lists to empty lists to stop null pointers
@@ -380,7 +382,35 @@ public class Listing extends NodeBase {
 		Objects.requireNonNull(versions);
 		this.versions = new ArrayList<>(versions);
 	}
-
+	
+	/**
+	 * @return publishStatus
+	 */
+	public String getPublishStatus() {
+		return publishStatus;
+	}
+	
+	/**
+	 * @param publishStatus
+	 */
+	public void setPublishStatus(String publishStatus) {
+		this.publishStatus = publishStatus;
+	}
+	
+	/**
+	 * @param moderationStatus
+	 */
+	public String getModerationStatus() {
+		return moderationStatus;
+	}
+	
+	/**
+	 * @param moderationStatus
+	 */
+	public void setModerationStatus(String moderationStatus) {
+		this.moderationStatus = moderationStatus;
+	}
+	
 	@Override
 	public boolean validate() {
 		return super.validate() && license != null && !authors.isEmpty() && !categoryIds.isEmpty()

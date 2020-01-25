@@ -41,3 +41,4 @@ config/*.crt
 
 #NodeJS
 node_modules/
+/bin/
