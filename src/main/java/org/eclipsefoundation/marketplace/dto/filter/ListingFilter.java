@@ -37,7 +37,7 @@ public class ListingFilter implements DtoFilter<Listing> {
 
 	@Inject
 	DtoFilter<ListingVersion> listingVersionFilter;
-	
+
 	@Override
 	public List<Bson> getFilters(RequestWrapper wrap, String root) {
 		List<Bson> filters = new ArrayList<>();
@@ -73,6 +73,19 @@ public class ListingFilter implements DtoFilter<Listing> {
 		if (text.isPresent()) {
 			filters.add(Filters.text(text.get()));
 		}
+
+		// Listing publish status check
+		Optional<String> publishStatus = wrap.getFirstParam(UrlParameterNames.PUBLISH_STATUS);
+		if (publishStatus.isPresent()) {
+			filters.add(Filters.eq(DatabaseFieldNames.PUBLISH_STATUS, publishStatus.get()));
+		}
+
+		// Listing moderation status check
+		Optional<String> moderationStatus = wrap.getFirstParam(UrlParameterNames.MODERATION_STATUS);
+		if (moderationStatus.isPresent()) {
+			filters.add(Filters.eq(DatabaseFieldNames.MODERATION_STATUS, moderationStatus.get()));
+		}
+
 		return filters;
 	}
 
@@ -80,8 +93,8 @@ public class ListingFilter implements DtoFilter<Listing> {
 	public List<Bson> getAggregates(RequestWrapper wrap) {
 		List<Bson> aggs = new ArrayList<>();
 		// adds a $lookup aggregate, joining categories on categoryIDS as "categories"
-		aggs.add(Aggregates.lookup(DtoTableNames.LISTING_VERSION.getTableName(), DatabaseFieldNames.DOCID, DatabaseFieldNames.LISTING_ID,
-				DatabaseFieldNames.LISTING_VERSIONS));
+		aggs.add(Aggregates.lookup(DtoTableNames.LISTING_VERSION.getTableName(), DatabaseFieldNames.DOCID,
+				DatabaseFieldNames.LISTING_ID, DatabaseFieldNames.LISTING_VERSIONS));
 		Bson filters = listingVersionFilter.wrapFiltersToAggregate(wrap, DatabaseFieldNames.LISTING_VERSIONS);
 		if (filters != null) {
 			aggs.add(filters);

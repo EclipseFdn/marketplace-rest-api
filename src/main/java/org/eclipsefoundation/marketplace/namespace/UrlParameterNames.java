@@ -34,6 +34,8 @@ public final class UrlParameterNames {
 	public static final String DATE_FROM = "from";
 	public static final String END = "end";
 	public static final String START = "start";
+	public static final String PUBLISH_STATUS = "publish_status";
+	public static final String MODERATION_STATUS = "moderation_status";
 	
 	private UrlParameterNames() {
 	}
