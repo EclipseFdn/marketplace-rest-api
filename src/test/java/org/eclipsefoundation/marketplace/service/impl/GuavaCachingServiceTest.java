@@ -13,8 +13,8 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriInfo;
 
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
-import org.eclipsefoundation.marketplace.model.RequestWrapperMock;
+import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.model.RequestWrapperMock;
 import org.jboss.resteasy.core.ResteasyContext;
 import org.jboss.resteasy.specimpl.ResteasyUriInfo;
 import org.junit.jupiter.api.Assertions;

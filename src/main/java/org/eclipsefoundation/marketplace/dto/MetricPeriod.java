@@ -7,8 +7,15 @@
 package org.eclipsefoundation.marketplace.dto;
 
 import java.util.Date;
+import java.util.Objects;
+import java.util.UUID;
 
 import javax.json.bind.annotation.JsonbTransient;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
+import org.eclipsefoundation.persistence.dto.BareNode;
 
 /**
  * Represents a set of install metrics for a given listing in a time period.
@@ -17,9 +24,11 @@ import javax.json.bind.annotation.JsonbTransient;
  * @author Martin Lowe
  *
  */
-public class MetricPeriod {
-
-	private String listingId;
+@Entity
+@Table
+public class MetricPeriod  extends BareNode {
+	@Column(columnDefinition = "BINARY(16)")
+	private UUID listingId;
 	private Integer count;
 	private Date start;
 	private Date end;
@@ -28,14 +37,14 @@ public class MetricPeriod {
 	 * @return the listingId
 	 */
 	@JsonbTransient
-	public String getListingId() {
+	public UUID getListingId() {
 		return listingId;
 	}
 
 	/**
 	 * @param listingId the listingId to set
 	 */
-	public void setListingId(String listingId) {
+	public void setListingId(UUID listingId) {
 		this.listingId = listingId;
 	}
 
@@ -79,6 +88,27 @@ public class MetricPeriod {
 	 */
 	public void setEnd(Date end) {
 		this.end = end;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + Objects.hash(count, end, listingId, start);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		MetricPeriod other = (MetricPeriod) obj;
+		return Objects.equals(count, other.count) && Objects.equals(end, other.end)
+				&& Objects.equals(listingId, other.listingId) && Objects.equals(start, other.start);
 	}
 
 	@Override

@@ -6,42 +6,21 @@
  */
 package org.eclipsefoundation.marketplace.dto;
 
+import java.util.Objects;
+
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
+import org.eclipsefoundation.persistence.dto.NodeBase;
+
 /**
  * @author Martin Lowe
  *
  */
-public class Tab {
-	private String title;
-	private String url;
+@Entity
+@Table
+public class Tab extends NodeBase {
 	private String type;
-
-	/**
-	 * @return the title
-	 */
-	public String getTitle() {
-		return title;
-	}
-
-	/**
-	 * @param title the title to set
-	 */
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
-	/**
-	 * @return the url
-	 */
-	public String getUrl() {
-		return url;
-	}
-
-	/**
-	 * @param url the url to set
-	 */
-	public void setUrl(String url) {
-		this.url = url;
-	}
 
 	/**
 	 * @return the type
@@ -55,6 +34,26 @@ public class Tab {
 	 */
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + Objects.hash(type);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Tab other = (Tab) obj;
+		return Objects.equals(type, other.type);
 	}
 
 }

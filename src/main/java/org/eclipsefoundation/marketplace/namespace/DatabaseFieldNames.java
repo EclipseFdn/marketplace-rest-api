@@ -18,7 +18,8 @@ package org.eclipsefoundation.marketplace.namespace;
 public final class DatabaseFieldNames {
 
 	// base fields
-	public static final String DOCID = "_id";
+	public static final String DOCID = "id";
+	public static final String SEED = "seed";
 	public static final String URL = "url";
 	public static final String TITLE = "title";
 	public static final String OS = "os";

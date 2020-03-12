@@ -9,7 +9,6 @@
 */
 package org.eclipsefoundation.marketplace.resource;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +17,7 @@ import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.persistence.NoResultException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -26,25 +26,18 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
-import org.eclipsefoundation.marketplace.dao.MongoDao;
+import org.eclipsefoundation.core.helper.ResponseHelper;
+import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.service.CachingService;
 import org.eclipsefoundation.marketplace.dto.Listing;
-import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
-import org.eclipsefoundation.marketplace.helper.ResponseHelper;
-import org.eclipsefoundation.marketplace.helper.StreamHelper;
-import org.eclipsefoundation.marketplace.model.Error;
-import org.eclipsefoundation.marketplace.model.MongoQuery;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
-import org.eclipsefoundation.marketplace.model.SortOrder;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
-import org.eclipsefoundation.marketplace.service.CachingService;
-import org.eclipsefoundation.marketplace.service.PromotionService;
+import org.eclipsefoundation.persistence.dao.PersistenceDao;
+import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
+import org.eclipsefoundation.persistence.model.RDBMSQuery;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.mongodb.client.result.DeleteResult;
 
 /**
  * Resource for retrieving listings from the MongoDB instance.
@@ -59,22 +52,21 @@ public class ListingResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ListingResource.class);
 
 	@Inject
-	MongoDao dao;
-	@Inject
-	DtoFilter<Listing> dtoFilter;
+	PersistenceDao dao;
 	@Inject
 	CachingService<List<Listing>> cachingService;
-
 	@Inject
 	PromotionService promoService;
 
 	@Inject
 	RequestWrapper params;
 	@Inject
+	DtoFilter<Listing> dtoFilter;
+	@Inject
 	ResponseHelper responseBuider;
 
 	/**
-	 * Endpoint for /listings/ to retrieve all listings from the database along with
+	 * Endpoint for /listing/ to retrieve all listings from the database along with
 	 * the given query string parameters.
 	 * 
 	 * @param listingId int version of the listing ID
@@ -83,38 +75,20 @@ public class ListingResource {
 	@GET
 	@PermitAll
 	public Response select() {
-		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
-		Optional<List<Listing>> cachedResults = cachingService.get("all", params, null,
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+		Optional<List<Listing>> cachedResults = cachingService.get("all", params,
+				() -> dao.get(new RDBMSQuery<>(params, dtoFilter)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listings");
 			return Response.serverError().build();
 		}
-		// make a copy to inject promotions and not affect cached copies
-		List<Listing> listings = new ArrayList<>(cachedResults.get());
-
-		// check if promotions should be injected
-		List<UrlParameterNames> active = params.getActiveParameters();
-		Optional<String> pageOpt = params.getFirstParam(UrlParameterNames.PAGE);
-		Optional<String> sortOpt = params.getFirstParam(UrlParameterNames.SORT);
-		if (active.stream().anyMatch(p -> !UrlParameterNames.PAGE.equals(p) && !UrlParameterNames.SORT.equals(p))) {
-			LOGGER.debug("Not injecting promotions, only '{}' and '{}' are allowed. Passed: {}",
-					UrlParameterNames.PAGE.getParameterName(), UrlParameterNames.SORT.getParameterName(), active);
-		} else if (pageOpt.isPresent() && !pageOpt.get().equals("1")) {
-			LOGGER.debug("Not injecting promotions, promotions are only injected on the first page");
-		} else if (sortOpt.isPresent() && !SortOrder.getOrderFromValue(sortOpt.get()).equals(SortOrder.RANDOM)) {
-			LOGGER.debug("Not injecting promotions, promotions are only injected in unsorted results");
-		} else {
-			listings = promoService.retrievePromotions(params, listings);
-		}
 
 		// return the results as a response
-		return responseBuider.build("all", params, listings);
+		return responseBuider.build("all", params, cachedResults.get());
 	}
 
 	/**
-	 * Endpoint for /listings/ to post a new listing to the persistence layer.
+	 * Endpoint for /listing/ to post a new listing to the persistence layer.
 	 * 
 	 * @param listing the listing object to insert into the database.
 	 * @return response for the browser
@@ -122,20 +96,15 @@ public class ListingResource {
 	@PUT
 	@RolesAllowed({ "marketplace_listing_put", "marketplace_admin_access" })
 	public Response putListing(Listing listing) {
-		if (listing.getId() != null) {
-			params.addParam(UrlParameterNames.ID.getParameterName(), listing.getId());
-		}
-		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter);
-
 		// add the object, and await the result
-		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(listing)));
+		dao.add(new RDBMSQuery<>(params, dtoFilter), Arrays.asList(listing));
 
 		// return the results as a response
 		return Response.ok().build();
 	}
 
 	/**
-	 * Endpoint for /listings/\<listingId\> to retrieve a specific listing from the
+	 * Endpoint for /listing/\<listingId\> to retrieve a specific listing from the
 	 * database.
 	 * 
 	 * @param listingId the listing ID
@@ -145,23 +114,24 @@ public class ListingResource {
 	@PermitAll
 	@Path("/{listingId}")
 	public Response select(@PathParam("listingId") String listingId) {
-		params.addParam(UrlParameterNames.ID.getParameterName(), listingId);
+		params.addParam(UrlParameterNames.ID, listingId);
 
-		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current listing
-		Optional<List<Listing>> cachedResults = cachingService.get(listingId, params, null,
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+		Optional<List<Listing>> cachedResults = cachingService.get(listingId, params,
+				() -> dao.get(new RDBMSQuery<>(params, dtoFilter)));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listing for ID {}", listingId);
 			return Response.serverError().build();
 		}
-
+		if (cachedResults.get().isEmpty()) {
+			throw new NoResultException("Could not find any documents with ID " + listingId);
+		}
 		// return the results as a response
 		return responseBuider.build(listingId, params, cachedResults.get());
 	}
 
 	/**
-	 * Endpoint for /listings/\<listingId\> to delete a specific listing from the
+	 * Endpoint for /listing/\<listingId\> to delete a specific listing from the
 	 * database.
 	 * 
 	 * @param listingId the listing ID
@@ -171,13 +141,9 @@ public class ListingResource {
 	@RolesAllowed({ "marketplace_listing_delete", "marketplace_admin_access" })
 	@Path("/{listingId}")
 	public Response delete(@PathParam("listingId") String listingId) {
-		params.addParam(UrlParameterNames.ID.getParameterName(), listingId);
-		MongoQuery<Listing> q = new MongoQuery<>(params, dtoFilter);
+		params.addParam(UrlParameterNames.ID, listingId);
 		// delete the currently selected asset
-		DeleteResult result = StreamHelper.awaitCompletionStage(dao.delete(q));
-		if (result.getDeletedCount() == 0 || !result.wasAcknowledged()) {
-			return new Error(Status.NOT_FOUND, "Did not find an asset to delete for current call").asResponse();
-		}
+		dao.delete(new RDBMSQuery<>(params, dtoFilter));
 		// return the results as a response
 		return Response.ok().build();
 	}

@@ -9,17 +9,20 @@ package org.eclipsefoundation.marketplace.helper;
 import java.util.List;
 import java.util.Optional;
 
-import org.eclipsefoundation.marketplace.helper.SortableHelper.Sortable;
-import org.eclipsefoundation.marketplace.model.SortableField;
+import org.eclipsefoundation.persistence.helper.SortableHelper;
+import org.eclipsefoundation.persistence.helper.SortableHelper.Sortable;
+import org.eclipsefoundation.persistence.model.SortableField;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import io.quarkus.test.junit.DisabledOnSubstrate;
 import io.quarkus.test.junit.QuarkusTest;
 
 /**
  * @author Martin Lowe
  *
  */
+@DisabledOnSubstrate
 @QuarkusTest
 public class SortableHelperTest {
 

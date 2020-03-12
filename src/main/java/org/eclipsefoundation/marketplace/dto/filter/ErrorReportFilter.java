@@ -15,7 +15,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import org.bson.conversions.Bson;
 import org.eclipsefoundation.marketplace.dto.ErrorReport;
-import org.eclipsefoundation.marketplace.model.QueryParameters;
+import org.eclipsefoundation.marketplace.model.RequestWrapper;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 
@@ -29,50 +29,51 @@ import com.mongodb.client.model.Filters;
 @ApplicationScoped
 public class ErrorReportFilter implements DtoFilter<ErrorReport> {
 
+	@Inject
+	ParameterizedSQLStatementBuilder builder;
+	
+
 	@Override
-	public List<Bson> getFilters(QueryParameters params, String root) {
-		List<Bson> filters = new ArrayList<>();
-
-		// ErrorReport ID check
-		Optional<String> id = params.getFirstIfPresent(UrlParameterNames.ID.getParameterName());
-		if (id.isPresent()) {
-			filters.add(Filters.eq(DatabaseFieldNames.DOCID, id.get()));
+	public ParameterizedSQLStatement getFilters(RequestWrapper wrap, boolean isRoot) {
+		ParameterizedSQLStatement stmt = builder.build(DtoTableNames.ERRORREPORT.getTable());
+		if (isRoot) {
+			// ID check
+			Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
+			if (id.isPresent()) {
+				stmt.addClause(new ParameterizedSQLStatement.Clause(
+						DtoTableNames.ERRORREPORT.getAlias() + "." + DatabaseFieldNames.DOCID + " = ?",
+						new Object[] { UUID.fromString(id.get()) }));
+			}
 		}
-
-		// select by multiple IDs
-		List<String> ids = params.getValues(UrlParameterNames.IDS.getParameterName());
+		// IDS
+		List<String> ids = wrap.getParams(UrlParameterNames.IDS);
 		if (!ids.isEmpty()) {
-			filters.add(Filters.in(DatabaseFieldNames.DOCID, ids));
+			stmt.addClause(new ParameterizedSQLStatement.Clause(
+					DtoTableNames.ERRORREPORT.getAlias() + "." + DatabaseFieldNames.DOCID + " = ?",
+					new Object[] { ids.stream().map(UUID::fromString).collect(Collectors.toList()) }));
 		}
-
-		// listing ID check
-		Optional<String> listingId = params.getFirstIfPresent(UrlParameterNames.LISTING_ID.getParameterName());
+		// listing ID filter
+		Optional<String> listingId = wrap.getFirstParam(UrlParameterNames.LISTING_ID);
 		if (listingId.isPresent()) {
-			filters.add(Filters.eq(DatabaseFieldNames.LISTING_ID, listingId.get()));
+			stmt.addClause(new ParameterizedSQLStatement.Clause(
+					DtoTableNames.ERRORREPORT.getAlias() + "." + DatabaseFieldNames.LISTING_ID + " = ?",
+					new Object[] { UUID.fromString(listingId.get()) }));
 		}
-
-		// listing ID check
-		Optional<String> isRead = params.getFirstIfPresent(UrlParameterNames.READ.getParameterName());
+		// read filter
+		Optional<String> isRead = wrap.getFirstParam(UrlParameterNames.READ);
 		if (isRead.isPresent()) {
-			filters.add(Filters.eq(DatabaseFieldNames.ERROR_READ, Boolean.valueOf(isRead.get())));
+			stmt.addClause(new ParameterizedSQLStatement.Clause(
+					DtoTableNames.ERRORREPORT.getAlias() + "." + DatabaseFieldNames.ERROR_READ + " = ?",
+					new Object[] { Boolean.valueOf(isRead.get()) }));
 		}
-		
-		// select by feature ID
-		List<String> featureId = params.getValues(UrlParameterNames.FEATURE_ID.getParameterName());
-		if (!featureId.isEmpty()) {
-			filters.add(Filters.in(DatabaseFieldNames.ERROR_FEATURE_IDS, featureId));
+		// feature IDs
+		Optional<String> featureId = wrap.getFirstParam(UrlParameterNames.FEATURE_ID);
+		if (featureId.isPresent()) {
+			stmt.addClause(new ParameterizedSQLStatement.Clause(
+					DtoTableNames.ERRORREPORT.getAlias() + "." + DatabaseFieldNames.ERROR_FEATURE_IDS + " = ?",
+					new Object[] { featureId.get() }));
 		}
-		// text search
-		Optional<String> text = params.getFirstIfPresent(UrlParameterNames.QUERY_STRING.getParameterName());
-		if (text.isPresent()) {
-			filters.add(Filters.text(text.get()));
-		}
-		return filters;
-	}
-
-	@Override
-	public List<Bson> getAggregates(QueryParameters params) {
-		return Collections.emptyList();
+		return stmt;
 	}
 
 	@Override

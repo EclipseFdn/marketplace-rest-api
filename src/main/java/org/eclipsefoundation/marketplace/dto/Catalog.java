@@ -9,25 +9,35 @@
 */
 package org.eclipsefoundation.marketplace.dto;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import org.eclipsefoundation.persistence.dto.NodeBase;
 
 /**
  * Represents a listing catalog.
  * 
  * @author Martin Lowe
  */
+@Entity
+@Table
 public class Catalog extends NodeBase {
 	private boolean selfContained;
 	private boolean searchEnabled;
 	private String icon;
 	private String description;
 	private String dependenciesRepository;
-	private List<Tab> tabs;
+	@OneToMany(cascade = { CascadeType.ALL }, orphanRemoval = true)
+	private Set<Tab> tabs;
 	
 	public Catalog() {
-		this.tabs = new ArrayList<>();
+		this.tabs = new HashSet<>();
 	}
 
 	/**
@@ -103,15 +113,15 @@ public class Catalog extends NodeBase {
 	/**
 	 * @return the tabs
 	 */
-	public List<Tab> getTabs() {
-		return new ArrayList<>(tabs);
+	public Set<Tab> getTabs() {
+		return new HashSet<>(tabs);
 	}
 
 	/**
 	 * @param tabs the tabs to set
 	 */
-	public void setTabs(List<Tab> tabs) {
-		this.tabs = new ArrayList<>(tabs);
+	public void setTabs(Set<Tab> tabs) {
+		this.tabs = new HashSet<>(tabs);
 	}
 
 	@Override

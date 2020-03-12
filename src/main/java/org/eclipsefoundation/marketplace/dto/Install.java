@@ -7,36 +7,32 @@
 package org.eclipsefoundation.marketplace.dto;
 
 import java.util.Date;
+import java.util.Objects;
+import java.util.UUID;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
+import org.eclipsefoundation.persistence.dto.BareNode;
 
 /**
  * Domain object representing the data stored for installs.
  * 
  * @author Martin Lowe
  */
-public class Install {
+@Entity
+@Table
+public class Install extends BareNode {
 
-	private String id;
 	private Date installDate;
 	private String os;
 	private String version;
-	private String listingId;
+	@Column(columnDefinition = "BINARY(16)")
+	private UUID listingId;
 	private String javaVersion;
 	private String eclipseVersion;
 	private String locale;
-
-	/**
-	 * @return the id
-	 */
-	public String getId() {
-		return id;
-	}
-
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(String id) {
-		this.id = id;
-	}
 
 	/**
 	 * @return the installDate
@@ -83,14 +79,14 @@ public class Install {
 	/**
 	 * @return the listingId
 	 */
-	public String getListingId() {
+	public UUID getListingId() {
 		return listingId;
 	}
 
 	/**
 	 * @param listingId the listingId to set
 	 */
-	public void setListingId(String listingId) {
+	public void setListingId(UUID listingId) {
 		this.listingId = listingId;
 	}
 
@@ -142,10 +138,34 @@ public class Install {
 	}
 
 	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result
+				+ Objects.hash(eclipseVersion, installDate, javaVersion, listingId, locale, os, version);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Install other = (Install) obj;
+		return Objects.equals(eclipseVersion, other.eclipseVersion) && Objects.equals(installDate, other.installDate)
+				&& Objects.equals(javaVersion, other.javaVersion) && Objects.equals(listingId, other.listingId)
+				&& Objects.equals(locale, other.locale) && Objects.equals(os, other.os)
+				&& Objects.equals(version, other.version);
+	}
+
+	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Install [id=");
-		builder.append(id);
+		builder.append(getId());
 		builder.append(", installDate=");
 		builder.append(installDate);
 		builder.append(", os=");

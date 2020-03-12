@@ -9,73 +9,128 @@
 */
 package org.eclipsefoundation.marketplace.dto;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.temporal.ChronoField;
+import java.util.Calendar;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 import javax.json.bind.annotation.JsonbProperty;
 import javax.json.bind.annotation.JsonbTransient;
+import javax.persistence.CascadeType;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.PostLoad;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.eclipsefoundation.marketplace.model.SortableField;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
-
-import io.quarkus.runtime.annotations.RegisterForReflection;
+import org.eclipsefoundation.persistence.dto.BareNode;
+import org.eclipsefoundation.persistence.dto.NodeBase;
+import org.eclipsefoundation.persistence.model.SortableField;
+import org.eclipsefoundation.search.model.Indexed;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 /**
  * Domain object representing a marketplace listing.
  * 
  * @author Martin Lowe
  */
-@RegisterForReflection
+@Entity
+@Table(
+	indexes = {
+		@Index(columnList="licenseType"),
+		@Index(columnList="changed"),
+		@Index(columnList="seed")
+	}
+)
 public class Listing extends NodeBase {
 
 	private String supportUrl;
 	private String homepageUrl;
+	@Lob
+	@Indexed
 	private String teaser;
+	@Indexed
+	@Lob
 	private String body;
 	private String status;
 	private String logo;
 	private boolean foundationMember;
-
+	@Transient
 	@SortableField(name = "installs_count")
 	private Integer installsTotal;
-
+	@Transient
 	@SortableField(name = "installs_count_recent")
 	private Integer installsRecent;
 
 	@SortableField
 	private long favoriteCount;
-
-	@SortableField(name = DatabaseFieldNames.CREATION_DATE)
-	@JsonbProperty(DatabaseFieldNames.CREATION_DATE)
-	private String creationDate;
-
-	@SortableField(name = DatabaseFieldNames.UPDATE_DATE)
-	@JsonbProperty(DatabaseFieldNames.UPDATE_DATE)
-	private String updateDate;
+	@SortableField
+	private String created;
+	@SortableField
+	private String changed;
+	
 	@JsonbProperty(DatabaseFieldNames.LICENSE_TYPE)
-	private String license;
-	private List<String> marketIds;
-	private List<String> categoryIds;
-	private List<String> screenshots;
-	private List<Category> categories;
+	private String licenseType;
+	@ElementCollection
+	private Set<String> screenshots;
+	@ManyToMany
+	@JoinColumn
+	private Set<Category> categories;
+	@ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+	@JoinColumn
 	private Organization organization;
-	private List<Author> authors;
-	private List<Tag> tags;
-	private List<ListingVersion> versions;
-	private boolean isPromotion;
+	@OneToMany(cascade = CascadeType.PERSIST)
+	private Set<Author> authors;
+	@ManyToMany(cascade = CascadeType.PERSIST)
+	private Set<Tag> tags;
+	@OneToMany
+	@JoinColumn(name = "listingId")
+	private Set<ListingVersion> versions;
+	
+	@JsonbTransient
+	@OneToOne(mappedBy = "listing")
+	@NotFound(action = NotFoundAction.IGNORE)
+	private InstallMetrics metrics;
 
 	/**
 	 * Default constructor, sets lists to empty lists to stop null pointers
 	 */
 	public Listing() {
-		this.authors = new ArrayList<>();
-		this.tags = new ArrayList<>();
-		this.versions = new ArrayList<>();
-		this.marketIds = new ArrayList<>();
-		this.categoryIds = new ArrayList<>();
-		this.categories = new ArrayList<>();
-		this.screenshots = new ArrayList<>();
+		this.authors = new HashSet<>();
+		this.tags = new HashSet<>();
+		this.versions = new HashSet<>();
+		this.categories = new HashSet<>();
+		this.screenshots = new HashSet<>();
+	}
+
+	@PostLoad
+	private void post() {
+		if (metrics != null) {
+			// get total installs
+			this.installsTotal = metrics.getTotal();
+			
+			// get recent installs
+			Calendar c = Calendar.getInstance();
+			int thisMonth = c.get(Calendar.MONTH);
+			Optional<MetricPeriod> current = metrics.getPeriods().stream()
+					.filter(p -> p.getStart().toInstant().get(ChronoField.MONTH_OF_YEAR) == thisMonth).findFirst();
+			// check if we have an entry for the current month
+			if (current.isPresent()) {
+				this.installsRecent = current.get().getCount();
+			}
+		}
 	}
 
 	/**
@@ -223,103 +278,73 @@ public class Listing extends NodeBase {
 	}
 
 	/**
-	 * @return the creationDate
+	 * @return the created date
 	 */
-	public String getCreationDate() {
-		return creationDate;
+	public String getCreated() {
+		return created;
 	}
 
 	/**
-	 * @param creationDate the creationDate to set
+	 * @param created the created to set
 	 */
-	public void setCreationDate(String creationDate) {
-		this.creationDate = creationDate;
+	public void setCreated(String created) {
+		this.created = created;
 	}
 
 	/**
 	 * @return the updateDate
 	 */
-	public String getUpdateDate() {
-		return updateDate;
+	public String getChanged() {
+		return changed;
 	}
 
 	/**
-	 * @param updateDate the updateDate to set
+	 * @param changed the changed to set
 	 */
-	public void setUpdateDate(String updateDate) {
-		this.updateDate = updateDate;
+	public void setChanged(String changed) {
+		this.changed = changed;
 	}
 
 	/**
-	 * @return the license
+	 * @return the licenseType
 	 */
-	public String getLicense() {
-		return license;
+	public String getLicenseType() {
+		return licenseType;
 	}
 
 	/**
-	 * @param license the license to set
+	 * @param licenseType the licenseType to set
 	 */
-	public void setLicense(String license) {
-		this.license = license;
-	}
-
-	/**
-	 * @return the categoryIds
-	 */
-	@JsonbTransient
-	public List<String> getCategoryIds() {
-		return categoryIds;
-	}
-
-	/**
-	 * @param categoryIds the categoryIds to set
-	 */
-	public void setCategoryIds(List<String> categoryIds) {
-		this.categoryIds = new ArrayList<>(categoryIds);
-	}
-
-	/**
-	 * @return the categoryIds
-	 */
-	public List<String> getMarketIds() {
-		return new ArrayList<>(marketIds);
-	}
-
-	/**
-	 * @param marketIds the categoryIds to set
-	 */
-	public void setMarketIds(List<String> marketIds) {
-		this.marketIds = new ArrayList<>(marketIds);
+	public void setLicenseType(String licenseType) {
+		this.licenseType = licenseType;
 	}
 
 	/**
 	 * @return the screenshots
 	 */
-	public List<String> getScreenshots() {
-		return new ArrayList<>(screenshots);
+	public Set<String> getScreenshots() {
+		return new HashSet<>(screenshots);
 	}
 
 	/**
 	 * @param screenshots the screenshots to set
 	 */
-	public void setScreenshots(List<String> screenshots) {
-		this.screenshots = new ArrayList<>(screenshots);
+	public void setScreenshots(Set<String> screenshots) {
+		this.screenshots = new HashSet<>(screenshots);
 	}
 
 	/**
 	 * @return the categories
 	 */
-	public List<Category> getCategories() {
-		return new ArrayList<>(categories);
+	public Set<Category> getCategories() {
+		return new HashSet<>(categories);
 	}
 
 	/**
 	 * @param categories the categories to set
 	 */
-	@JsonbTransient
-	public void setCategories(List<Category> categories) {
-		this.categories = new ArrayList<>(categories);
+	public void setCategories(Set<Category> categories) {
+		this.categories = new HashSet<>(categories);
 	}
 
 	/**
@@ -339,47 +364,61 @@ public class Listing extends NodeBase {
 	/**
 	 * @return the authors
 	 */
-	public List<Author> getAuthors() {
-		return new ArrayList<>(authors);
+	public Set<Author> getAuthors() {
+		return new HashSet<>(authors);
 	}
 
 	/**
 	 * @param authors the authors to set
 	 */
-	public void setAuthors(List<Author> authors) {
+	public void setAuthors(Set<Author> authors) {
 		Objects.requireNonNull(authors);
-		this.authors = new ArrayList<>(authors);
+		this.authors = new HashSet<>(authors);
 	}
 
 	/**
 	 * @return the tags
 	 */
-	public List<Tag> getTags() {
-		return new ArrayList<>(tags);
+	public Set<Tag> getTags() {
+		return new HashSet<>(tags);
 	}
 
 	/**
 	 * @param tags the tags to set
 	 */
-	public void setTags(List<Tag> tags) {
+	public void setTags(Set<Tag> tags) {
 		Objects.requireNonNull(tags);
-		this.tags = new ArrayList<>(tags);
+		this.tags = new HashSet<>(tags);
 	}
 
 	/**
 	 * @return the versions
 	 */
-	public List<ListingVersion> getVersions() {
-		return new ArrayList<>(versions);
+	public Set<ListingVersion> getVersions() {
+		return new HashSet<>(versions);
 	}
 
 	/**
 	 * @param versions the versions to set
 	 */
 	@JsonbTransient
-	public void setVersions(List<ListingVersion> versions) {
+	public void setVersions(Set<ListingVersion> versions) {
 		Objects.requireNonNull(versions);
-		this.versions = new ArrayList<>(versions);
+		this.versions = new HashSet<>(versions);
+	}
+
+	/**
+	 * @return the metrics
+	 */
+	public InstallMetrics getMetrics() {
+		return metrics;
+	}
+
+	/**
+	 * @param metrics the metrics to set
+	 */
+	public void setMetrics(InstallMetrics metrics) {
+		this.metrics = metrics;
 	}
 
 	/**
@@ -399,17 +438,25 @@ public class Listing extends NodeBase {
 
 	@Override
 	public boolean validate() {
-		return super.validate() && license != null && !authors.isEmpty() && !categoryIds.isEmpty()
-				&& !versions.isEmpty();
+		return super.validate() && licenseType != null && !authors.isEmpty() && !versions.isEmpty();
+	}
+
+	@Override
+	public void initializeLazyFields() {
+		super.initializeLazyFields();
+		this.authors.forEach(BareNode::initializeLazyFields);
+		this.categories.forEach(BareNode::initializeLazyFields);
+		this.tags.forEach(BareNode::initializeLazyFields);
+		this.versions.forEach(BareNode::initializeLazyFields);
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + Objects.hash(authors, body, categories, categoryIds, creationDate, favoriteCount,
-				foundationMember, homepageUrl, installsRecent, installsTotal, license, logo, organization, status,
-				supportUrl, tags, teaser, updateDate, versions);
+		result = prime * result + Objects.hash(this.getAuthors(), body, this.getCategories(), created, favoriteCount, foundationMember,
+				homepageUrl, installsRecent, installsTotal, licenseType, logo, organization, status, supportUrl, this.getTags(),
+				teaser, changed, this.getVersions());
 		return result;
 	}
 
@@ -425,16 +472,15 @@ public class Listing extends NodeBase {
 			return false;
 		}
 		Listing other = (Listing) obj;
-		return Objects.equals(authors, other.authors) && Objects.equals(body, other.body)
-				&& Objects.equals(categories, other.categories) && Objects.equals(categoryIds, other.categoryIds)
-				&& creationDate == other.creationDate && favoriteCount == other.favoriteCount
-				&& foundationMember == other.foundationMember && Objects.equals(homepageUrl, other.homepageUrl)
-				&& installsRecent == other.installsRecent && installsTotal == other.installsTotal
-				&& Objects.equals(logo, other.logo) && Objects.equals(organization, other.organization)
-				&& Objects.equals(status, other.status) && Objects.equals(supportUrl, other.supportUrl)
-				&& Objects.equals(tags, other.tags) && Objects.equals(teaser, other.teaser)
-				&& updateDate == other.updateDate && Objects.equals(versions, other.versions)
-				&& Objects.equals(screenshots, other.screenshots);
+		return Objects.equals(this.getAuthors(), other.getAuthors()) && Objects.equals(body, other.body)
+				&& Objects.equals(this.getCategories(), other.getCategories()) && created == other.created
+				&& favoriteCount == other.favoriteCount && foundationMember == other.foundationMember
+				&& Objects.equals(homepageUrl, other.homepageUrl) && installsRecent == other.installsRecent
+				&& installsTotal == other.installsTotal && Objects.equals(logo, other.logo)
+				&& Objects.equals(this.getOrganization(), other.getOrganization()) && Objects.equals(status, other.status)
+				&& Objects.equals(supportUrl, other.supportUrl) && Objects.equals(this.getTags(), other.getTags())
+				&& Objects.equals(teaser, other.teaser) && changed == other.changed
+				&& Objects.equals(this.getVersions(), other.getVersions()) && Objects.equals(this.getScreenshots(), other.getScreenshots());
 	}
 
 	@Override
@@ -454,9 +500,9 @@ public class Listing extends NodeBase {
 		sb.append(", installsTotal=").append(installsTotal);
 		sb.append(", installsRecent=").append(installsRecent);
 		sb.append(", favoriteCount=").append(favoriteCount);
-		sb.append(", creationDate=").append(creationDate);
-		sb.append(", updateDate=").append(updateDate);
-		sb.append(", license=").append(license);
+		sb.append(", created=").append(created);
+		sb.append(", updateDate=").append(changed);
+		sb.append(", license=").append(licenseType);
 		sb.append(", organization=").append(organization);
 		sb.append(", authors=").append(authors);
 		sb.append(", tags=").append(tags);

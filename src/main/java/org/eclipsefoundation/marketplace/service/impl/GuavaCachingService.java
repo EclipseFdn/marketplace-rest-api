@@ -7,7 +7,6 @@
 package org.eclipsefoundation.marketplace.service.impl;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,9 +18,9 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
+import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.service.CachingService;
 import org.eclipsefoundation.marketplace.namespace.MicroprofilePropertyNames;
-import org.eclipsefoundation.marketplace.service.CachingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,5 +129,4 @@ public class GuavaCachingService<T> implements CachingService<T> {
 	public long getMaxAge() {
 		return ttlWrite;
 	}
-
 }
