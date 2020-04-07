@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: staging-marketplace-rest-api
+  name: marketplace-rest-staging-api
   namespace: foundation-internal-webdev-apps
 spec:
   selector:
@@ -32,7 +32,7 @@ spec:
 apiVersion: "v1"
 kind: "Service"
 metadata:
-  name: staging-marketplace-rest-api
+  name: marketplace-rest-staging-api
   namespace: foundation-internal-webdev-apps
 spec:
   ports:
@@ -47,7 +47,7 @@ spec:
 apiVersion: "route.openshift.io/v1"
 kind: "Route"
 metadata:
-  name: staging-marketplace-rest-api
+  name: marketplace-rest-staging-api
   namespace: foundation-internal-webdev-apps
   annotations:
     haproxy.router.openshift.io/timeout: 20s
@@ -61,5 +61,5 @@ spec:
     termination: "edge"
   to:
     kind: "Service"
-    name: staging-marketplace-rest-api
+    name: marketplace-rest-staging-api
     weight: 100
