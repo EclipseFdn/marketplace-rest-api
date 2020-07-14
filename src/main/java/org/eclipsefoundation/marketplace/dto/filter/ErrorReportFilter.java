@@ -6,20 +6,23 @@
  */
 package org.eclipsefoundation.marketplace.dto.filter;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
-import org.bson.conversions.Bson;
+import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.marketplace.dto.ErrorReport;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
+import org.eclipsefoundation.marketplace.namespace.DtoTableNames;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
-
-import com.mongodb.client.model.Filters;
+import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
+import org.eclipsefoundation.persistence.model.ParameterizedSQLStatement;
+import org.eclipsefoundation.persistence.model.ParameterizedSQLStatementBuilder;
 
 /**
  * Filter implementation for the ErrorReport class.
@@ -31,14 +34,13 @@ public class ErrorReportFilter implements DtoFilter<ErrorReport> {
 
 	@Inject
 	ParameterizedSQLStatementBuilder builder;
-	
 
 	@Override
 	public ParameterizedSQLStatement getFilters(RequestWrapper wrap, boolean isRoot) {
 		ParameterizedSQLStatement stmt = builder.build(DtoTableNames.ERRORREPORT.getTable());
 		if (isRoot) {
 			// ID check
-			Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
+			Optional<String> id = wrap.getFirstParam(DefaultUrlParameterNames.ID);
 			if (id.isPresent()) {
 				stmt.addClause(new ParameterizedSQLStatement.Clause(
 						DtoTableNames.ERRORREPORT.getAlias() + "." + DatabaseFieldNames.DOCID + " = ?",
@@ -46,7 +48,7 @@ public class ErrorReportFilter implements DtoFilter<ErrorReport> {
 			}
 		}
 		// IDS
-		List<String> ids = wrap.getParams(UrlParameterNames.IDS);
+		List<String> ids = wrap.getParams(DefaultUrlParameterNames.IDS);
 		if (!ids.isEmpty()) {
 			stmt.addClause(new ParameterizedSQLStatement.Clause(
 					DtoTableNames.ERRORREPORT.getAlias() + "." + DatabaseFieldNames.DOCID + " = ?",

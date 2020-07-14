@@ -9,6 +9,7 @@ Proof of concept project within the Microservice initiative, the Foundation look
 1. Installed and configured JDK 1.8+
 1. Apache Maven 3.5.3+
 1. Running instance of MariaDB (Docker instructions below)
+1. Running instance of Solr server (version 5.5.5 currently supported)
 1. GraalVM (for compilation of native-image)
 
 ### Optional requirements
@@ -25,6 +26,8 @@ This section will outline configuration values that need to be checked and updat
 1. Create a copy of `./config/sample.secret.properties` named `secret.properties` in a location of your choosing on the system, with the config folder in the project root being default configured. If changed, keep this path as it is needed to start the environment later.
 1. Update `quarkus.datasource.password` to be the password for the MariaDB user in the newly created `secret.properties` file.
 1. Log in to the MariaDB instance and ensure that the database defined in the JDBC string exists. By default, the name of the database is `mpc_db`. This database can be created using the command `CREATE DATABASE mpc_db;`. 
+1. When using the Solr search engine, a couple of properties are needed to be added to the properties and secret.properties file. The first is the Solr host and core. The host property (`eclipse.solr.host`) should be the root URL to your Solr instance (e.g. http://localhost:8093/solr) to allow connections for search indexing. The core property (`eclipse.solr.core`) should be the name of the core that will store your indexes for marketplace. If a core does not exist yet, create one through the admin panel of the Solr server and update the core value if needed.
+1. To properly enable the core to work with this application, the configuration on the Solr server should be updated. Copy the contents of ./config/mpc_dev into your cores configuration folder. An example path for this folder is `/opt/solr/server/solr/marketplace`. This may change based on how the server is installed and configured. Ensure that these files match ownership of the other files in this location, otherwise the Solr core may not work as intended. 
 1. By default, this application binds to port 8090. If port 8090 is occupied by another service, the value of `quarkus.http.port` can be modified to designate a different port. 
 1. In order to protect endpoints for write operations, an introspection endpoint has been configured to validate OAuth tokens. This introspection endpoint should match the requirements set out by the OAuth group for such endpoints. The URL should be set in `quarkus.oauth2.introspection-url`.  
     * A property meant for development purposes has been added to this stack to bypass OAuth calls. If set, all calls will return as if authenticated as an admin. The property and value `eclipse.oauth.override=true` can be set in the `application.properties` file to enable this feature.

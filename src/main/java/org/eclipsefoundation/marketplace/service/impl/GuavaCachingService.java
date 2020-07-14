@@ -62,23 +62,18 @@ public class GuavaCachingService<T> implements CachingService<T> {
 	public void init() {
 		this.ttl = new HashMap<>();
 		// create cache with configured settings that maintains a TTL map
-		cache = CacheBuilder
-					.newBuilder()
-					.maximumSize(maxSize)
-					.expireAfterWrite(ttlWrite, TimeUnit.SECONDS)
-					.removalListener(not -> ttl.remove(not.getKey()))
-					.build();
+		cache = CacheBuilder.newBuilder().maximumSize(maxSize).expireAfterWrite(ttlWrite, TimeUnit.SECONDS)
+				.removalListener(not -> ttl.remove(not.getKey())).build();
 
 	}
 
 	@Override
-	public Optional<T> get(String id, RequestWrapper wrapper, Map<String, List<String>> params,
-			Callable<? extends T> callable) {
+	public Optional<T> get(String id, RequestWrapper wrapper, Callable<? extends T> callable) {
 		Objects.requireNonNull(id);
 		Objects.requireNonNull(wrapper);
 		Objects.requireNonNull(callable);
 
-		String cacheKey = getCacheKey(id, wrapper, params);
+		String cacheKey = getCacheKey(id, wrapper);
 		LOGGER.debug("Retrieving cache value for '{}'", cacheKey);
 		try {
 			// check if the cache is bypassed for the request
@@ -90,13 +85,14 @@ public class GuavaCachingService<T> implements CachingService<T> {
 				}
 				return Optional.of(result);
 			}
-			
+
 			// get entry, and enter a ttl as soon as it returns
 			T data = cache.get(cacheKey, callable);
 			if (data != null) {
-				ttl.putIfAbsent(cacheKey, System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(ttlWrite, TimeUnit.SECONDS));
+				ttl.putIfAbsent(cacheKey,
+						System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(ttlWrite, TimeUnit.SECONDS));
 			}
-			return Optional.of(cache.get(cacheKey, callable));
+			return Optional.of(data);
 		} catch (InvalidCacheLoadException | UncheckedExecutionException e) {
 			LOGGER.error("Error while retrieving fresh value for cachekey: {}", cacheKey, e);
 		} catch (Exception e) {
@@ -107,9 +103,10 @@ public class GuavaCachingService<T> implements CachingService<T> {
 
 	@Override
 	public Optional<Long> getExpiration(String id, RequestWrapper params) {
-		return Optional.ofNullable(ttl.get(getCacheKey(Objects.requireNonNull(id), Objects.requireNonNull(params), null)));
+		return Optional
+				.ofNullable(ttl.get(getCacheKey(Objects.requireNonNull(id), Objects.requireNonNull(params))));
 	}
-	
+
 	@Override
 	public Set<String> getCacheKeys() {
 		return cache.asMap().keySet();
@@ -129,4 +126,5 @@ public class GuavaCachingService<T> implements CachingService<T> {
 	public long getMaxAge() {
 		return ttlWrite;
 	}
+
 }

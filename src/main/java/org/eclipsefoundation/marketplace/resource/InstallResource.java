@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -27,6 +26,7 @@ import javax.ws.rs.core.Response.Status;
 import org.eclipsefoundation.core.helper.ResponseHelper;
 import org.eclipsefoundation.core.model.Error;
 import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.core.service.CachingService;
 import org.eclipsefoundation.marketplace.dto.Install;
 import org.eclipsefoundation.marketplace.dto.InstallMetrics;
@@ -67,8 +67,6 @@ public class InstallResource {
 	DtoFilter<MetricPeriod> periodFilter;
 	@Inject
 	DtoFilter<InstallMetrics> metricFilter;
-	@Inject
-	CachingService<List<InstallMetrics>> installCache;
 
 
 	// Inject 2 caching service references, as we want to cache count results.
@@ -88,7 +86,7 @@ public class InstallResource {
 	@PermitAll
 	@Path("/{listingId}")
 	public Response selectInstallCount(@PathParam("listingId") String listingId) {
-		wrapper.addParam(UrlParameterNames.ID, listingId);
+		wrapper.addParam(DefaultUrlParameterNames.ID, listingId);
 		RDBMSQuery<Install> q = new RDBMSQuery<>(wrapper, dtoFilter);
 		Optional<Long> cachedResults = countCache.get(listingId, wrapper,
 				() -> StreamHelper.awaitCompletionStage(dao.count(q)));
@@ -114,7 +112,7 @@ public class InstallResource {
 	@PermitAll
 	@Path("/{listingId}/{version}")
 	public Response selectInstallCount(@PathParam("listingId") String listingId, @PathParam("version") String version) {
-		wrapper.addParam(UrlParameterNames.ID, listingId);
+		wrapper.addParam(DefaultUrlParameterNames.ID, listingId);
 		wrapper.addParam(UrlParameterNames.VERSION, version);
 		RDBMSQuery<Install> q = new RDBMSQuery<>(wrapper, dtoFilter);
 		Optional<Long> cachedResults = countCache.get(getCompositeKey(listingId, version), wrapper,
@@ -139,7 +137,7 @@ public class InstallResource {
 	@PermitAll
 	@Path("/{listingId}/metrics")
 	public Response selectInstallMetrics(@PathParam("listingId") String listingId) {
-		wrapper.addParam(UrlParameterNames.ID, listingId);
+		wrapper.addParam(DefaultUrlParameterNames.ID, listingId);
 		RDBMSQuery<InstallMetrics> q = new RDBMSQuery<>(wrapper, metricFilter);
 		Optional<List<InstallMetrics>> cachedResults = installCache.get(listingId, wrapper,
 				() -> dao.get(q));

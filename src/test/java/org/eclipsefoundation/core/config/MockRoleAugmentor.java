@@ -1,14 +1,12 @@
 package org.eclipsefoundation.core.config;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-
 import javax.enterprise.context.ApplicationScoped;
 
 import io.quarkus.security.identity.AuthenticationRequestContext;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.SecurityIdentityAugmentor;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Custom override for test classes that ignores current login state and sets
@@ -17,7 +15,7 @@ import io.quarkus.security.runtime.QuarkusSecurityIdentity;
  * @author Martin Lowe
  */
 @ApplicationScoped
-public class RoleAugmentor implements SecurityIdentityAugmentor {
+public class MockRoleAugmentor implements SecurityIdentityAugmentor {
 
 	@Override
 	public int priority() {
@@ -25,8 +23,7 @@ public class RoleAugmentor implements SecurityIdentityAugmentor {
 	}
 
 	@Override
-	public CompletionStage<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
-
+	public Uni<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
 		// create a new builder and copy principal, attributes, credentials and roles
 		// from the original
 		QuarkusSecurityIdentity.Builder builder = QuarkusSecurityIdentity.builder()
@@ -35,10 +32,6 @@ public class RoleAugmentor implements SecurityIdentityAugmentor {
 
 		// add custom role source here
 		builder.addRole("marketplace_admin_access");
-
-		CompletableFuture<SecurityIdentity> cs = new CompletableFuture<>();
-		cs.complete(builder.build());
-
-		return cs;
+		return context.runBlocking(builder::build);
 	}
 }

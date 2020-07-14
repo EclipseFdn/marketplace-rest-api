@@ -6,8 +6,6 @@
  */
 package org.eclipsefoundation.core.service;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -34,8 +32,7 @@ public interface CachingService<T> {
 	 * @param callable a runnable that returns an object of type T
 	 * @return the cached result
 	 */
-	Optional<T> get(String id, RequestWrapper wrapper, Map<String, List<String>> params,
-			Callable<? extends T> callable);
+	Optional<T> get(String id, RequestWrapper wrapper, Callable<? extends T> callable);
 
 	/**
 	 * Returns the expiration date in millis since epoch.
@@ -80,16 +77,14 @@ public interface CachingService<T> {
 	 * @param params  parameters to use in place of wrapper parameters when set
 	 * @return the unique cache key for the request.
 	 */
-	default String getCacheKey(String id, RequestWrapper wrapper, Map<String, List<String>> params) {
+	default String getCacheKey(String id, RequestWrapper wrapper) {
 		StringBuilder sb = new StringBuilder();
 		sb.append('[').append(wrapper.getEndpoint()).append(']');
 		sb.append("id:").append(id);
 
-		// get the used set of parameters for filtering data
-		Map<String, List<String>> actual = params == null ? wrapper.asMap() : params;
 		// join all the non-empty params to the key to create distinct entries for
 		// filtered values
-		actual.entrySet().stream().filter(e -> !e.getValue().isEmpty())
+		wrapper.asMap().entrySet().stream().filter(e -> !e.getValue().isEmpty())
 				.map(e -> e.getKey() + '=' + StringUtils.join(e.getValue(), ','))
 				.forEach(s -> sb.append('|').append(s));
 

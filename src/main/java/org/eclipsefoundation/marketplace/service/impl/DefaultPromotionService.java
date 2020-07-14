@@ -8,23 +8,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipsefoundation.marketplace.dao.MongoDao;
+import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
+import org.eclipsefoundation.core.service.CachingService;
 import org.eclipsefoundation.marketplace.dto.Listing;
 import org.eclipsefoundation.marketplace.dto.Promotion;
-import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
-import org.eclipsefoundation.marketplace.helper.StreamHelper;
-import org.eclipsefoundation.marketplace.model.MongoQuery;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
 import org.eclipsefoundation.marketplace.namespace.MicroprofilePropertyNames;
-import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
-import org.eclipsefoundation.marketplace.service.CachingService;
 import org.eclipsefoundation.marketplace.service.PromotionService;
+import org.eclipsefoundation.persistence.dao.PersistenceDao;
+import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
+import org.eclipsefoundation.persistence.model.RDBMSQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +45,7 @@ public class DefaultPromotionService implements PromotionService {
 	int defaultWeight;
 
 	@Inject
-	MongoDao dao;
+	PersistenceDao dao;
 
 	@Inject
 	DtoFilter<Listing> listingFilter;
@@ -72,13 +70,11 @@ public class DefaultPromotionService implements PromotionService {
 		// for caching
 		Map<String, List<String>> adds = new HashMap<>();
 		adds.put("type", Arrays.asList("Listing"));
-		adds.put(UrlParameterNames.IDS.getParameterName(),
-				promos.stream().map(Promotion::getListingId).collect(Collectors.toList()));
+		promos.stream().map(Promotion::getListingId).forEach(val -> wrapper.addParam(DefaultUrlParameterNames.IDS, val));
 
-		MongoQuery<Listing> q = new MongoQuery<>(null, adds, listingFilter);
+		RDBMSQuery<Listing> q = new RDBMSQuery<>(wrapper, listingFilter);
 		// retrieve the possible cached object
-		Optional<List<Listing>> cachedResults = listingCache.get("promo|listings", wrapper, adds,
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+		Optional<List<Listing>> cachedResults = listingCache.get("promo|listings", wrapper, () -> dao.get(q));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached promotion listings");
 			return Collections.emptyList();
@@ -91,10 +87,9 @@ public class DefaultPromotionService implements PromotionService {
 	@Override
 	public List<Listing> retrievePromotions(RequestWrapper wrapper, List<Listing> listings) {
 		// create an empty promo query to get all promos
-		MongoQuery<Promotion> q = new MongoQuery<>(null, Collections.emptyMap(), promotionFilter);
+		RDBMSQuery<Promotion> q = new RDBMSQuery<>(wrapper, promotionFilter);
 		// retrieve the possible cached object
-		Optional<List<Promotion>> cachedResults = promoCache.get("all|promo", wrapper, Collections.emptyMap(),
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+		Optional<List<Promotion>> cachedResults = promoCache.get("all|promo", wrapper, () -> dao.get(q));
 		if (!cachedResults.isPresent() || cachedResults.get().isEmpty()) {
 			LOGGER.debug("Could not find any promotions to inject, returning");
 			return listings;
@@ -158,7 +153,7 @@ public class DefaultPromotionService implements PromotionService {
 		// get a random number in the range of the total weighting
 		int rnd = r.nextInt(totalWeighting);
 		Promotion result = null;
-		for (Promotion p: promos) {
+		for (Promotion p : promos) {
 			// reduce the random number by the weight
 			rnd -= p.getWeight();
 			// check if we are in range of the current entry

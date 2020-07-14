@@ -25,19 +25,19 @@ import io.restassured.http.ContentType;
  * @author Martin Lowe
  */
 @QuarkusTest
-public class ListingVersionResourceTest {
+class ListingVersionResourceTest {
 
 	// explicitly use the mock DAO to avoid potential issues with standard DAO
 	@Inject
 	private MockHibernateDao dao;
 
 	@BeforeEach
-	public void cleanDao() {
+	void cleanDao() {
 		dao.init();
 	}
 
 	@Test
-	public void testListingVersions() {
+	void testListingVersions() {
 		given()
 			.when().get("/listing_versions")
 				.then()
@@ -45,7 +45,7 @@ public class ListingVersionResourceTest {
 	}
 	
 	@Test
-	public void testListingVersionIdEndpoint() {
+	void testListingVersionIdEndpoint() {
 		given()
 			.when().get("/listing_versions/" + TestHelper.SAMPLE_UUID)
 				.then()
@@ -53,7 +53,7 @@ public class ListingVersionResourceTest {
 	}
 
 	@Test
-	public void testListingVersionIdEndpointNoResults() {
+	void testListingVersionIdEndpointNoResults() {
 		given()
 			.param(TestHelper.DATA_EXISTS_PARAM_NAME, false)
 			.when().get("/listing_versions/" + TestHelper.SAMPLE_UUID)
@@ -62,7 +62,7 @@ public class ListingVersionResourceTest {
 	}
 	
 	@Test
-	public void testListingVersionIdEndpointInvalidUUID() {
+	void testListingVersionIdEndpointInvalidUUID() {
 		given()
 			.when().get("/listing_versions/invalid-uuid-string")
 				.then()
@@ -70,7 +70,7 @@ public class ListingVersionResourceTest {
 	}
 	
 	@Test
-	public void testDeletion() {
+	void testDeletion() {
 		given()
 			.when().delete("/listing_versions/" + TestHelper.SAMPLE_UUID)
 				.then()
@@ -78,7 +78,7 @@ public class ListingVersionResourceTest {
 	}
 	
 	@Test
-	public void testDeletionNotExists() {
+	void testDeletionNotExists() {
 		// pass param that tells the mock service that no data should be returned for
 		// this call
 		given()
@@ -89,7 +89,7 @@ public class ListingVersionResourceTest {
 	}
 	
 	@Test
-	public void testDeletionInvalidUUID() {
+	void testDeletionInvalidUUID() {
 		given()
 			.when().delete("/listing_versions/invalid-uuid-string")
 				.then()
@@ -97,7 +97,7 @@ public class ListingVersionResourceTest {
 	}
 	
 	@Test
-	public void testPutJSON() {
+	void testPutJSON() {
 		// JSON string for a listing version
 		String json = 
 			"{" +
@@ -118,7 +118,7 @@ public class ListingVersionResourceTest {
 	}
 	
 	@Test
-	public void testPutInvalidJSON() {
+	void testPutInvalidJSON() {
 		// expect bad request response as whole object needs to be posted
 		given()
 			.body("{'id':'" + TestHelper.SAMPLE_UUID + "'}")

@@ -8,15 +8,14 @@ package org.eclipsefoundation.core.request;
 
 import java.io.IOException;
 
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
-
-import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
-import org.eclipsefoundation.persistence.model.SortOrder;
 
 /**
  * Checks passed parameters and if any match one of the criteria for bypassing
@@ -30,6 +29,9 @@ import org.eclipsefoundation.persistence.model.SortOrder;
 public class CacheBypassFilter implements ContainerRequestFilter {
 	public static final String ATTRIBUTE_NAME = "bypass-cache";
 
+	@Inject
+	Instance<BypassCondition> conditions;
+
 	@Context
 	HttpServletRequest request;
 
@@ -39,14 +41,10 @@ public class CacheBypassFilter implements ContainerRequestFilter {
 	@Override
 	public void filter(ContainerRequestContext requestContext) throws IOException {
 		// check for random sort order, which always bypasses cache
-		String[] sortVals = request.getParameterValues(UrlParameterNames.SORT.getParameterName());
-		if (sortVals != null) {
-			for (String sortVal : sortVals) {
-				// check if the sort order for request matches RANDOM
-				if (SortOrder.RANDOM.equals(SortOrder.getOrderFromValue(sortVal))) {
-					setBypass();
-					return;
-				}
+		for (BypassCondition cond : conditions) {
+			if (cond.matches(requestContext, request)) {
+				setBypass();
+				return;
 			}
 		}
 		request.setAttribute(ATTRIBUTE_NAME, Boolean.FALSE);
@@ -56,5 +54,25 @@ public class CacheBypassFilter implements ContainerRequestFilter {
 		request.setAttribute(ATTRIBUTE_NAME, Boolean.TRUE);
 		// no-store should be used as cache bypass should not return
 		response.setHeader("Cache-Control", "no-store");
+	}
+
+	/**
+	 * Interface for adding a bypass condition to requests made against a given
+	 * server.
+	 * 
+	 * @author Martin Lowe
+	 *
+	 */
+	public interface BypassCondition {
+		/**
+		 * Tests the request context to check whether any data fetched for this request
+		 * should bypass the cache layer.
+		 * 
+		 * @param requestContext the current requests container context
+		 * @param request        raw servlet request containing more information about
+		 *                       the request
+		 * @return true if the request should bypass the cache, false otherwise.
+		 */
+		boolean matches(ContainerRequestContext requestContext, HttpServletRequest request);
 	}
 }

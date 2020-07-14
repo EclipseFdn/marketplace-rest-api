@@ -25,9 +25,9 @@ import javax.ws.rs.core.Response;
 
 import org.eclipsefoundation.core.helper.ResponseHelper;
 import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.core.service.CachingService;
 import org.eclipsefoundation.marketplace.dto.ListingVersion;
-import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.eclipsefoundation.persistence.dao.PersistenceDao;
 import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
 import org.eclipsefoundation.persistence.model.RDBMSQuery;
@@ -99,7 +99,7 @@ public class ListingVersionResource {
 	@GET
 	@Path("/{listingVersionId}")
 	public Response select(@PathParam("listingVersionId") String listingVersionId) {
-		params.addParam(UrlParameterNames.ID, listingVersionId);
+		params.addParam(DefaultUrlParameterNames.ID, listingVersionId);
 
 		// retrieve a cached version of the value for the current listing
 		Optional<List<ListingVersion>> cachedResults = cachingService.get(listingVersionId, params,
@@ -127,7 +127,7 @@ public class ListingVersionResource {
 	@RolesAllowed({ "marketplace_version_delete", "marketplace_admin_access" })
 	@Path("/{listingVersionId}")
 	public Response delete(@PathParam("listingVersionId") String listingVersionId) {
-		params.addParam(UrlParameterNames.ID, listingVersionId);
+		params.addParam(DefaultUrlParameterNames.ID, listingVersionId);
 		// delete the currently selected asset
 		dao.delete(new RDBMSQuery<>(params, dtoFilter));
 		// return the results as a response

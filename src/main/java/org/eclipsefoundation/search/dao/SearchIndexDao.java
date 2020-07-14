@@ -3,8 +3,7 @@ package org.eclipsefoundation.search.dao;
 import java.io.Closeable;
 import java.util.List;
 
-import org.apache.lucene.document.Document;
-import org.eclipsefoundation.persistence.model.RDBMSQuery;
+import org.apache.solr.common.SolrDocument;
 import org.eclipsefoundation.persistence.dto.BareNode;
 import org.eclipsefoundation.search.model.IndexerResponse;
 
@@ -16,7 +15,7 @@ import org.eclipsefoundation.search.model.IndexerResponse;
  * @author Martin Lowe
  *
  */
-public interface SearchIndexDAO extends Closeable {
+public interface SearchIndexDao extends Closeable {
 
 	/**
 	 * Retrieves indexed and ranked information for the given query. This
@@ -26,7 +25,7 @@ public interface SearchIndexDAO extends Closeable {
 	 * @param q   the current RDBMS query to get ranked indexed documents for
 	 * @return an ordered list of bare documents
 	 */
-	<T extends BareNode> List<Document> get(RDBMSQuery<T> q);
+	<T extends BareNode> List<SolrDocument> get(String searchTerm, Class<T> docType);
 
 	/**
 	 * Update or create entries in the search indexer for the given entities.

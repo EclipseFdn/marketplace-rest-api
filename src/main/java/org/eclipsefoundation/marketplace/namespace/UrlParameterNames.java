@@ -9,33 +9,55 @@
 */
 package org.eclipsefoundation.marketplace.namespace;
 
+import org.eclipsefoundation.core.namespace.UrlParameterName;
+
 /**
  * Namespace containing URL parameters used throughout the API.
  * 
  * @author Martin Lowe
  */
-public final class UrlParameterNames {
+public enum UrlParameterNames implements UrlParameterName {
 
-	public static final String QUERY_STRING = "q";
-	public static final String PAGE = "page";
-	public static final String LIMIT = "limit";
-	public static final String SORT = "sort";
-	public static final String OS = "os";
-	public static final String ECLIPSE_VERSION = "eclipse_version";
-	public static final String JAVA_VERSION = "min_java_version";
-	public static final String IDS = "ids";
-	public static final String TAGS = "tags";
-	public static final String MARKET_IDS = "market_ids";
-	public static final String ID = "id";
-	public static final String LISTING_ID = "listing_id";
-	public static final String READ = "read";
-	public static final String FEATURE_ID = "feature_id";
-	public static final String VERSION = "version";
-	public static final String DATE_FROM = "from";
-	public static final String END = "end";
-	public static final String START = "start";
-	public static final String SEED = "seed";
+	SORT("sort"),
+	OS("os"),
+	ECLIPSE_VERSION("eclipse_version"),
+	JAVA_VERSION("min_java_version"),
+	TAGS("tags"),
+	MARKET_IDS("market_ids"),
+	LISTING_ID("listing_id"),
+	READ("read"),
+	FEATURE_ID("feature_id"),
+	VERSION("version"),
+	DATE_FROM("from"),
+	END("end"),
+	START("start"), 
+	LICENSE_TYPE("license_type");
+
+	private String parameterName;
+	private UrlParameterNames(String parameterName) {
+		this.parameterName = parameterName;
+	}
 	
-	private UrlParameterNames() {
+	/**
+	 * @return the URL parameters name
+	 */
+	@Override
+	public String getParameterName() {
+		return parameterName;
+	}
+	
+	/**
+	 * Retrieves the UrlParameterName for the given name.
+	 * 
+	 * @param name the name to retrieve a URL parameter for
+	 * @return the URL parameter name if it exists, or null if no match is found
+	 */
+	public static UrlParameterName getByParameterName(String name) {
+		for (UrlParameterNames param: values()) {
+			if (param.getParameterName().equalsIgnoreCase(name)) {
+				return param;
+			}
+		}
+		return null;
 	}
 }

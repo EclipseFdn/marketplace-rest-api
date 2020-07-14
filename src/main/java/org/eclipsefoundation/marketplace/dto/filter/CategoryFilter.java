@@ -13,10 +13,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.marketplace.dto.Category;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 import org.eclipsefoundation.marketplace.namespace.DtoTableNames;
-import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
 import org.eclipsefoundation.persistence.model.ParameterizedSQLStatement;
 import org.eclipsefoundation.persistence.model.ParameterizedSQLStatementBuilder;
@@ -31,14 +31,13 @@ public class CategoryFilter implements DtoFilter<Category> {
 
 	@Inject
 	ParameterizedSQLStatementBuilder builder;
-	
 
 	@Override
 	public ParameterizedSQLStatement getFilters(RequestWrapper wrap, boolean isRoot) {
 		ParameterizedSQLStatement stmt = builder.build(DtoTableNames.CATEGORY.getTable());
 		if (isRoot) {
 			// ID check
-			Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
+			Optional<String> id = wrap.getFirstParam(DefaultUrlParameterNames.ID);
 			if (id.isPresent()) {
 				stmt.addClause(new ParameterizedSQLStatement.Clause(
 						DtoTableNames.CATEGORY.getAlias() + "." + DatabaseFieldNames.DOCID + " = ?",

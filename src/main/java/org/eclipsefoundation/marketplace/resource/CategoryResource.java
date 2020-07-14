@@ -26,9 +26,9 @@ import javax.ws.rs.core.Response;
 
 import org.eclipsefoundation.core.helper.ResponseHelper;
 import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.core.service.CachingService;
 import org.eclipsefoundation.marketplace.dto.Category;
-import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.eclipsefoundation.persistence.dao.PersistenceDao;
 import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
 import org.eclipsefoundation.persistence.model.RDBMSQuery;
@@ -101,7 +101,7 @@ public class CategoryResource {
 	@GET
 	@Path("/{categoryId}")
 	public Response select(@PathParam("categoryId") String categoryId) {
-		params.addParam(UrlParameterNames.ID, categoryId);
+		params.addParam(DefaultUrlParameterNames.ID, categoryId);
 
 		RDBMSQuery<Category> q = new RDBMSQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current listing
@@ -129,7 +129,7 @@ public class CategoryResource {
 	@RolesAllowed({ "marketplace_category_delete", "marketplace_admin_access" })
 	@Path("/{categoryId}")
 	public Response delete(@PathParam("categoryId") String categoryId) {
-		params.addParam(UrlParameterNames.ID, categoryId);
+		params.addParam(DefaultUrlParameterNames.ID, categoryId);
 		dao.delete(new RDBMSQuery<>(params, dtoFilter));
 
 		// return the results as a response

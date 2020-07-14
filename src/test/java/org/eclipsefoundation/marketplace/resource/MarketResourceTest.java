@@ -25,19 +25,19 @@ import io.restassured.http.ContentType;
  * @author Martin Lowe
  */
 @QuarkusTest
-public class MarketResourceTest {
+class MarketResourceTest {
 
 	// explicitly use the mock DAO to avoid potential issues with standard DAO
 	@Inject
 	private MockHibernateDao dao;
 
 	@BeforeEach
-	public void cleanDao() {
+	void cleanDao() {
 		dao.init();
 	}
 
 	@Test
-	public void testMarkets() {
+	void testMarkets() {
 		given()
 			.when().get("/markets")
 				.then()
@@ -45,7 +45,7 @@ public class MarketResourceTest {
 	}
 	
 	@Test
-	public void testMarketIdEndpoint() {
+	void testMarketIdEndpoint() {
 		given()
 			.when().get("/markets/" + TestHelper.SAMPLE_UUID)
 				.then()
@@ -53,7 +53,7 @@ public class MarketResourceTest {
 	}
 
 	@Test
-	public void testMarketIdEndpointNoResults() {
+	void testMarketIdEndpointNoResults() {
 		given()
 			.param(TestHelper.DATA_EXISTS_PARAM_NAME, false)
 			.when().get("/markets/" + TestHelper.SAMPLE_UUID)
@@ -62,7 +62,7 @@ public class MarketResourceTest {
 	}
 	
 	@Test
-	public void testMarketIdEndpointInvalidUUID() {
+	void testMarketIdEndpointInvalidUUID() {
 		given()
 			.when().get("/markets/invalid-uuid-string")
 				.then()
@@ -70,7 +70,7 @@ public class MarketResourceTest {
 	}
 	
 	@Test
-	public void testDeletion() {
+	void testDeletion() {
 		given()
 			.when().delete("/markets/" + TestHelper.SAMPLE_UUID)
 				.then()
@@ -78,7 +78,7 @@ public class MarketResourceTest {
 	}
 	
 	@Test
-	public void testDeletionNotExists() {
+	void testDeletionNotExists() {
 		// pass param that tells the mock service that no data should be returned for
 		// this call
 		given()
@@ -89,7 +89,7 @@ public class MarketResourceTest {
 	}
 	
 	@Test
-	public void testDeletionInvalidUUID() {
+	void testDeletionInvalidUUID() {
 		given()
 			.when().delete("/markets/invalid-uuid-string")
 				.then()
@@ -97,7 +97,7 @@ public class MarketResourceTest {
 	}
 	
 	@Test
-	public void testPutJSON() {
+	void testPutJSON() {
 		// JSON string for a market
 		String json = 
 			"{" + 
@@ -114,7 +114,7 @@ public class MarketResourceTest {
 	}
 	
 	@Test
-	public void testPutInvalidJSON() {
+	void testPutInvalidJSON() {
 		// expect bad request response as whole object needs to be posted
 		given()
 			.body("{'id':'" + TestHelper.SAMPLE_UUID + "'}")

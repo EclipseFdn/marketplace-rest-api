@@ -19,22 +19,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 @MappedSuperclass
 public abstract class NodeBase extends BareNode {
-	private String title;
 	private String url;
-
-	/**
-	 * @return the title
-	 */
-	public String getTitle() {
-		return title;
-	}
-
-	/**
-	 * @param title the title to set
-	 */
-	public void setTitle(String title) {
-		this.title = title;
-	}
 
 	/**
 	 * @return the url
@@ -56,12 +41,12 @@ public abstract class NodeBase extends BareNode {
 	 * @return whether the current node is valid.
 	 */
 	public boolean validate() {
-		return StringUtils.isAnyEmpty(title, url);
+		return StringUtils.isAnyEmpty(url);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(super.hashCode(), title, url);
+		return Objects.hash(super.hashCode(), url);
 	}
 
 	@Override
@@ -76,6 +61,6 @@ public abstract class NodeBase extends BareNode {
 			return false;
 		}
 		NodeBase other = (NodeBase) obj;
-		return super.equals(obj) && Objects.equals(title, other.title) && Objects.equals(url, other.url);
+		return super.equals(obj) && Objects.equals(url, other.url);
 	}
 }

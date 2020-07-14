@@ -32,12 +32,12 @@ import javax.persistence.PostLoad;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.eclipsefoundation.marketplace.model.SortableField;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 import org.eclipsefoundation.persistence.dto.BareNode;
 import org.eclipsefoundation.persistence.dto.NodeBase;
 import org.eclipsefoundation.persistence.model.SortableField;
 import org.eclipsefoundation.search.model.Indexed;
+import org.eclipsefoundation.search.namespace.IndexerTextProcessingType;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 
@@ -50,8 +50,7 @@ import org.hibernate.annotations.NotFoundAction;
 @Table(
 	indexes = {
 		@Index(columnList="licenseType"),
-		@Index(columnList="changed"),
-		@Index(columnList="seed")
+		@Index(columnList="changed")
 	}
 )
 public class Listing extends NodeBase {
@@ -59,10 +58,10 @@ public class Listing extends NodeBase {
 	private String supportUrl;
 	private String homepageUrl;
 	@Lob
-	@Indexed
+	@Indexed(textProcessing = IndexerTextProcessingType.AGGRESSIVE)
 	private String teaser;
-	@Indexed
 	@Lob
+	@Indexed(textProcessing = IndexerTextProcessingType.AGGRESSIVE)
 	private String body;
 	private String status;
 	private String logo;
@@ -103,6 +102,7 @@ public class Listing extends NodeBase {
 	@OneToOne(mappedBy = "listing")
 	@NotFound(action = NotFoundAction.IGNORE)
 	private InstallMetrics metrics;
+	private boolean isPromotion;
 
 	/**
 	 * Default constructor, sets lists to empty lists to stop null pointers
@@ -124,8 +124,9 @@ public class Listing extends NodeBase {
 			// get recent installs
 			Calendar c = Calendar.getInstance();
 			int thisMonth = c.get(Calendar.MONTH);
+			int thisYear = c.get(Calendar.YEAR);
 			Optional<MetricPeriod> current = metrics.getPeriods().stream()
-					.filter(p -> p.getStart().toInstant().get(ChronoField.MONTH_OF_YEAR) == thisMonth).findFirst();
+					.filter(p -> p.getStart().toInstant().get(ChronoField.MONTH_OF_YEAR) == thisMonth && p.getStart().toInstant().get(ChronoField.YEAR) == thisYear).findFirst();
 			// check if we have an entry for the current month
 			if (current.isPresent()) {
 				this.installsRecent = current.get().getCount();
@@ -480,7 +481,8 @@ public class Listing extends NodeBase {
 				&& Objects.equals(this.getOrganization(), other.getOrganization()) && Objects.equals(status, other.status)
 				&& Objects.equals(supportUrl, other.supportUrl) && Objects.equals(this.getTags(), other.getTags())
 				&& Objects.equals(teaser, other.teaser) && changed == other.changed
-				&& Objects.equals(this.getVersions(), other.getVersions()) && Objects.equals(this.getScreenshots(), other.getScreenshots());
+				&& Objects.equals(this.getVersions(), other.getVersions())
+				&& Objects.equals(this.getScreenshots(), other.getScreenshots());
 	}
 
 	@Override

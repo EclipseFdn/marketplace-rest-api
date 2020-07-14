@@ -1,7 +1,7 @@
 package org.eclipsefoundation.core.config;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
+import java.util.function.Supplier;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -10,6 +10,7 @@ import io.quarkus.security.identity.AuthenticationRequestContext;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.SecurityIdentityAugmentor;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Custom override for production that can be enabled to set user roles to
@@ -32,9 +33,11 @@ public class RoleAugmentor implements SecurityIdentityAugmentor {
 	}
 
 	@Override
-	public CompletionStage<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
-		// create a future to contain the original/updated role
-		CompletableFuture<SecurityIdentity> cs = new CompletableFuture<>();
+	public Uni<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
+		return context.runBlocking(build(identity));
+	}
+
+	private Supplier<SecurityIdentity> build(SecurityIdentity identity) {
 		if (overrideRole) {
 			// create a new builder and copy principal, attributes, credentials and roles
 			// from the original
@@ -45,11 +48,10 @@ public class RoleAugmentor implements SecurityIdentityAugmentor {
 			// add custom role source here
 			builder.addRole(overrideRoleName);
 			// put the updated role in the future
-			cs.complete(builder.build());
+			return builder::build;
 		} else {
 			// put the unmodified identity in the future
-			cs.complete(identity);
+			return () -> identity;
 		}
-		return cs;
 	}
 }

@@ -1,10 +1,8 @@
 package org.eclipsefoundation.persistence.dto;
 
 import java.util.Objects;
-import java.util.Random;
 import java.util.UUID;
 
-import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
@@ -13,21 +11,17 @@ import org.hibernate.id.uuid.StandardRandomStrategy;
 import org.hibernate.search.annotations.Field;
 
 /**
- * Represents a bare node with just ID for sake of persistence.
+ * Represents a bare node with just ID and title for sake of persistence.
  * 
  * @author Martin Lowe
  */
 @MappedSuperclass
 public abstract class BareNode {
-	private static final Random RND = new Random();
-
 	@Id
 	@Column(unique = true, nullable = false, columnDefinition = "BINARY(16)")
 	@Field
 	private UUID id;
-	@JsonbTransient
-	@Column
-	private float seed;
+	private String title;
 
 	/**
 	 * Use auto-generated value internally, rather than generator. Currently
@@ -36,7 +30,6 @@ public abstract class BareNode {
 	 */
 	public BareNode() {
 		this.id = StandardRandomStrategy.INSTANCE.generateUUID(null);
-		this.seed = RND.nextFloat();
 	}
 
 	/**
@@ -62,22 +55,22 @@ public abstract class BareNode {
 	}
 
 	/**
-	 * @return the seed
+	 * @return the title
 	 */
-	public float getSeed() {
-		return seed;
+	public String getTitle() {
+		return title;
 	}
 
 	/**
-	 * @param seed the seed to set
+	 * @param title the title to set
 	 */
-	public void setSeed(float seed) {
-		this.seed = seed;
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, seed);
+		return Objects.hash(id, title);
 	}
 
 	@Override
@@ -89,7 +82,7 @@ public abstract class BareNode {
 		if (getClass() != obj.getClass())
 			return false;
 		BareNode other = (BareNode) obj;
-		return Objects.equals(id, other.id);
+		return Objects.equals(id, other.id) && Objects.equals(title, other.title);
 	}
 
 }

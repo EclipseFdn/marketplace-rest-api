@@ -25,19 +25,19 @@ import io.restassured.http.ContentType;
  * @author Martin Lowe
  */
 @QuarkusTest
-public class ErrorReportResourceTest {
+class ErrorReportResourceTest {
 
 	// explicitly use the mock DAO to avoid potential issues with standard DAO
 	@Inject
 	private MockHibernateDao dao;
 
 	@BeforeEach
-	public void cleanDao() {
+	void cleanDao() {
 		dao.init();
 	}
 
 	@Test
-	public void testErrorReports() {
+	void testErrorReports() {
 		given()
 			.when().get("/error_reports")
 				.then()
@@ -45,7 +45,7 @@ public class ErrorReportResourceTest {
 	}
 	
 	@Test
-	public void testErrorReportIdEndpoint() {
+	void testErrorReportIdEndpoint() {
 		given()
 			.when().get("/error_reports/" + TestHelper.SAMPLE_UUID)
 				.then()
@@ -53,7 +53,7 @@ public class ErrorReportResourceTest {
 	}
 
 	@Test
-	public void testErrorReportIdEndpointNoResults() {
+	void testErrorReportIdEndpointNoResults() {
 		given()
 			.param(TestHelper.DATA_EXISTS_PARAM_NAME, false)
 			.when().get("/error_reports/" + TestHelper.SAMPLE_UUID)
@@ -62,7 +62,7 @@ public class ErrorReportResourceTest {
 	}
 	
 	@Test
-	public void testErrorReportIdEndpointInvalidUUID() {
+	void testErrorReportIdEndpointInvalidUUID() {
 		given()
 			.when().get("/error_reports/invalid-uuid-string")
 				.then()
@@ -70,7 +70,7 @@ public class ErrorReportResourceTest {
 	}
 	
 	@Test
-	public void testPostJSON() {
+	void testPostJSON() {
 		// JSON string for an error report
 		String json = 
 			"{\n" + 
@@ -93,7 +93,7 @@ public class ErrorReportResourceTest {
 	}
 	
 	@Test
-	public void testPostInvalidJSON() {
+	void testPostInvalidJSON() {
 		// expect bad request response as whole object needs to be posted
 		given()
 			.body("{'id':'" + TestHelper.SAMPLE_UUID + "'}")

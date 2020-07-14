@@ -25,19 +25,19 @@ import io.restassured.http.ContentType;
  * @author Martin Lowe
  */
 @QuarkusTest
-public class ListingResourceTest {
+class ListingResourceTest {
 
 	// explicitly use the mock DAO to avoid potential issues with standard DAO
 	@Inject
 	private MockHibernateDao dao;
 
 	@BeforeEach
-	public void cleanDao() {
+	void cleanDao() {
 		dao.init();
 	}
 
 	@Test
-	public void testListings() {
+	void testListings() {
 		given()
 			.when().get("/listings")
 				.then()
@@ -45,7 +45,7 @@ public class ListingResourceTest {
 	}
 	
 	@Test
-	public void testListingIdEndpoint() {
+	void testListingIdEndpoint() {
 		given()
 			.when().get("/listings/" + TestHelper.SAMPLE_UUID)
 				.then()
@@ -53,7 +53,7 @@ public class ListingResourceTest {
 	}
 
 	@Test
-	public void testListingIdEndpointNoResults() {
+	void testListingIdEndpointNoResults() {
 		given()
 			.param(TestHelper.DATA_EXISTS_PARAM_NAME, false)
 			.when().get("/listings/" + TestHelper.SAMPLE_UUID)
@@ -62,7 +62,7 @@ public class ListingResourceTest {
 	}
 	
 	@Test
-	public void testListingIdEndpointInvalidUUID() {
+	void testListingIdEndpointInvalidUUID() {
 		given()
 			.when().get("/listings/invalid-uuid-string")
 				.then()
@@ -70,7 +70,7 @@ public class ListingResourceTest {
 	}
 	
 	@Test
-	public void testDeletion() {
+	void testDeletion() {
 		given()
 			.when().delete("/listings/" + TestHelper.SAMPLE_UUID)
 				.then()
@@ -78,7 +78,7 @@ public class ListingResourceTest {
 	}
 	
 	@Test
-	public void testDeletionNotExists() {
+	void testDeletionNotExists() {
 		// pass param that tells the mock service that no data should be returned for
 		// this call
 		given()
@@ -89,7 +89,7 @@ public class ListingResourceTest {
 	}
 	
 	@Test
-	public void testDeletionInvalidUUID() {
+	void testDeletionInvalidUUID() {
 		given()
 			.when().delete("/listings/invalid-uuid-string")
 				.then()
@@ -97,7 +97,7 @@ public class ListingResourceTest {
 	}
 	
 	@Test
-	public void testPutJSON() {
+	void testPutJSON() {
 		// JSON string for a listing
 		String json = 
 			"{" + 
@@ -159,7 +159,7 @@ public class ListingResourceTest {
 	}
 	
 	@Test
-	public void testPutInvalidJSON() {
+	void testPutInvalidJSON() {
 		// expect bad request response as whole object needs to be posted
 		given()
 			.body("{'id':'" + TestHelper.SAMPLE_UUID + "'}")

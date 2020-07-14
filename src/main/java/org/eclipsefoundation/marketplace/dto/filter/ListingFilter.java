@@ -6,18 +6,18 @@
  */
 package org.eclipsefoundation.marketplace.dto.filter;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.marketplace.dto.Listing;
 import org.eclipsefoundation.marketplace.dto.ListingVersion;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 import org.eclipsefoundation.marketplace.namespace.DtoTableNames;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
@@ -43,7 +43,7 @@ public class ListingFilter implements DtoFilter<Listing> {
 		ParameterizedSQLStatement stmt = builder.build(DtoTableNames.LISTING.getTable());
 		if (isRoot) {
 			// ID check
-			Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
+			Optional<String> id = wrap.getFirstParam(DefaultUrlParameterNames.ID);
 			if (id.isPresent()) {
 				stmt.addClause(new ParameterizedSQLStatement.Clause(
 						DtoTableNames.LISTING.getAlias() + "." + DatabaseFieldNames.DOCID + " = ?",
@@ -52,29 +52,20 @@ public class ListingFilter implements DtoFilter<Listing> {
 		}
 
 		// select by multiple IDs
-		List<String> ids = wrap.getParams(UrlParameterNames.IDS);
+		List<String> ids = wrap.getParams(DefaultUrlParameterNames.IDS);
 		if (!ids.isEmpty()) {
+			// convert the IDs to UUID objects
+			List<UUID> actualIDs = ids.stream().map(UUID::fromString).collect(Collectors.toList());
 			stmt.addClause(new ParameterizedSQLStatement.Clause(
-					DtoTableNames.LISTING.getAlias() + "." + DatabaseFieldNames.DOCID + " = ?", new Object[] { ids }));
+					DtoTableNames.LISTING.getAlias() + "." + DatabaseFieldNames.DOCID + " in (?)", new Object[] { actualIDs }));
 		}
 
 		// Listing license type check
-		Optional<String> licType = wrap.getFirstParam(DatabaseFieldNames.LICENSE_TYPE);
+		Optional<String> licType = wrap.getFirstParam(UrlParameterNames.LICENSE_TYPE);
 		if (licType.isPresent()) {
 			stmt.addClause(new ParameterizedSQLStatement.Clause(DtoTableNames.LISTING.getAlias() + ".licenseType = ?",
 					new Object[] { licType.get() }));
 		}
-
-		// TODO, this might need some data structure jigging
-		// select by multiple tags
-		List<String> tags = wrap.getParams(UrlParameterNames.TAGS);
-		//
-		// if (!tags.isEmpty()) {
-		// stmt.addClause(new ParameterizedSQLStatement.Clause(
-		// DtoTableNames.LISTING.getAlias() + "." + DatabaseFieldNames.DOCID + " = ?",
-		// new Object[] { ids },
-		// new JDBCType[] { JDBCType.ARRAY }));
-		// }
 
 		// retrieve the listing version filters.
 		stmt.addJoin(

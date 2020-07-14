@@ -2,9 +2,9 @@ package org.eclipsefoundation.marketplace.service;
 
 import java.util.List;
 
+import org.eclipsefoundation.core.model.RequestWrapper;
 import org.eclipsefoundation.marketplace.dto.Listing;
 import org.eclipsefoundation.marketplace.dto.Promotion;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
 
 /**
  * Interface for retrieving promotions within the application.

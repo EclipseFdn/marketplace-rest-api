@@ -25,9 +25,9 @@ import javax.ws.rs.core.Response;
 
 import org.eclipsefoundation.core.helper.ResponseHelper;
 import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.core.service.CachingService;
 import org.eclipsefoundation.marketplace.dto.Market;
-import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.eclipsefoundation.persistence.dao.PersistenceDao;
 import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
 import org.eclipsefoundation.persistence.model.RDBMSQuery;
@@ -98,8 +98,8 @@ public class MarketResource {
 
 	@Path("/{marketId}")
 	public Response select(@PathParam("marketId") String marketId) {
-		params.addParam(UrlParameterNames.ID, marketId);
-
+		params.addParam(DefaultUrlParameterNames.ID, marketId);
+		
 		// retrieve a cached version of the value for the current listing
 		Optional<List<Market>> cachedResults = cachingService.get(marketId, params,
 				() -> dao.get(new RDBMSQuery<>(params, dtoFilter)));
@@ -126,7 +126,7 @@ public class MarketResource {
 	@RolesAllowed({ "marketplace_market_delete", "marketplace_admin_access" })
 	@Path("/{marketId}")
 	public Response delete(@PathParam("marketId") String marketId) {
-		params.addParam(UrlParameterNames.ID, marketId);
+		params.addParam(DefaultUrlParameterNames.ID, marketId);
 		// delete the currently selected asset
 		dao.delete(new RDBMSQuery<>(params, dtoFilter));
 		// return the results as a response

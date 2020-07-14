@@ -23,13 +23,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import org.eclipsefoundation.core.helper.ResponseHelper;
 import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.core.service.CachingService;
 import org.eclipsefoundation.marketplace.dto.Catalog;
-import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.eclipsefoundation.persistence.dao.PersistenceDao;
 import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
 import org.eclipsefoundation.persistence.model.RDBMSQuery;
@@ -101,7 +100,7 @@ public class CatalogResource {
 	@GET
 	@Path("/{catalogId}")
 	public Response select(@PathParam("catalogId") String catalogId) {
-		params.addParam(UrlParameterNames.ID, catalogId);
+		params.addParam(DefaultUrlParameterNames.ID, catalogId);
 
 		RDBMSQuery<Catalog> q = new RDBMSQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current listing
@@ -129,7 +128,7 @@ public class CatalogResource {
 	@RolesAllowed({ "marketplace_catalog_delete", "marketplace_admin_access" })
 	@Path("/{catalogId}")
 	public Response delete(@PathParam("catalogId") String catalogId) {
-		params.addParam(UrlParameterNames.ID, catalogId);
+		params.addParam(DefaultUrlParameterNames.ID, catalogId);
 		dao.delete(new RDBMSQuery<>(params, dtoFilter));
 
 		// return the results as a response

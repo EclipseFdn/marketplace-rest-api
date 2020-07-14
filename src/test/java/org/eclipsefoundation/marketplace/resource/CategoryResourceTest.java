@@ -25,19 +25,19 @@ import io.restassured.http.ContentType;
  * @author Martin Lowe
  */
 @QuarkusTest
-public class CategoryResourceTest {
+class CategoryResourceTest {
 
 	// explicitly use the mock DAO to avoid potential issues with standard DAO
 	@Inject
 	private MockHibernateDao dao;
 
 	@BeforeEach
-	public void cleanDao() {
+	void cleanDao() {
 		dao.init();
 	}
 
 	@Test
-	public void testCategorys() {
+	void testCategorys() {
 		given()
 			.when().get("/categories")
 				.then()
@@ -45,7 +45,7 @@ public class CategoryResourceTest {
 	}
 	
 	@Test
-	public void testCategoryIdEndpoint() {
+	void testCategoryIdEndpoint() {
 		given()
 			.when().get("/categories/" + TestHelper.SAMPLE_UUID)
 				.then()
@@ -53,7 +53,7 @@ public class CategoryResourceTest {
 	}
 
 	@Test
-	public void testCategoryIdEndpointNoResults() {
+	void testCategoryIdEndpointNoResults() {
 		given()
 			.param(TestHelper.DATA_EXISTS_PARAM_NAME, false)
 			.when().get("/categories/" + TestHelper.SAMPLE_UUID)
@@ -62,7 +62,7 @@ public class CategoryResourceTest {
 	}
 	
 	@Test
-	public void testCategoryIdEndpointInvalidUUID() {
+	void testCategoryIdEndpointInvalidUUID() {
 		given()
 			.when().get("/categories/invalid-uuid-string")
 				.then()
@@ -70,7 +70,7 @@ public class CategoryResourceTest {
 	}
 	
 	@Test
-	public void testDeletion() {
+	void testDeletion() {
 		given()
 			.when().delete("/categories/" + TestHelper.SAMPLE_UUID)
 				.then()
@@ -78,7 +78,7 @@ public class CategoryResourceTest {
 	}
 	
 	@Test
-	public void testDeletionNotExists() {
+	void testDeletionNotExists() {
 		// pass param that tells the mock service that no data should be returned for
 		// this call
 		given()
@@ -89,7 +89,7 @@ public class CategoryResourceTest {
 	}
 	
 	@Test
-	public void testDeletionInvalidUUID() {
+	void testDeletionInvalidUUID() {
 		given()
 			.when().delete("/categories/invalid-uuid-string")
 				.then()
@@ -97,7 +97,7 @@ public class CategoryResourceTest {
 	}
 	
 	// TODO this test is broken, not sure why
-	public void testPutJSON() {
+	void testPutJSON() {
 		// JSON string for a category
 		String json = 
 			"{" + 
@@ -114,7 +114,7 @@ public class CategoryResourceTest {
 	}
 	
 	@Test
-	public void testPutInvalidJSON() {
+	void testPutInvalidJSON() {
 		// expect bad request response as whole object needs to be posted
 		given()
 			.body("{'id':'" + TestHelper.SAMPLE_UUID + "'}")

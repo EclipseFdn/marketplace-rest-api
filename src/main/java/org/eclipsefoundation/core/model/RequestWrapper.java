@@ -6,7 +6,6 @@
  */
 package org.eclipsefoundation.core.model;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.RequestScoped;
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +22,9 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipsefoundation.core.namespace.DeprecatedHeader;
 import org.eclipsefoundation.core.namespace.RequestHeaderNames;
+import org.eclipsefoundation.core.namespace.UrlParameterName;
 import org.eclipsefoundation.core.request.CacheBypassFilter;
+import org.eclipsefoundation.marketplace.model.QueryParameters;
 import org.eclipsefoundation.marketplace.model.UserAgent;
 import org.jboss.resteasy.core.ResteasyContext;
 
@@ -40,7 +40,7 @@ import org.jboss.resteasy.core.ResteasyContext;
 public class RequestWrapper {
 	private static final String EMPTY_KEY_MESSAGE = "Key must not be null or blank";
 
-	private Map<String, List<String>> params;
+	private QueryParameters params;
 
 	private UriInfo uriInfo;
 	private HttpServletRequest request;
@@ -67,7 +67,7 @@ public class RequestWrapper {
 	 * @return the first value set in the parameter map for the given key, or null
 	 *         if absent.
 	 */
-	public Optional<String> getFirstParam(UrlParameterNames parameter) {
+	public Optional<String> getFirstParam(UrlParameterName parameter) {
 		if (parameter == null) {
 			throw new IllegalArgumentException(EMPTY_KEY_MESSAGE);
 		}
@@ -87,7 +87,7 @@ public class RequestWrapper {
 	 * @return the value list for the given key if it exists, or an empty collection
 	 *         if none exists.
 	 */
-	public List<String> getParams(UrlParameterNames parameter) {
+	public List<String> getParams(UrlParameterName parameter) {
 		if (parameter == null) {
 			throw new IllegalArgumentException(EMPTY_KEY_MESSAGE);
 		}
@@ -115,6 +115,21 @@ public class RequestWrapper {
 	}
 
 	/**
+	 * Adds the given value for the given key, preserving previous values if they
+	 * exist.
+	 * 
+	 * @param key   string key to add the value to, must not be null
+	 * @param value the value to add to the key
+	 */
+	public void addParam(UrlParameterName key, String value) {
+		if (key == null) {
+			throw new IllegalArgumentException(EMPTY_KEY_MESSAGE);
+		}
+		Objects.requireNonNull(value);
+		getParams().add(key.getParameterName(), value);
+	}
+
+	/**
 	 * Sets the value as the value for the given key, removing previous values if
 	 * they exist.
 	 * 
@@ -131,10 +146,6 @@ public class RequestWrapper {
 		addParam(key, value);
 	}
 
-	public List<UrlParameterNames> getActiveParameters() {
-		return params.asMap().keySet().stream().map(UrlParameterNames::getByParameterName).filter(Objects::nonNull)
-				.collect(Collectors.toList());
-	}
 
 	/**
 	 * Returns this QueryParams object as a Map of param values indexed by the param

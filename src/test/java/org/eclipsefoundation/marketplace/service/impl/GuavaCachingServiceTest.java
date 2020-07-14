@@ -6,7 +6,6 @@
  */
 package org.eclipsefoundation.marketplace.service.impl;
 
-import java.util.Collections;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -29,7 +28,7 @@ import io.undertow.servlet.spec.HttpServletRequestImpl;
  *
  */
 @QuarkusTest
-public class GuavaCachingServiceTest {
+class GuavaCachingServiceTest {
 
 	@Inject
 	GuavaCachingService<Object> gcs;
@@ -39,7 +38,7 @@ public class GuavaCachingServiceTest {
 	 * Clear the cache before every test
 	 */
 	@BeforeEach
-	public void pre() {
+	void pre() {
 		// inject empty objects into the Request context before creating a mock object
 		ResteasyContext.pushContext(UriInfo.class, new ResteasyUriInfo("", ""));
 
@@ -55,55 +54,55 @@ public class GuavaCachingServiceTest {
 	 * and using javax injection, which is the expected use case.
 	 */
 	@Test
-	public void testCacheInstantiation() {
+	void testCacheInstantiation() {
 		// create a manual object of cache to test instantiation of manual cache object
 		GuavaCachingService<Object> gcsManual = new GuavaCachingService<>();
 
 		// without post construct init via javax management, cache will not be properly
 		// set
-		Assertions.assertTrue(!gcsManual.get("sampleKey", sample, Collections.emptyMap(), Object::new).isPresent(),
+		Assertions.assertTrue(!gcsManual.get("sampleKey", sample, Object::new).isPresent(),
 				"Object should not be generated when there is no cache initialized");
 
 		// initialize the cache w/ configs
 		gcsManual.init();
 
 		// run a command to interact with cache
-		Assertions.assertTrue(gcsManual.get("sampleKey", sample, Collections.emptyMap(), Object::new).isPresent(),
+		Assertions.assertTrue(gcsManual.get("sampleKey", sample, Object::new).isPresent(),
 				"Object should be generated once cache is instantiated");
 
 		// test the injected cache service (which is the normal use case)
-		Assertions.assertTrue(gcs.get("sampleKey", sample, Collections.emptyMap(), Object::new).isPresent(),
+		Assertions.assertTrue(gcs.get("sampleKey", sample, Object::new).isPresent(),
 				"Object should be generated once cache is instantiated");
 	}
 
 	@Test
-	public void testGet() {
+	void testGet() {
 		Object cachableObject = new Object();
 		String key = "k";
 
 		// get the cached obj from a fresh cache
-		Optional<Object> cachedObj = gcs.get(key, sample, Collections.emptyMap(), () -> cachableObject);
+		Optional<Object> cachedObj = gcs.get(key, sample, () -> cachableObject);
 
 		Assertions.assertTrue(cachedObj.isPresent());
 		Assertions.assertEquals(cachableObject, cachedObj.get());
 	}
 
 	@Test
-	public void testGetNullCallable() {
+	void testGetNullCallable() {
 		Assertions.assertThrows(NullPointerException.class, () -> {
-			gcs.get("key", sample, Collections.emptyMap(), null);
+			gcs.get("key", sample, null);
 		});
 	}
 
 	@Test
-	public void testGetNullCallableResult() {
-		Optional<Object> emptyObj = gcs.get("failure key", sample, Collections.emptyMap(), () -> null);
+	void testGetNullCallableResult() {
+		Optional<Object> emptyObj = gcs.get("failure key", sample, () -> null);
 		Assertions.assertFalse(emptyObj.isPresent());
 	}
 
 	@Test
-	public void testGetExceptionalCallable() {
-		Optional<Object> emptyObj = gcs.get("k", sample, Collections.emptyMap(), () -> {
+	void testGetExceptionalCallable() {
+		Optional<Object> emptyObj = gcs.get("k", sample, () -> {
 			throw new IllegalStateException();
 		});
 		Assertions.assertFalse(emptyObj.isPresent());

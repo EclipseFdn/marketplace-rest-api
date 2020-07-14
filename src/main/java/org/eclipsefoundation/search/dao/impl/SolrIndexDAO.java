@@ -5,21 +5,24 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 
-import org.apache.lucene.document.Document;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.SolrParams;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipsefoundation.persistence.model.RDBMSQuery;
 import org.eclipsefoundation.persistence.dto.BareNode;
-import org.eclipsefoundation.search.dao.SearchIndexDAO;
+import org.eclipsefoundation.search.dao.SearchIndexDao;
 import org.eclipsefoundation.search.model.IndexerResponse;
 import org.eclipsefoundation.search.model.SolrDocumentConverter;
 import org.eclipsefoundation.search.namespace.IndexerResponseStatus;
@@ -27,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class SolrIndexDAO implements SearchIndexDAO {
+public class SolrIndexDAO implements SearchIndexDao {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SolrIndexDAO.class);
 
 	// DAO settings
@@ -43,9 +46,9 @@ public class SolrIndexDAO implements SearchIndexDAO {
 	String core;
 	@ConfigProperty(name = "eclipse.solr.timeout", defaultValue = "10000")
 	int solrTimeout;
-	@ConfigProperty(name = "eclipse.solr.queue", defaultValue = "20")
+	@ConfigProperty(name = "eclipse.solr.queue", defaultValue = "100")
 	int queueSize;
-	@ConfigProperty(name = "eclipse.solr.threads", defaultValue = "10")
+	@ConfigProperty(name = "eclipse.solr.threads", defaultValue = "25")
 	int threadCount;
 
 	// internal state members
@@ -59,9 +62,7 @@ public class SolrIndexDAO implements SearchIndexDAO {
 		} else {
 			// create solr server
 			ConcurrentUpdateSolrClient.Builder b = new ConcurrentUpdateSolrClient.Builder(solrURL + '/' + core)
-					.withConnectionTimeout(solrTimeout)
-					.withQueueSize(queueSize)
-					.withThreadCount(threadCount);
+					.withConnectionTimeout(solrTimeout).withQueueSize(queueSize).withThreadCount(threadCount);
 			this.solrServer = b.build();
 			this.converters = new HashMap<>();
 			LOGGER.debug("Started Solr server for index processing");
@@ -76,15 +77,22 @@ public class SolrIndexDAO implements SearchIndexDAO {
 	}
 
 	@Override
-	public <T extends BareNode> List<Document> get(RDBMSQuery<T> q) {
+	public <T extends BareNode> List<SolrDocument> get(String searchTerm, Class<T> docType) {
 		// check whether call should proceed
-		if (!stateCheck()) {
+		if (!stateCheck() || StringUtils.isBlank(searchTerm)) {
 			return Collections.emptyList();
 		}
-
-		// TODO Auto-generated method stub
-
-		return Collections.emptyList();
+		
+		// get the current doctype converter
+		SolrDocumentConverter<T> converter = getConverter(docType);
+		SolrParams query = converter.getBaseQuery(searchTerm);
+		try {
+			QueryResponse response = solrServer.query(query);
+			return response.getResults();
+		} catch (SolrServerException | IOException e) {
+			LOGGER.error("Error while retrieving search results",e);
+			return null;
+		}
 	}
 
 	@Override
@@ -94,15 +102,20 @@ public class SolrIndexDAO implements SearchIndexDAO {
 			return IndexerResponse.getMaintenanceResponse();
 		}
 
-		// only way of setting value, so type is known and is safe
-		@SuppressWarnings("unchecked")
-		SolrDocumentConverter<T> converter = (SolrDocumentConverter<T>) converters.computeIfAbsent(docType,
-				SolrDocumentConverter::new);
+		// get the current doctype converter
+		SolrDocumentConverter<T> converter = getConverter(docType);
 
 		// convert the documents
-		List<SolrInputDocument> docs = entities.stream().map(converter::convert).collect(Collectors.toList());
+		List<SolrInputDocument> docs = entities.stream().map(converter::convert).filter(Objects::nonNull)
+				.collect(Collectors.toList());
 		// attempt to update + commit the changes
 		long now = System.currentTimeMillis();
+		if (docs.isEmpty()) {
+			LOGGER.debug("No documents to be indexed for current call (recieved {} entities)", docs.size());
+
+			// TODO: should return some empty response base line rather than maint
+			return IndexerResponse.getMaintenanceResponse();
+		}
 		try {
 			// attempting to add documents to solr core
 			solrServer.add(docs);
@@ -142,6 +155,11 @@ public class SolrIndexDAO implements SearchIndexDAO {
 			return new IndexerResponse("Error while removing indexed documents from Solr server",
 					IndexerResponseStatus.FAILED, System.currentTimeMillis() - now, e);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T extends BareNode> SolrDocumentConverter<T> getConverter(Class<T> docType) {
+		return converters.computeIfAbsent(docType, SolrDocumentConverter::new);
 	}
 
 	/**

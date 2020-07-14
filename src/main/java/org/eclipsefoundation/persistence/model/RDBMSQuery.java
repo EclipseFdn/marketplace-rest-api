@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.eclipsefoundation.persistence.dto.BareNode;
 import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
@@ -20,9 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Wrapper for initializing MongoDB BSON filters, sort clauses, and document
- * type when interacting with MongoDB. This should only be called from within
- * the scope of a request with a defined {@link ResourceDataType}
+ * Wrapper for initializing DB filters, sort clauses, and document
+ * type when interacting with RDBMS'.
  * 
  * @author Martin Lowe
  */
@@ -71,8 +71,7 @@ public class RDBMSQuery<T extends BareNode> {
 			}
 		}
 		// check if the page param has been set, defaulting to the first page if not set
-		Optional<String> pageOpt = wrapper.getFirstParam(UrlParameterNames.PAGE);
-		int page = 1;
+		Optional<String> pageOpt = wrapper.getFirstParam(DefaultUrlParameterNames.PAGE);
 		if (pageOpt.isPresent() && StringUtils.isNumeric(pageOpt.get())) {
 			int tmpPage = Integer.parseInt(pageOpt.get());
 			if (tmpPage > 0) {
@@ -83,14 +82,14 @@ public class RDBMSQuery<T extends BareNode> {
 	}
 
 	/**
-	 * Checks the URL parameter of {@link UrlParameterNames.LIMIT} for a numeric
+	 * Checks the URL parameter of {@link DefaultUrlParameterNames.LIMIT} for a numeric
 	 * value and returns it if present.
 	 * 
-	 * @return the value of the URL parameter {@link UrlParameterNames.LIMIT} if
+	 * @return the value of the URL parameter {@link DefaultUrlParameterNames.LIMIT} if
 	 *         present and numeric, otherwise returns -1.
 	 */
 	public int getLimit() {
-		Optional<String> limitVal = wrapper.getFirstParam(UrlParameterNames.LIMIT);
+		Optional<String> limitVal = wrapper.getFirstParam(DefaultUrlParameterNames.LIMIT);
 		if (limitVal.isPresent() && StringUtils.isNumeric(limitVal.get())) {
 			return Integer.parseInt(limitVal.get());
 		}

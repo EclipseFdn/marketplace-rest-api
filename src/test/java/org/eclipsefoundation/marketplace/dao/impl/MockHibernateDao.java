@@ -20,6 +20,8 @@ import org.eclipsefoundation.marketplace.dto.ErrorReport;
 import org.eclipsefoundation.marketplace.dto.Listing;
 import org.eclipsefoundation.marketplace.dto.ListingVersion;
 import org.eclipsefoundation.marketplace.dto.Market;
+import org.eclipsefoundation.marketplace.namesace.TestUrlParameterNames;
+import org.eclipsefoundation.persistence.dao.impl.DefaultHibernateDao;
 import org.eclipsefoundation.persistence.dto.BareNode;
 import org.eclipsefoundation.persistence.model.RDBMSQuery;
 
@@ -77,7 +79,7 @@ public class MockHibernateDao extends DefaultHibernateDao {
 	@Override
 	public <T extends BareNode> List<T> get(RDBMSQuery<T> q) {
 		capturedQuery = q;
-		Optional<String> useTestData = q.getWrapper().getFirstParam("test-data-exists");
+		Optional<String> useTestData = q.getWrapper().getFirstParam(TestUrlParameterNames.TEST_DATA_EXISTS);
 		if (useTestData.isPresent() && "false".equals(useTestData.get())) {
 			return Collections.emptyList();
 		}
@@ -111,7 +113,7 @@ public class MockHibernateDao extends DefaultHibernateDao {
 	public <T extends BareNode> void delete(RDBMSQuery<T> q) {
 		capturedQuery = q;
 		// throw the same exception as the main would
-		Optional<String> useTestData = q.getWrapper().getFirstParam("test-data-exists");
+		Optional<String> useTestData = q.getWrapper().getFirstParam(TestUrlParameterNames.TEST_DATA_EXISTS);
 		if (useTestData.isPresent() && "false".equals(useTestData.get())) {
 			throw new NoResultException("Could not find any documents with given filters");
 		}

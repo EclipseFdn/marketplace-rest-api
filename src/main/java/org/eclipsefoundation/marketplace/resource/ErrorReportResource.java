@@ -23,9 +23,9 @@ import javax.ws.rs.core.Response;
 
 import org.eclipsefoundation.core.helper.ResponseHelper;
 import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.core.service.CachingService;
 import org.eclipsefoundation.marketplace.dto.ErrorReport;
-import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
 import org.eclipsefoundation.persistence.dao.PersistenceDao;
 import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
 import org.eclipsefoundation.persistence.model.RDBMSQuery;
@@ -101,7 +101,7 @@ public class ErrorReportResource {
 	@GET
 	@Path("/{errorReportId}")
 	public Response select(@PathParam("errorReportId") String errorReportId) {
-		params.addParam(UrlParameterNames.ID, errorReportId);
+		params.addParam(DefaultUrlParameterNames.ID, errorReportId);
 		RDBMSQuery<ErrorReport> q = new RDBMSQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current ErrorReport
 		Optional<List<ErrorReport>> cachedResults = cachingService.get(errorReportId, params,

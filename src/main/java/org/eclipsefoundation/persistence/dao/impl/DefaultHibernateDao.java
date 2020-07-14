@@ -4,7 +4,7 @@
  * which is available at http://www.eclipse.org/legal/epl-v20.html,
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.eclipsefoundation.marketplace.dao.impl;
+package org.eclipsefoundation.persistence.dao.impl;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import javax.resource.NotSupportedException;
 import javax.transaction.Transactional;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -21,10 +22,10 @@ import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
 import org.eclipsefoundation.core.exception.MaintenanceException;
 import org.eclipsefoundation.persistence.dao.PersistenceDao;
-import org.eclipsefoundation.persistence.model.RDBMSQuery;
-import org.eclipsefoundation.persistence.model.ParameterizedSQLStatement.Clause;
 import org.eclipsefoundation.persistence.dto.BareNode;
-import org.eclipsefoundation.search.dao.SearchIndexDAO;
+import org.eclipsefoundation.persistence.model.ParameterizedSQLStatement.Clause;
+import org.eclipsefoundation.persistence.model.RDBMSQuery;
+import org.eclipsefoundation.search.dao.SearchIndexDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class DefaultHibernateDao implements PersistenceDao {
 	@Inject
 	EntityManager em;
 	@Inject
-	SearchIndexDAO indexDAO;
+	SearchIndexDao indexDAO;
 
 	@ConfigProperty(name = "eclipse.db.default.limit")
 	int defaultLimit;
@@ -59,7 +60,6 @@ public class DefaultHibernateDao implements PersistenceDao {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Querying DB using the following query: {}", q);
 		}
-		LOGGER.error("SQL: {}\nParams: {}", q.getFilter().getSelectSql(), q.getFilter().getParams());
 
 		// build base query
 		TypedQuery<T> query = em.createQuery(q.getFilter().getSelectSql(), q.getDocType());
@@ -105,7 +105,7 @@ public class DefaultHibernateDao implements PersistenceDao {
 				em.persist(doc);
 			}
 		}
-		// indexDAO.createOrUpdate(q, documents);
+		indexDAO.createOrUpdate(documents, q.getDocType());
 	}
 
 	@Transactional
@@ -137,7 +137,7 @@ public class DefaultHibernateDao implements PersistenceDao {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Counting documents in DB that match the following query: {}", q);
 		}
-		throw new RuntimeException();
+		throw new RuntimeException("Not yet supported");
 	}
 
 	@Override

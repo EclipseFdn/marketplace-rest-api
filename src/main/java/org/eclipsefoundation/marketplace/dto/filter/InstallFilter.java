@@ -6,10 +6,6 @@
  */
 package org.eclipsefoundation.marketplace.dto.filter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,8 +14,8 @@ import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.marketplace.dto.Install;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 import org.eclipsefoundation.marketplace.namespace.DtoTableNames;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
@@ -45,7 +41,7 @@ public class InstallFilter implements DtoFilter<Install> {
 
 		if (isRoot) {
 			// ID check
-			Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
+			Optional<String> id = wrap.getFirstParam(DefaultUrlParameterNames.ID);
 			if (id.isPresent()) {
 				stmt.addClause(new ParameterizedSQLStatement.Clause(
 						DtoTableNames.INSTALL.getAlias() + "." + DatabaseFieldNames.LISTING_ID + " = ?",

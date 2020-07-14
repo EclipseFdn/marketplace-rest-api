@@ -22,6 +22,8 @@ import javax.xml.bind.DatatypeConverter;
 
 import org.eclipsefoundation.core.model.RequestWrapper;
 import org.eclipsefoundation.core.service.CachingService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Helper class that transforms data into a response usable for the RESTeasy
@@ -33,6 +35,7 @@ import org.eclipsefoundation.core.service.CachingService;
  */
 @ApplicationScoped
 public class ResponseHelper {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ResponseHelper.class);
 
 	private static final MessageDigest DIGEST;
 	static {
@@ -68,6 +71,7 @@ public class ResponseHelper {
 			// get the TTL for the current entry
 			Optional<Long> ttl = cachingService.getExpiration(id, wrapper);
 			if (!ttl.isPresent()) {
+				LOGGER.error("TTL not present!");
 				return Response.serverError().build();
 			}
 

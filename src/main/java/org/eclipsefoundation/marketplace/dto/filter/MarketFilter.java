@@ -13,6 +13,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.marketplace.dto.Market;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 import org.eclipsefoundation.marketplace.namespace.DtoTableNames;
@@ -37,7 +38,7 @@ public class MarketFilter implements DtoFilter<Market> {
 		ParameterizedSQLStatement stmt = builder.build(DtoTableNames.MARKET.getTable());
 		if (isRoot) {
 			// ID check
-			Optional<String> id = wrap.getFirstParam(UrlParameterNames.ID);
+			Optional<String> id = wrap.getFirstParam(DefaultUrlParameterNames.ID);
 			if (id.isPresent()) {
 				stmt.addClause(new ParameterizedSQLStatement.Clause(
 						DtoTableNames.MARKET.getAlias() + "." + DatabaseFieldNames.DOCID + " = ?",

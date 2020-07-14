@@ -29,12 +29,14 @@ import javax.ws.rs.core.Response;
 
 import org.eclipsefoundation.core.helper.ResponseHelper;
 import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.core.service.CachingService;
 import org.eclipsefoundation.marketplace.dto.Listing;
-import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
+import org.eclipsefoundation.marketplace.service.PromotionService;
 import org.eclipsefoundation.persistence.dao.PersistenceDao;
 import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
 import org.eclipsefoundation.persistence.model.RDBMSQuery;
+import org.eclipsefoundation.search.service.PersistenceBackedSearchService;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,10 +53,14 @@ import org.slf4j.LoggerFactory;
 public class ListingResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ListingResource.class);
 
+	// service/access layers
 	@Inject
 	PersistenceDao dao;
 	@Inject
+	PersistenceBackedSearchService searchService;
+	@Inject
 	CachingService<List<Listing>> cachingService;
+	
 	@Inject
 	PromotionService promoService;
 
@@ -76,13 +82,20 @@ public class ListingResource {
 	@PermitAll
 	public Response select() {
 		// retrieve the possible cached object
-		Optional<List<Listing>> cachedResults = cachingService.get("all", params,
-				() -> dao.get(new RDBMSQuery<>(params, dtoFilter)));
+		Optional<String> searchTerm = params.getFirstParam(DefaultUrlParameterNames.QUERY_STRING);
+		Optional<List<Listing>> cachedResults;
+		// if there is a search term set, use it
+		if (searchTerm.isPresent()) {
+			cachedResults = cachingService.get("all", params,
+					() -> searchService.find(params, dtoFilter));
+		} else {
+			cachedResults = cachingService.get("all", params,
+					() -> dao.get(new RDBMSQuery<>(params, dtoFilter)));
+		}
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listings");
 			return Response.serverError().build();
 		}
-
 		// return the results as a response
 		return responseBuider.build("all", params, cachedResults.get());
 	}
@@ -114,7 +127,7 @@ public class ListingResource {
 	@PermitAll
 	@Path("/{listingId}")
 	public Response select(@PathParam("listingId") String listingId) {
-		params.addParam(UrlParameterNames.ID, listingId);
+		params.addParam(DefaultUrlParameterNames.ID.getParameterName(), listingId);
 
 		// retrieve a cached version of the value for the current listing
 		Optional<List<Listing>> cachedResults = cachingService.get(listingId, params,
@@ -141,7 +154,7 @@ public class ListingResource {
 	@RolesAllowed({ "marketplace_listing_delete", "marketplace_admin_access" })
 	@Path("/{listingId}")
 	public Response delete(@PathParam("listingId") String listingId) {
-		params.addParam(UrlParameterNames.ID, listingId);
+		params.addParam(DefaultUrlParameterNames.ID.getParameterName(), listingId);
 		// delete the currently selected asset
 		dao.delete(new RDBMSQuery<>(params, dtoFilter));
 		// return the results as a response
