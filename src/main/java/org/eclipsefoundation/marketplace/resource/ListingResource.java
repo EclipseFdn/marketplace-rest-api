@@ -140,7 +140,7 @@ public class ListingResource {
 			throw new NoResultException("Could not find any documents with ID " + listingId);
 		}
 		// return the results as a response
-		return responseBuider.build(listingId, params, cachedResults.get());
+		return responseBuider.build(listingId, params, cachedResults.get().get(0));
 	}
 
 	/**
