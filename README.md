@@ -1,5 +1,12 @@
 # Eclipse Foundation Marketplace Client API
 
+---
+**NOTE**
+
+This project was migrated to [Eclipse Gitlab](https://gitlab.eclipse.org/eclipsefdn/it/api/marketplace-rest-api) on October 14, 2021.
+
+---
+
 ## Summary
 
 Proof of concept project within the Microservice initiative, the Foundation looks to leverage Quarkus to renew their MPC API. The specifications to the API can be found in the `marketplace-rest-api-specs` project within the EclipseFdn group on GitHub.
