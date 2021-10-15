@@ -10,10 +10,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.persistence.NoResultException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -22,23 +22,18 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
-import org.eclipsefoundation.marketplace.dao.MongoDao;
+import org.eclipsefoundation.core.helper.ResponseHelper;
+import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
+import org.eclipsefoundation.core.service.CachingService;
 import org.eclipsefoundation.marketplace.dto.Market;
-import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
-import org.eclipsefoundation.marketplace.helper.ResponseHelper;
-import org.eclipsefoundation.marketplace.helper.StreamHelper;
-import org.eclipsefoundation.marketplace.model.Error;
-import org.eclipsefoundation.marketplace.model.MongoQuery;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
-import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
-import org.eclipsefoundation.marketplace.service.CachingService;
+import org.eclipsefoundation.persistence.dao.PersistenceDao;
+import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
+import org.eclipsefoundation.persistence.model.RDBMSQuery;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.mongodb.client.result.DeleteResult;
 
 /**
  * @author martin
@@ -52,7 +47,7 @@ public class MarketResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MarketResource.class);
 
 	@Inject
-	MongoDao dao;
+	PersistenceDao dao;
 	@Inject
 	CachingService<List<Market>> cachingService;
 	@Inject
@@ -61,16 +56,14 @@ public class MarketResource {
 	DtoFilter<Market> dtoFilter;
 	@Inject
 	ResponseHelper responseBuider;
-	
+
 	@GET
-	@PermitAll
 	public Response select() {
-		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter);
+		RDBMSQuery<Market> q = new RDBMSQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
-		Optional<List<Market>> cachedResults = cachingService.get("all", params,
-				null, () -> StreamHelper.awaitCompletionStage(dao.get(q)));
+		Optional<List<Market>> cachedResults = cachingService.get("all", params, () -> dao.get(q));
 		if (!cachedResults.isPresent()) {
-			LOGGER.error("Error while retrieving cached Categorys");
+			LOGGER.error("Error while retrieving cached markets");
 			return Response.serverError().build();
 		}
 
@@ -81,19 +74,14 @@ public class MarketResource {
 	/**
 	 * Endpoint for /markets/ to post a new Market to the persistence layer.
 	 * 
-	 * @param market the Category object to insert into the database.
+	 * @param market the market object to insert into the database.
 	 * @return response for the browser
 	 */
 	@PUT
 	@RolesAllowed({ "marketplace_market_put", "marketplace_admin_access" })
 	public Response putMarket(Market market) {
-		if (market.getId() != null) {
-			params.addParam(UrlParameterNames.ID.getParameterName(), market.getId());
-		}
-		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter);
-
 		// add the object, and await the result
-		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(market)));
+		dao.add(new RDBMSQuery<>(params, dtoFilter), Arrays.asList(market));
 
 		// return the results as a response
 		return Response.ok().build();
@@ -107,18 +95,20 @@ public class MarketResource {
 	 * @return response for the browser
 	 */
 	@GET
-	@PermitAll
+
 	@Path("/{marketId}")
 	public Response select(@PathParam("marketId") String marketId) {
-		params.addParam(UrlParameterNames.ID.getParameterName(), marketId);
-
-		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter);
+		params.addParam(DefaultUrlParameterNames.ID, marketId);
+		
 		// retrieve a cached version of the value for the current listing
 		Optional<List<Market>> cachedResults = cachingService.get(marketId, params,
-				null, () -> StreamHelper.awaitCompletionStage(dao.get(q)));
+				() -> dao.get(new RDBMSQuery<>(params, dtoFilter)));
 		if (!cachedResults.isPresent()) {
-			LOGGER.error("Error while retrieving cached listing for ID {}", marketId);
+			LOGGER.error("Error while retrieving cached market for ID {}", marketId);
 			return Response.serverError().build();
+		}
+		if (cachedResults.get().isEmpty()) {
+			throw new NoResultException("Could not find any documents with ID " + marketId);
 		}
 
 		// return the results as a response
@@ -136,14 +126,9 @@ public class MarketResource {
 	@RolesAllowed({ "marketplace_market_delete", "marketplace_admin_access" })
 	@Path("/{marketId}")
 	public Response delete(@PathParam("marketId") String marketId) {
-		params.addParam(UrlParameterNames.ID.getParameterName(), marketId);
-
-		MongoQuery<Market> q = new MongoQuery<>(params, dtoFilter);
+		params.addParam(DefaultUrlParameterNames.ID, marketId);
 		// delete the currently selected asset
-		DeleteResult result = StreamHelper.awaitCompletionStage(dao.delete(q));
-		if (result.getDeletedCount() == 0 || !result.wasAcknowledged()) {
-			return new Error(Status.NOT_FOUND, "Did not find an asset to delete for current call").asResponse();
-		}
+		dao.delete(new RDBMSQuery<>(params, dtoFilter));
 		// return the results as a response
 		return Response.ok().build();
 	}

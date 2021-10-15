@@ -9,31 +9,29 @@
 */
 package org.eclipsefoundation.marketplace.namespace;
 
+import org.eclipsefoundation.core.namespace.UrlParameterName;
+
 /**
  * Namespace containing URL parameters used throughout the API.
  * 
  * @author Martin Lowe
  */
-public enum UrlParameterNames {
+public enum UrlParameterNames implements UrlParameterName {
 
-	QUERY_STRING("q"),
-	PAGE("page"),
-	LIMIT("limit"),
 	SORT("sort"),
 	OS("os"),
 	ECLIPSE_VERSION("eclipse_version"),
 	JAVA_VERSION("min_java_version"),
-	IDS("ids"),
 	TAGS("tags"),
 	MARKET_IDS("market_ids"),
-	ID("id"),
 	LISTING_ID("listing_id"),
 	READ("read"),
 	FEATURE_ID("feature_id"),
 	VERSION("version"),
 	DATE_FROM("from"),
 	END("end"),
-	START("start");
+	START("start"), 
+	LICENSE_TYPE("license_type");
 
 	private String parameterName;
 	private UrlParameterNames(String parameterName) {
@@ -43,6 +41,7 @@ public enum UrlParameterNames {
 	/**
 	 * @return the URL parameters name
 	 */
+	@Override
 	public String getParameterName() {
 		return parameterName;
 	}
@@ -53,7 +52,7 @@ public enum UrlParameterNames {
 	 * @param name the name to retrieve a URL parameter for
 	 * @return the URL parameter name if it exists, or null if no match is found
 	 */
-	public static UrlParameterNames getByParameterName(String name) {
+	public static UrlParameterName getByParameterName(String name) {
 		for (UrlParameterNames param: values()) {
 			if (param.getParameterName().equalsIgnoreCase(name)) {
 				return param;

@@ -6,8 +6,17 @@
  */
 package org.eclipsefoundation.marketplace.dto;
 
-import java.util.List;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+import org.eclipsefoundation.persistence.dto.BareNode;
 
 /**
  * Holds a set of install metrics for the last year for a given listing.
@@ -15,51 +24,28 @@ import java.util.Objects;
  * @author Martin Lowe
  *
  */
-public class InstallMetrics {
+@Entity
+@Table
+public class InstallMetrics extends BareNode {
 
-	private String listingId;
-	private List<MetricPeriod> periods;
+	@OneToOne
+	private Listing listing;
+	@OneToMany(cascade = CascadeType.REMOVE)
+	private Set<MetricPeriod> periods;
 	private int total;
-
-	public InstallMetrics() {
-	}
-
-	/**
-	 * @param listingId
-	 * @param periods
-	 */
-	public InstallMetrics(String listingId, List<MetricPeriod> periods, int total) {
-		this.listingId = listingId;
-		this.periods = periods;
-		this.total = total;
-	}
-
-	/**
-	 * @return the listingId
-	 */
-	public String getListingId() {
-		return listingId;
-	}
-
-	/**
-	 * @param listingId the listingId to set
-	 */
-	public void setListingId(String listingId) {
-		this.listingId = listingId;
-	}
 
 	/**
 	 * @return the periods
 	 */
-	public List<MetricPeriod> getPeriods() {
-		return periods;
+	public Set<MetricPeriod> getPeriods() {
+		return new HashSet<>(periods);
 	}
 
 	/**
 	 * @param periods the periods to set
 	 */
-	public void setPeriods(List<MetricPeriod> periods) {
-		this.periods = periods;
+	public void setPeriods(Set<MetricPeriod> periods) {
+		this.periods = new HashSet<>(periods);
 	}
 
 	/**
@@ -78,7 +64,7 @@ public class InstallMetrics {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(listingId, periods, total);
+		return Objects.hash(periods, total);
 	}
 
 	@Override
@@ -93,16 +79,14 @@ public class InstallMetrics {
 			return false;
 		}
 		InstallMetrics other = (InstallMetrics) obj;
-		return Objects.equals(listingId, other.listingId) && Objects.equals(periods, other.periods)
+		return  Objects.equals(periods, other.periods)
 				&& Objects.equals(total, other.total);
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("InstallMetrics [listingId=");
-		builder.append(listingId);
-		builder.append(", periods=");
+		builder.append("InstallMetrics [periods=");
 		builder.append(periods);
 		builder.append(", total=");
 		builder.append(total);

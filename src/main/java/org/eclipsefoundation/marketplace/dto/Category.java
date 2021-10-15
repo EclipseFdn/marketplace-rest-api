@@ -9,7 +9,10 @@
 */
 package org.eclipsefoundation.marketplace.dto;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
+import org.eclipsefoundation.persistence.dto.NodeBase;
 
 /**
  * Represents a listing category in the marketplace
@@ -17,7 +20,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
  * @author Martin Lowe
  *
  */
-@RegisterForReflection
+@Entity
+@Table
 public class Category extends NodeBase {
-	// only needs bare node
 }

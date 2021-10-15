@@ -6,30 +6,21 @@
  */
 package org.eclipsefoundation.marketplace.dto.filter;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.expr;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
-import org.bson.BsonArray;
-import org.bson.conversions.Bson;
+import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.marketplace.dto.Market;
-import org.eclipsefoundation.marketplace.model.QueryParameters;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
 import org.eclipsefoundation.marketplace.namespace.DtoTableNames;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
-
-import com.mongodb.client.model.Accumulators;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Projections;
-import com.mongodb.client.model.Variable;
+import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
+import org.eclipsefoundation.persistence.model.ParameterizedSQLStatement;
+import org.eclipsefoundation.persistence.model.ParameterizedSQLStatementBuilder;
 
 /**
  * Filter implementation for the {@linkplain Market} class.
@@ -39,66 +30,30 @@ import com.mongodb.client.model.Variable;
 @ApplicationScoped
 public class MarketFilter implements DtoFilter<Market> {
 
+	@Inject
+	ParameterizedSQLStatementBuilder builder;
+
 	@Override
-	public List<Bson> getFilters(QueryParameters params, String root) {
-		List<Bson> filters = new ArrayList<>();
-		// perform following checks only if there is no doc root
-		if (root == null) {
+	public ParameterizedSQLStatement getFilters(RequestWrapper wrap, boolean isRoot) {
+		ParameterizedSQLStatement stmt = builder.build(DtoTableNames.MARKET.getTable());
+		if (isRoot) {
 			// ID check
-			Optional<String> id = params.getFirstIfPresent(UrlParameterNames.ID.getParameterName());
+			Optional<String> id = wrap.getFirstParam(DefaultUrlParameterNames.ID);
 			if (id.isPresent()) {
-				filters.add(Filters.eq(DatabaseFieldNames.DOCID, id.get()));
+				stmt.addClause(new ParameterizedSQLStatement.Clause(
+						DtoTableNames.MARKET.getAlias() + "." + DatabaseFieldNames.DOCID + " = ?",
+						new Object[] { UUID.fromString(id.get()) }));
 			}
 		}
-		return filters;
-	}
+		// check for markets that contain a given listing
+		Optional<String> listingId = wrap.getFirstParam(UrlParameterNames.LISTING_ID);
+		if (listingId.isPresent()) {
+			stmt.addClause(new ParameterizedSQLStatement.Clause(
+					"? IN elements(" + DtoTableNames.MARKET.getAlias() + ".listingId)",
+					new Object[] { listingId.get() }));
+		}
 
-	@Override
-	public List<Bson> getAggregates(QueryParameters params) {
-		List<Bson> aggs = new ArrayList<>();
-
-		String tempFieldName = "tmp";
-		List<Bson> pipeline = new ArrayList<>();
-		// match the listings on the given market_id
-		pipeline.add(
-				Aggregates.match(expr(eq("$in", Arrays.asList("$" + DatabaseFieldNames.DOCID, "$$listing_ids")))));
-		// suppress all fields except category_ids
-		pipeline.add(Aggregates.project(
-				Projections.fields(Projections.excludeId(), Projections.include(DatabaseFieldNames.CATEGORY_IDS))));
-
-		// set up a var reference for the _id
-		Variable<String> id = new Variable<>("listing_ids", "$listing_ids");
-		// lookup all category IDS from listings with the given market ID
-		aggs.add(Aggregates.lookup(DtoTableNames.LISTING.getTableName(), Arrays.asList(id), pipeline, tempFieldName));
-		// explode all category IDS for collection
-		aggs.add(Aggregates.unwind("$" + tempFieldName));
-
-		// flatten categories using projection, and retain original data through data
-		// field
-		aggs.add(Aggregates.group("$_id", Accumulators.first("data", "$$ROOT"),
-				Accumulators.push(tempFieldName, "$" + tempFieldName + "." + DatabaseFieldNames.CATEGORY_IDS)));
-
-		// no reduction shortcuts in driver, build documents from scratch
-		// in operation merges multiple lists using sets to deduplicate
-		Bson inOperation = eq("$setUnion", Arrays.asList("$$value", "$$this"));
-		Bson reductionOptions = eq(tempFieldName, eq("$reduce",
-				and(eq("input", "$" + tempFieldName), eq("initialValue", new BsonArray()), eq("in", inOperation))));
-
-		// using projections, retain data-root + tmp category IDS and reduce them
-		aggs.add(Aggregates.project(Projections.fields(Projections.include("data"), reductionOptions)));
-
-		// create custom array as mergeObjects uses non-standard syntax
-		BsonArray ba = BsonArray.parse("[ '$data', {'" + tempFieldName + "': '$" + tempFieldName + "'}]");
-		// replaceRoot to restore original root data + set data for category IDs
-		aggs.add(Aggregates.replaceRoot(eq("$mergeObjects", ba)));
-
-		// adds a $lookup aggregate, joining categories on categoryIDS as "categories"
-		aggs.add(Aggregates.lookup(DtoTableNames.CATEGORY.getTableName(), tempFieldName, DatabaseFieldNames.DOCID,
-				"categories"));
-
-		// remove the unneeded temporary field
-		aggs.add(Aggregates.project(Projections.exclude(tempFieldName)));
-		return aggs;
+		return stmt;
 	}
 
 	@Override

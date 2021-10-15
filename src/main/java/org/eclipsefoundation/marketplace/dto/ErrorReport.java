@@ -6,45 +6,32 @@
  */
 package org.eclipsefoundation.marketplace.dto;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
+
+import javax.persistence.Entity;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+import org.eclipsefoundation.persistence.dto.BareNode;
 
 /**
  * Represents an error report in the database.
  * 
  * @author Martin Lowe
  */
-public class ErrorReport {
-
-	private String id;
+@Entity
+@Table
+public class ErrorReport extends BareNode {
 	private String title;
 	private String body;
 	private String status;
 	private String statusMessage;
-	private List<String> featureIDs;
+	@OneToOne(targetEntity = FeatureId.class)
+	private FeatureId featureID;
 	private String detailedMessage;
-	private boolean read;
+	private boolean isRead;
 	private String listingId;
 	
-	/**
-	 * 
-	 */
-	public ErrorReport() {
-		this.featureIDs = new ArrayList<>();
-	}
-	
-	/**
-	 * @return the id
-	 */
-	public String getId() {
-		return id;
-	}
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(String id) {
-		this.id = id;
-	}
 	/**
 	 * @return the title
 	 */
@@ -96,14 +83,14 @@ public class ErrorReport {
 	/**
 	 * @return the featureIDs
 	 */
-	public List<String> getFeatureIDs() {
-		return new ArrayList<>(featureIDs);
+	public FeatureId getFeatureID() {
+		return featureID;
 	}
 	/**
 	 * @param featureIDs the featureIDs to set
 	 */
-	public void setFeatureIds(List<String> featureIDs) {
-		this.featureIDs = new ArrayList<>(featureIDs);
+	public void setFeatureIds(FeatureId featureId) {
+		this.featureID = featureId;
 	}
 	/**
 	 * @return the detailedMessage
@@ -121,13 +108,13 @@ public class ErrorReport {
 	 * @return the read
 	 */
 	public boolean isRead() {
-		return read;
+		return isRead;
 	}
 	/**
-	 * @param read the read to set
+	 * @param isRead the read to set
 	 */
-	public void setRead(boolean read) {
-		this.read = read;
+	public void setRead(boolean isRead) {
+		this.isRead = isRead;
 	}
 	/**
 	 * @return the listingId
@@ -141,5 +128,27 @@ public class ErrorReport {
 	public void setListingId(String listingId) {
 		this.listingId = listingId;
 	}
-	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result
+				+ Objects.hash(body, detailedMessage, featureID, isRead, listingId, status, statusMessage, title);
+		return result;
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ErrorReport other = (ErrorReport) obj;
+		return Objects.equals(body, other.body) && Objects.equals(detailedMessage, other.detailedMessage)
+				&& Objects.equals(featureID, other.featureID) && isRead == other.isRead
+				&& Objects.equals(listingId, other.listingId) && Objects.equals(status, other.status)
+				&& Objects.equals(statusMessage, other.statusMessage) && Objects.equals(title, other.title);
+	}
 }

@@ -6,26 +6,23 @@
  */
 package org.eclipsefoundation.marketplace.dto;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
+import java.util.Objects;
+
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
+import org.eclipsefoundation.persistence.dto.BareNode;
 
 /**
  * Represents an author for listings.
  * 
  * @author Martin Lowe
  */
-@RegisterForReflection
-public class Author {
+@Entity
+@Table
+public class Author extends BareNode {
 	private String username;
 	private String fullName;
-
-	public Author(String username, String fullName) {
-		this.username = username;
-		this.fullName = fullName;
-	}
-
-	public Author() {
-		// purposefully empty
-	}
 
 	/**
 	 * @return the username
@@ -53,5 +50,25 @@ public class Author {
 	 */
 	public void setFullName(String fullName) {
 		this.fullName = fullName;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + Objects.hash(fullName, username);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Author other = (Author) obj;
+		return Objects.equals(fullName, other.fullName) && Objects.equals(username, other.username);
 	}
 }

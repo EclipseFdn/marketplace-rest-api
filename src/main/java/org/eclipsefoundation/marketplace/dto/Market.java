@@ -10,13 +10,20 @@
 package org.eclipsefoundation.marketplace.dto;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.json.bind.annotation.JsonbTransient;
+import javax.persistence.Entity;
+import javax.persistence.ManyToMany;
+import javax.persistence.PostLoad;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
+import org.eclipsefoundation.persistence.dto.NodeBase;
 
 /**
  * Domain object representing a Market within the marketplace.
@@ -24,32 +31,48 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
  * @author Martin Lowe
  * @since 05/2019
  */
-@RegisterForReflection
+@Entity
+@Table
 public class Market extends NodeBase {
-	private List<String> listingIds;
-	private List<Category> categories;
+	@ManyToMany
+	private Set<Listing> listingIds;
+	@Transient
+	private Set<Category> categories;
 
 	/**
 	 * Default constructor. Creates an empty linkedlist for categories, as its
 	 * unknown how many categories the market will reference.
 	 */
 	public Market() {
-		this.listingIds = new LinkedList<>();
-		this.categories = new LinkedList<>();
+		this.listingIds = new HashSet<>();
+		this.categories = new HashSet<>();
+	}
+
+	/**
+	 * Copies unique categories from all listings associated w/ Market into transient categories field
+	 */
+	@PostLoad
+	private void post() {
+		listingIds.stream().map(Listing::getCategories).flatMap(Set::stream).collect(Collectors.toList())
+				.forEach(c -> {
+					if (!categories.contains((Category) c)) {
+						this.categories.add(c);
+					}
+				});
 	}
 
 	/**
 	 * @return the listingIds
 	 */
-	public List<String> getListingIds() {
+	public List<Listing> getListingIds() {
 		return new ArrayList<>(listingIds);
 	}
 
 	/**
 	 * @param listingIds the listingIds to set
 	 */
-	public void setListingIds(List<String> listingIds) {
-		this.listingIds = new ArrayList<>(listingIds);
+	public void setListingIds(Set<Listing> listingIds) {
+		this.listingIds = new HashSet<>(listingIds);
 	}
 
 	/**
@@ -63,8 +86,8 @@ public class Market extends NodeBase {
 	 * @param categories the categories to set
 	 */
 	@JsonbTransient
-	public void setCategories(List<Category> categories) {
-		this.categories = new ArrayList<>(categories);
+	public void setCategories(Set<Category> categories) {
+		this.categories = new HashSet<>(categories);
 	}
 
 	@Override

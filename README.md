@@ -15,24 +15,30 @@ Proof of concept project within the Microservice initiative, the Foundation look
 
 1. Installed and configured JDK 1.8+
 1. Apache Maven 3.5.3+
-1. Running instance of MongoDB (Docker instructions below)
+1. Running instance of MariaDB (Docker instructions below)
+1. Running instance of Solr server (version 5.5.5 currently supported)
 1. GraalVM (for compilation of native-image)
 
 ### Optional requirements
 
 1. Node JS + NPM (if using sample data script)
+1. OAuth 2.0 server
 
 ## Configuration
 
 This section will outline configuration values that need to be checked and updated to run the API in a local environment. Unless otherwise stated, all values to be updated will be in `./src/main/resources/application.properties`.
 
-1. In order to properly detect MongoDB, a connection string needs to be updated. `quarkus.mongodb.connection-string` designates the location of MongoDB to quarkus in the form of `mongodb://<host>:<port>/`. By default, this value points at `mongodb://localhost:27017`, the default location for local installs of MongoDB.
-1. Update `quarkus.mongodb.credentials.username` to be a known user with write permissions to MongoDB instance.
+1. In order to properly detect MariaDB, a connection string needs to be updated. `quarkus.datasource.url` designates the location of MariaDB to quarkus in the form of `jdbc:mariadb://<host>:<port>/<db>`. By default, this value points at `jdbc:mariadb://localhost:3306/mpc_db`, the default location for local installs of MariaDB with a database of `mpc_db`.
+1. Update `quarkus.datasource.username` to be a known user with write permissions to MariaDB instance.
 1. Create a copy of `./config/sample.secret.properties` named `secret.properties` in a location of your choosing on the system, with the config folder in the project root being default configured. If changed, keep this path as it is needed to start the environment later.
-1. Update `quarkus.mongodb.credentials.password` to be the password for the MongoDB user in the newly created `secret.properties` file.
+1. Update `quarkus.datasource.password` to be the password for the MariaDB user in the newly created `secret.properties` file.
+1. Log in to the MariaDB instance and ensure that the database defined in the JDBC string exists. By default, the name of the database is `mpc_db`. This database can be created using the command `CREATE DATABASE mpc_db;`. 
+1. When using the Solr search engine, a couple of properties are needed to be added to the properties and secret.properties file. The first is the Solr host and core. The host property (`eclipse.solr.host`) should be the root URL to your Solr instance (e.g. http://localhost:8093/solr) to allow connections for search indexing. The core property (`eclipse.solr.core`) should be the name of the core that will store your indexes for marketplace. If a core does not exist yet, create one through the admin panel of the Solr server and update the core value if needed.
+1. To properly enable the core to work with this application, the configuration on the Solr server should be updated. Copy the contents of ./config/mpc_dev into your cores configuration folder. An example path for this folder is `/opt/solr/server/solr/marketplace`. This may change based on how the server is installed and configured. Ensure that these files match ownership of the other files in this location, otherwise the Solr core may not work as intended. 
 1. By default, this application binds to port 8090. If port 8090 is occupied by another service, the value of `quarkus.http.port` can be modified to designate a different port. 
-1. In order to protect endpoints for write operations, an introspection endpoint has been configured to validate OAuth tokens. This introspection endpoint should match the requirements set out by the OAuth group for such endpoints. The URL should be set in `quarkus.oauth2.introspection-url`.
-1. As part of the set up of this client, an OAuth client ID and secret need to be defined in the `secret.properties` file. These values should be set in `quarkus.oauth2.client-id` and `quarkus.oauth2.client-secret`. These are required for introspection to avoid token fishing attempts.
+1. In order to protect endpoints for write operations, an introspection endpoint has been configured to validate OAuth tokens. This introspection endpoint should match the requirements set out by the OAuth group for such endpoints. The URL should be set in `quarkus.oauth2.introspection-url`.  
+    * A property meant for development purposes has been added to this stack to bypass OAuth calls. If set, all calls will return as if authenticated as an admin. The property and value `eclipse.oauth.override=true` can be set in the `application.properties` file to enable this feature.
+1. As part of the set up of this client, an OAuth client ID and secret should be defined in the `secret.properties` file. These values should be set in `quarkus.oauth2.client-id` and `quarkus.oauth2.client-secret`. These are required for introspection to avoid token fishing attempts.
 
 If you are compiling from source, in order to properly pass tests in packaging, some additional set up sill need to be done. There are two options for setting up test variables for the project.
 
@@ -82,91 +88,36 @@ The Docker build-arg `GRAALVM_HOME` must be configured on the `docker build` com
 
 ## Sample data
 
-For ease of use, a script has been created to load sample data into a MongoDB instance using Node JS and a running instance of the API. This script will load a large amount of listings into the running MongoDB using the API for use in testing different queries without having to retrieve real world data.
+For ease of use, a script has been created to load sample data into the database instance using Node JS and a running instance of the API. This script will load a large amount of listings into the running database using the API for use in testing different queries without having to retrieve real world data.
 
 1. In root of project, run `npm install` to retrieve dependencies for sample data loader script.
-1. Run `npm run-script load-listings -- -s <api-url>`, replacing `<api-url>` with the URL of a running instance of this API (e.g. http://localhost:8090). This should take a couple of moments, as by default the loader will load 5000 dummy entries into MongoDB. This can be changed using a `-c` flag followed by the number of entries to be created. 
+1. Run `npm run-script load-listings -- -s <api-url>`, replacing `<api-url>` with the URL of a running instance of this API (e.g. http://localhost:8090). This should take a couple of moments, as by default the loader will load dummy entries into the dataset. Options for this script can be seen using the help command.
 
-## Dockerizing MongoDB
+## Dockerizing MariaDB
 
-The following command can be used in any environment with Docker fully configured to run MongoDB with some basic settings. The password and username can be configured to be more secure, so long as the application.properties and secret.properties are updated to reflect the changes (`quarkus.mongodb.credentials.username` and `quarkus.mongodb.credentials.password` respectively).  
+For a simple image, using the command `docker run --name mpc-api_mariadb_1 -e MYSQL_ROOT_PASSWORD=my-secret-pw -p 3306:3306 -d mariadb:latest` will create a Docker container for mariadb. For the current use case, no other applications need to run in sequence for development and a docker file can be skipped. The password and port can be changed to suit needs, so long as it is reflected within the configuration for the JDBC connection string. For more configurable settings, please refer to the [Docker Hub page for the image](https://hub.docker.com/_/mariadb).
 
-```
-docker run -p 127.0.0.1:27017:27017/tcp \
-    --env MONGO_INITDB_ROOT_USERNAME=root \
-    --env MONGO_INITDB_ROOT_PASSWORD=example \
-    mongo
-```
+### Additional MariaDB commands needed:
 
-### Additional MongoDB commands needed:
-
-```
-use mpc;
-db.listings.createIndex(
-     {
-       body:"text", 
-       teaser:"text",
-       title:"text"
-     },
-     {
-      weights: {
-       title: 10,
-       teaser: 3
-     },
-     name: "TextIndex"
-  });
-db.listings.createIndex({ listing_id: 1 }, {name: "lid"});
-db.listings.createIndex({ changed: 1 }, {name: "updated"});
-db.listings.createIndex({ created: 1 }, {name: "created"});
-db.listings.createIndex({ license_type: 1 }, {name: "lic_type"});
-db.listings.createIndex({ category_ids: 1 }, {name: "cats"});
-db.listings.createIndex({ market_ids: 1 }, {name: "mkts"});
-db.listing_versions.createIndex({ listing_id: 1 }, {name: "lid"});
-db.listing_versions.createIndex({ compatible_versions: 1 }, {name: "compat"});
-db.listing_versions.createIndex({ min_java_version: 1 }, {name: "min_java"});
-db.listing_versions.createIndex({ platforms: 1 }, {name: "platforms"});
-db.installs.createIndex({listing_id: 1 }, {name: "lid"});
-```
+TODO
 
 ### Creating a backup
 
-In order to create a backup of an existing data set, read access to the MongoDB instance is required, and is best done with shell access.  
-
-To use the following commands, replace `<user>` with the name of the user with write access to the MPC data set. Each of these commands will initiate a password challenge request, and cannot be together in a script easily. Adding the `--password=<>` is not recommended as it is a vulnerability as the logs will remain on the server with plain text passwords. Additionally, the `<date>` placeholder should be replaced with whatever date stamp has been set in the snapshot .gz files.  
-
-In container:  
+Data for installs has been separated from the raw table data as keeping it separate is better for backing up. As a separate entity with no direct relationship to any other table, it doesn't need to be locked to prevent data inconsistencies/mismatches. Since Metric Period and Install Metrics are transient tables that are populated by procedures, they don't need to be backed up and have been ignored from the dump. Below is a set of sample commands to backup the data:
 
 ```
-mkdir snapshot
-mongodump --username=<user> --archive=snapshot/listings_<date>.gz --db=mpc --collection=listings --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
-mongodump --username=<user> --archive=snapshot/markets_<date>.gz --db=mpc --collection=markets --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
-mongodump --username=<user> --archive=snapshot/categories_<date>.gz --db=mpc --collection=categories --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
-mongodump --username=<user> --archive=snapshot/catalogs_<date>.gz --db=mpc --collection=catalogs --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
-mongodump --username=<user> --archive=snapshot/listing_versions_<date>.gz --db=mpc --collection=listing_versions --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --gzip
+mysqldump --user=root --password --lock-tables mpc_db --ignore-table=mpc_db.Install --ignore-table=mpc_db.MetricPeriod --ignore-table=mpc_db.InstallMetrics --ignore-table=mpc_db.InstallMetrics_MetricPeriod > /data/backup/db.sql
+mysqldump --user=root --password mpc_db Install > /data/backup/db_installs.sql
 ```
-
-If using Docker to host:
-`docker cp dev_mongo_1:/snapshot ./snapshot`
 
 ### Restoring from backup
 
-In order to restore data from backup snapshot, write access to the MongoDB instance is required, and is best done with shell access. As `mongorestore` doesn't update or overwrite records, the existing data set should be wiped before proceeding with restoring from backup snapshots. 
-
-To use the following commands, replace `<user>` with the name of the user with write access to the MPC data set. Each of these commands will initiate a password challenge request, and cannot be together in a script easily. Adding the `--password=<>` is not recommended as it is a vulnerability as the logs will remain on the server with plain text passwords. Additionally, the `<date>` placeholder should be replaced with whatever date stamp has been set in the snapshot .gz files.
-
-From host machine to Docker:
-`docker cp ./snapshot dev_mongo_1:/`
-
-In container:  
+TODO
 
 ```
-mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/listings_<date>.gz
-mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/markets_<date>.gz
-mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/catalogs_<date>.gz
-mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/categories_<date>.gz
-mongorestore --username=<user> --authenticationDatabase admin --authenticationMechanism SCRAM-SHA-256 --nsInclude=mpc.* --gzip --archive=snapshot/listing_versions_<date>.gz
+mysql --user=root --password mpc_db < /data/backup/db.sql
+mysql --user=root --password mpc_db Install < /data/backup/db_installs.sql
 ```
-
 
 ## Copyright 
 

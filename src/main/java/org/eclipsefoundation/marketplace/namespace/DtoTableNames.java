@@ -15,6 +15,7 @@ import org.eclipsefoundation.marketplace.dto.Listing;
 import org.eclipsefoundation.marketplace.dto.ListingVersion;
 import org.eclipsefoundation.marketplace.dto.Market;
 import org.eclipsefoundation.marketplace.dto.MetricPeriod;
+import org.eclipsefoundation.persistence.model.DtoTable;
 import org.eclipsefoundation.marketplace.dto.Promotion;
 
 /**
@@ -24,29 +25,36 @@ import org.eclipsefoundation.marketplace.dto.Promotion;
  *
  */
 public enum DtoTableNames {
-	LISTING(Listing.class, "listings"), CATEGORY(Category.class, "categories"), CATALOG(Catalog.class, "catalogs"),
-	MARKET(Market.class, "markets"), ERRORREPORT(ErrorReport.class, "errorreports"), INSTALL(Install.class, "installs"),
-	INSTALL_METRIC(InstallMetrics.class, "install_metrics"), METRIC_PERIOD(MetricPeriod.class, "installs"),
-	LISTING_VERSION(ListingVersion.class, "listing_versions"),PROMOTION(Promotion.class, "promotion");
+	LISTING(new DtoTable(Listing.class, "l")), CATEGORY(new DtoTable(Category.class, "ct")),
+	CATALOG(new DtoTable(Catalog.class, "cl")), MARKET(new DtoTable(Market.class, "m")),
+	ERRORREPORT(new DtoTable(ErrorReport.class, "er")), INSTALL(new DtoTable(Install.class, "i")),
+	INSTALL_METRIC(new DtoTable(InstallMetrics.class, "im")), METRIC_PERIOD(new DtoTable(MetricPeriod.class, "mp")),
+	LISTING_VERSION(new DtoTable(ListingVersion.class, "lv")), PROMOTION(new DtoTable(Promotion.class, "p"));
 
-	private Class<?> baseClass;
-	private String tableName;
+	private DtoTable table;
 
-	private DtoTableNames(Class<?> baseClass, String tableName) {
-		this.baseClass = baseClass;
-		this.tableName = tableName;
+	private DtoTableNames(DtoTable table) {
+		this.table = table;
 	}
 
-	public static String getTableName(Class<?> targetBase) {
-		for (DtoTableNames dtoPair : values()) {
-			if (dtoPair.baseClass == targetBase) {
-				return dtoPair.tableName;
+	public static DtoTableNames getTableByType(Class<?> targetBase) {
+		for (DtoTableNames dtoName : values()) {
+			if (dtoName.getType() == targetBase) {
+				return dtoName;
 			}
 		}
 		return null;
 	}
 
-	public String getTableName() {
-		return this.tableName;
+	public DtoTable getTable() {
+		return this.table;
+	}
+
+	public Class<?> getType() {
+		return this.table.getType();
+	}
+
+	public String getAlias() {
+		return this.table.getAlias();
 	}
 }

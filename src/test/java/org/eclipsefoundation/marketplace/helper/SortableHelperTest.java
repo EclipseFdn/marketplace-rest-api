@@ -9,8 +9,9 @@ package org.eclipsefoundation.marketplace.helper;
 import java.util.List;
 import java.util.Optional;
 
-import org.eclipsefoundation.marketplace.helper.SortableHelper.Sortable;
-import org.eclipsefoundation.marketplace.model.SortableField;
+import org.eclipsefoundation.persistence.helper.SortableHelper;
+import org.eclipsefoundation.persistence.helper.SortableHelper.Sortable;
+import org.eclipsefoundation.persistence.model.SortableField;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -21,10 +22,10 @@ import io.quarkus.test.junit.QuarkusTest;
  *
  */
 @QuarkusTest
-public class SortableHelperTest {
+class SortableHelperTest {
 
 	@Test
-	public void testGetSortableFieldsValidClass() {
+	void testGetSortableFieldsValidClass() {
 		List<Sortable<?>> sortables = SortableHelper.getSortableFields(CustomDocType.class);
 
 		// check that our list gets returned
@@ -40,7 +41,7 @@ public class SortableHelperTest {
 	}
 
 	@Test
-	public void testGetSortableFieldsNoAnnotations() {
+	void testGetSortableFieldsNoAnnotations() {
 		List<Sortable<?>> sortables = SortableHelper.getSortableFields(Object.class);
 
 		Assertions.assertNotNull(sortables);
@@ -48,13 +49,13 @@ public class SortableHelperTest {
 	}
 
 	@Test
-	public void testGetSortableFieldsNoClass() {
+	void testGetSortableFieldsNoClass() {
 		// this should throw as the class is required
 		Assertions.assertThrows(NullPointerException.class, () -> SortableHelper.getSortableFields(null));
 	}
 
 	@Test
-	public void testGetSortableFieldsNested() {
+	void testGetSortableFieldsNested() {
 		List<Sortable<?>> sortables = SortableHelper.getSortableFields(CustomDocType.class);
 		Optional<Sortable<?>> sOpt = sortables.stream().filter(c -> c.getName().equals("name")).findFirst();
 
@@ -68,7 +69,7 @@ public class SortableHelperTest {
 	}
 
 	@Test
-	public void testGetSortableFieldsCustomName() {
+	void testGetSortableFieldsCustomName() {
 		List<Sortable<?>> sortables = SortableHelper.getSortableFields(CustomDocType.class);
 		Optional<Sortable<?>> sOpt = sortables.stream().filter(c -> c.getName().equals("grp")).findFirst();
 
@@ -82,7 +83,7 @@ public class SortableHelperTest {
 	}
 	
 	@Test
-	public void testGetSortableFieldsCustomPath() {
+	void testGetSortableFieldsCustomPath() {
 		List<Sortable<?>> sortables = SortableHelper.getSortableFields(CustomDocType.class);
 		Optional<Sortable<?>> sOpt = sortables.stream().filter(c -> c.getName().equals("cat")).findFirst();
 
@@ -96,7 +97,7 @@ public class SortableHelperTest {
 	}
 	
 	@Test
-	public void testGetSortableFieldByName() {
+	void testGetSortableFieldByName() {
 		List<Sortable<?>> sortables = SortableHelper.getSortableFields(CustomDocType.class);
 		Optional<Sortable<?>> s = SortableHelper.getSortableFieldByName(sortables, "name");
 
@@ -105,7 +106,7 @@ public class SortableHelperTest {
 	}
 	
 	@Test
-	public void testGetSortableFieldByNameCustomName() {
+	void testGetSortableFieldByNameCustomName() {
 		List<Sortable<?>> sortables = SortableHelper.getSortableFields(CustomDocType.class);
 
 		// assert that we can find the sortable with custom name rather than the field name
@@ -114,13 +115,13 @@ public class SortableHelperTest {
 	}
 	
 	@Test
-	public void testGetSortableFieldByNameNullName() {
+	void testGetSortableFieldByNameNullName() {
 		List<Sortable<?>> sortables = SortableHelper.getSortableFields(CustomDocType.class);
 		Assertions.assertThrows(NullPointerException.class, () -> SortableHelper.getSortableFieldByName(sortables, null));
 	}
 	
 	@Test
-	public void testGetSortableFieldByNameNullSortables() {
+	void testGetSortableFieldByNameNullSortables() {
 		Assertions.assertThrows(NullPointerException.class, () -> SortableHelper.getSortableFieldByName(null, "sample"));
 	}
 
@@ -130,23 +131,23 @@ public class SortableHelperTest {
 	 * 
 	 * @author Martin Lowe
 	 */
-	public static class CustomDocType {
+	static class CustomDocType {
 		@SortableField
 		private long id;
 		@SortableField
-		public int count;
+		int count;
 		@SortableField
 		long members;
 		@SortableField
 		protected long time;
 		CustomNestedType nt;
 
-		public CustomDocType() {
+		CustomDocType() {
 			this.nt = new CustomNestedType();
 		}
 	}
 
-	public static class CustomNestedType {
+	static class CustomNestedType {
 		@SortableField
 		String name;
 		@SortableField(name = "grp")

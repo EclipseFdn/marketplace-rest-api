@@ -14,6 +14,7 @@ import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.persistence.NoResultException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -22,27 +23,23 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
-import org.eclipsefoundation.marketplace.dao.MongoDao;
+import org.eclipsefoundation.core.helper.ResponseHelper;
+import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
+import org.eclipsefoundation.core.service.CachingService;
 import org.eclipsefoundation.marketplace.dto.Catalog;
-import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
-import org.eclipsefoundation.marketplace.helper.ResponseHelper;
-import org.eclipsefoundation.marketplace.helper.StreamHelper;
-import org.eclipsefoundation.marketplace.model.Error;
-import org.eclipsefoundation.marketplace.model.MongoQuery;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
-import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
-import org.eclipsefoundation.marketplace.service.CachingService;
+import org.eclipsefoundation.persistence.dao.PersistenceDao;
+import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
+import org.eclipsefoundation.persistence.model.RDBMSQuery;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mongodb.client.result.DeleteResult;
-
 /**
- * @author martin
- *
+ * Resource for retrieving {@linkplain Catalog} from the DB instance.
+ * 
+ * @author Martin Lowe
  */
 @Path("/catalogs")
 @Produces(MediaType.APPLICATION_JSON)
@@ -52,7 +49,7 @@ public class CatalogResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CatalogResource.class);
 
 	@Inject
-	MongoDao dao;
+	PersistenceDao dao;
 	@Inject
 	CachingService<List<Catalog>> cachingService;
 	@Inject
@@ -65,10 +62,9 @@ public class CatalogResource {
 	@GET
 	@PermitAll
 	public Response select() {
-		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter);
+		RDBMSQuery<Catalog> q = new RDBMSQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
-		Optional<List<Catalog>> cachedResults = cachingService.get("all", params,
-				null, () -> StreamHelper.awaitCompletionStage(dao.get(q)));
+		Optional<List<Catalog>> cachedResults = cachingService.get("all", params, () -> dao.get(q));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached Catalogs");
 			return Response.serverError().build();
@@ -87,12 +83,8 @@ public class CatalogResource {
 	@PUT
 	@RolesAllowed({ "marketplace_catalog_put", "marketplace_admin_access" })
 	public Response putCatalog(Catalog catalog) {
-		if (catalog.getId() != null) {
-			params.addParam(UrlParameterNames.ID.getParameterName(), catalog.getId());
-		}
-		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter);
 		// add the object, and await the result
-		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(catalog)));
+		dao.add(new RDBMSQuery<>(params, dtoFilter), Arrays.asList(catalog));
 
 		// return the results as a response
 		return Response.ok().build();
@@ -108,15 +100,17 @@ public class CatalogResource {
 	@GET
 	@Path("/{catalogId}")
 	public Response select(@PathParam("catalogId") String catalogId) {
-		params.addParam(UrlParameterNames.ID.getParameterName(), catalogId);
+		params.addParam(DefaultUrlParameterNames.ID, catalogId);
 
-		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter);
+		RDBMSQuery<Catalog> q = new RDBMSQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current listing
-		Optional<List<Catalog>> cachedResults = cachingService.get(catalogId, params,
-				null, () -> StreamHelper.awaitCompletionStage(dao.get(q)));
+		Optional<List<Catalog>> cachedResults = cachingService.get(catalogId, params, () -> dao.get(q));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listing for ID {}", catalogId);
 			return Response.serverError().build();
+		}
+		if (cachedResults.get().isEmpty()) {
+			throw new NoResultException("Could not find any documents with ID " + catalogId);
 		}
 
 		// return the results as a response
@@ -134,14 +128,9 @@ public class CatalogResource {
 	@RolesAllowed({ "marketplace_catalog_delete", "marketplace_admin_access" })
 	@Path("/{catalogId}")
 	public Response delete(@PathParam("catalogId") String catalogId) {
-		params.addParam(UrlParameterNames.ID.getParameterName(), catalogId);
+		params.addParam(DefaultUrlParameterNames.ID, catalogId);
+		dao.delete(new RDBMSQuery<>(params, dtoFilter));
 
-		MongoQuery<Catalog> q = new MongoQuery<>(params, dtoFilter);
-		// delete the currently selected asset
-		DeleteResult result = StreamHelper.awaitCompletionStage(dao.delete(q));
-		if (result.getDeletedCount() == 0 || !result.wasAcknowledged()) {
-			return new Error(Status.NOT_FOUND, "Did not find an asset to delete for current call").asResponse();
-		}
 		// return the results as a response
 		return Response.ok().build();
 	}

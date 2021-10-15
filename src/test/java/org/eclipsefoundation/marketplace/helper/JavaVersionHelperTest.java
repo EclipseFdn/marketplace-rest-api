@@ -17,10 +17,10 @@ import io.quarkus.test.junit.QuarkusTest;
  * @author Martin Lowe
  */
 @QuarkusTest
-public class JavaVersionHelperTest {
+class JavaVersionHelperTest {
 
 	@Test
-	public void testConvertToDBSafe() {
+	void testConvertToDBSafe() {
 		Assertions.assertEquals("7", JavaVersionHelper.convertToDBSafe("1.7"));
 		Assertions.assertEquals("7", JavaVersionHelper.convertToDBSafe("1.7.0_4"));
 		Assertions.assertEquals("8", JavaVersionHelper.convertToDBSafe("1.8.45"));
@@ -31,7 +31,7 @@ public class JavaVersionHelperTest {
 		Assertions.assertEquals(null, JavaVersionHelper.convertToDBSafe(null));
 	}
 	@Test
-	public void testConvertToDisplayValue() {
+	void testConvertToDisplayValue() {
 		Assertions.assertEquals("1.7", JavaVersionHelper.convertToDisplayValue("7"));
 		Assertions.assertEquals("1.8", JavaVersionHelper.convertToDisplayValue("8"));
 		Assertions.assertEquals("9", JavaVersionHelper.convertToDisplayValue("9"));

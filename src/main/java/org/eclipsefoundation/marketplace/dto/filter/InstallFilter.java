@@ -6,22 +6,22 @@
  */
 package org.eclipsefoundation.marketplace.dto.filter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
-import org.bson.conversions.Bson;
+import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
 import org.eclipsefoundation.marketplace.dto.Install;
-import org.eclipsefoundation.marketplace.model.QueryParameters;
 import org.eclipsefoundation.marketplace.namespace.DatabaseFieldNames;
+import org.eclipsefoundation.marketplace.namespace.DtoTableNames;
 import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
-
-import com.mongodb.client.model.Filters;
+import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
+import org.eclipsefoundation.persistence.model.ParameterizedSQLStatement;
+import org.eclipsefoundation.persistence.model.ParameterizedSQLStatementBuilder;
 
 /**
  * Filter implementation for the {@linkplain Install} class.
@@ -31,49 +31,59 @@ import com.mongodb.client.model.Filters;
 @ApplicationScoped
 public class InstallFilter implements DtoFilter<Install> {
 
+	@Inject
+	ParameterizedSQLStatementBuilder builder;
+	
+
 	@Override
-	public List<Bson> getFilters(QueryParameters params, String root) {
-		List<Bson> filters = new ArrayList<>();
-		// perform following checks only if there is no doc root
-		if (root == null) {
+	public ParameterizedSQLStatement getFilters(RequestWrapper wrap, boolean isRoot) {
+		ParameterizedSQLStatement stmt = builder.build(DtoTableNames.INSTALL.getTable());
+
+		if (isRoot) {
 			// ID check
-			Optional<String> id = params.getFirstIfPresent(UrlParameterNames.ID.getParameterName());
+			Optional<String> id = wrap.getFirstParam(DefaultUrlParameterNames.ID);
 			if (id.isPresent()) {
-				filters.add(Filters.eq(DatabaseFieldNames.LISTING_ID, id.get()));
+				stmt.addClause(new ParameterizedSQLStatement.Clause(
+						DtoTableNames.INSTALL.getAlias() + "." + DatabaseFieldNames.LISTING_ID + " = ?",
+						new Object[] { UUID.fromString(id.get()) }));
 			}
 		}
 		// version check
-		Optional<String> version = params.getFirstIfPresent(UrlParameterNames.VERSION.getParameterName());
+		Optional<String> version = wrap.getFirstParam(UrlParameterNames.VERSION);
 		if (version.isPresent()) {
-			filters.add(Filters.eq(DatabaseFieldNames.INSTALL_VERSION, version.get()));
+			stmt.addClause(new ParameterizedSQLStatement.Clause(
+					DtoTableNames.INSTALL.getAlias() + "." + DatabaseFieldNames.INSTALL_VERSION + " = ?",
+					new Object[] { version.get() }));
 		}
 		// OS filter
-		Optional<String> os = params.getFirstIfPresent(UrlParameterNames.OS.getParameterName());
+		Optional<String> os = wrap.getFirstParam(UrlParameterNames.OS);
 		if (os.isPresent()) {
-			filters.add(Filters.eq(DatabaseFieldNames.OS, os.get()));
+			stmt.addClause(new ParameterizedSQLStatement.Clause(
+					DtoTableNames.INSTALL.getAlias() + "." + DatabaseFieldNames.OS + " = ?",
+					new Object[] { os.get() }));
 		}
 		// eclipse version
-		Optional<String> eclipseVersion = params.getFirstIfPresent(UrlParameterNames.ECLIPSE_VERSION.getParameterName());
+		Optional<String> eclipseVersion = wrap.getFirstParam(UrlParameterNames.ECLIPSE_VERSION);
 		if (eclipseVersion.isPresent()) {
-			filters.add(Filters.eq(DatabaseFieldNames.ECLIPSE_VERSION, eclipseVersion.get()));
+			stmt.addClause(new ParameterizedSQLStatement.Clause(
+					DtoTableNames.INSTALL.getAlias() + "." + DatabaseFieldNames.ECLIPSE_VERSION + " = ?",
+					new Object[] { eclipseVersion.get() }));
 		}
-		// TODO this sorts by naturally by character rather than by actual number (e.g.
-		// 1.9 is technically greater than 1.10)
+		// Java version
+		Optional<String> javaVersion = wrap.getFirstParam(UrlParameterNames.JAVA_VERSION);
+		if (javaVersion.isPresent() && StringUtils.isNumeric(javaVersion.get())) {
+			stmt.addClause(new ParameterizedSQLStatement.Clause(
+					DtoTableNames.INSTALL.getAlias() + "." + DatabaseFieldNames.INSTALL_JAVA_VERSION + " >= ?",
+					new Object[] { Integer.valueOf(javaVersion.get()) }));
+		}
 		// solution version - Java version
-		Optional<String> javaVersion = params.getFirstIfPresent(UrlParameterNames.JAVA_VERSION.getParameterName());
-		if (javaVersion.isPresent()) {
-			filters.add(Filters.gte(DatabaseFieldNames.INSTALL_JAVA_VERSION, javaVersion.get()));
-		}
-		Optional<String> date = params.getFirstIfPresent(UrlParameterNames.DATE_FROM.getParameterName());
+		Optional<String> date = wrap.getFirstParam(UrlParameterNames.DATE_FROM);
 		if (date.isPresent() && StringUtils.isNumeric(date.get())) {
-			filters.add(Filters.gte(DatabaseFieldNames.INSTALL_DATE, new Date(Integer.valueOf(date.get()))));
+			stmt.addClause(new ParameterizedSQLStatement.Clause(
+					DtoTableNames.INSTALL.getAlias() + "." + DatabaseFieldNames.INSTALL_DATE + " >= ?",
+					new Object[] { Integer.valueOf(date.get()) }));
 		}
-		return filters;
-	}
-
-	@Override
-	public List<Bson> getAggregates(QueryParameters params) {
-		return Collections.emptyList();
+		return stmt;
 	}
 
 	@Override

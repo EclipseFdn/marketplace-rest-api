@@ -1,24 +1,11 @@
 package org.eclipsefoundation.marketplace.dto;
 
-public class Promotion {
+import org.eclipsefoundation.persistence.dto.BareNode;
 
-	private String id;
+public class Promotion extends BareNode {
+
 	private String listingId;
 	private int weight = 1;
-
-	/**
-	 * @return the id
-	 */
-	public String getId() {
-		return id;
-	}
-
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(String id) {
-		this.id = id;
-	}
 
 	/**
 	 * @return the listingId

@@ -1,7 +1,7 @@
 const axios = require('axios');
 const time = require('moment');
 const instance = axios.create({
-  timeout: 5000,
+  timeout: 10000,
   headers: {'User-Agent': 'mpc/0.0.0'}
 });
 const randomWords = require('random-words');
@@ -11,6 +11,12 @@ const argv = require('yargs')
     description: 'Number of listings to generate',
     alias: 'count',
     default: 1000,
+    nargs: 1
+  })
+  .option('b', {
+    description: 'Number of listings to generate per "batch"',
+    alias: 'batch',
+    default: 25,
     nargs: 1
   })
   .option('i', {
@@ -26,12 +32,13 @@ const argv = require('yargs')
     demandOption: true
   }).argv;
 
-let max = argv.c;
+const max = argv.c;
+const batch = argv.b;
 var moment = require('moment-timezone');
-const lic_types = ["EPL-2.0","EPL-1.0","GPL"];
+const lic_types = ["EPL-2.0", "EPL-1.0", "GPL", "MIT"];
 const platforms = ["windows","macos","linux"];
-const eclipseVs = ["4.6","4.7","4.8","4.9","4.10","4.11","4.12"];
-const javaVs = ["1.5", "1.6", "1.7", "1.8", "1.9", "1.10"];
+const eclipseVs = ["4.6","4.7","4.8","4.9","4.10","4.11","4.12", "4.13"];
+const javaVs = [5, 6, 7, 8, 9, 10, 11];
 const categoryIds = [];
 for (var i=0;i<200;i++) {
   categoryIds.push(uuid.v4());
@@ -44,7 +51,29 @@ for (var i=0;i<5;i++) {
 run();
 
 async function run() {
-  var a = await createListing(0);
+  var a = await createCategory(0);
+  
+  console.log("Hold on to your pants, its about to get wild")
+  // wait for ~5s
+  var time = Date.now() + 5000;
+  while (time > Date.now()) ;
+  
+  var count = 0;
+  while (count < max) {
+	  var listings = [];
+	  for (var i = 0; i < batch; i++) {
+		  var result = await createListing(count++);
+		  if (result != null) {
+			  listings.push(result);
+		  }
+	  }
+	  for (var listingIdx in listings) {
+		  await listingCallback(listings[listingIdx]);
+	  }
+  }
+
+  // create markets once listings are all generated
+  await createMarket(0);
 }
 
 function shuff(arr) {
@@ -70,41 +99,39 @@ function splice(arr) {
 }
 
 async function createListing(count) {
-  if (count >= max) {
-    createCategory(0);
-    return;
-  }
-  
   console.log(`Generating listing ${count} of ${max}`);
   var json = generateJSON(uuid.v4());
-  instance.put(argv.s+"/listings/", json)
-    .then(await listingCallback(json, count))
+  return instance.put(argv.s+"/listings/", json)
+    .then(function() { return json; })
     .catch(err => console.log(err));
 }
 
-async function listingCallback(json, count) {
+async function listingCallback(json) {
   var installs = Math.floor(Math.random()*argv.i);
-  var solsCount = Math.floor(Math.random()*5) + 1;
+  var solsCount = Math.floor(Math.random()*5) + 2;
+  console.log(`Generating ${solsCount} version records for listing '${json.id}'`);
   var versions = [];
-  for (var j=0;j<solsCount;j++) {
+  for (var j=1;j<solsCount;j++) {
     var v = await createVersion(j, solsCount, json.id);
     if (v != null) {
       versions.push(v);
     }
   }
-  
+  if (versions.length == 0) {
+	  return;
+  }
   console.log(`Generating ${installs} install records for listing '${json.id}'`);
-  createInstall(0, installs, json, versions, () => createListing(count+1));
+  createInstall(0, installs, json, versions);
 }
 
-function createCategory(count) {
+async function createCategory(count) {
   if (count >= categoryIds.length) {
-    createMarket(0);
     return;
   }
 
-  instance.put(argv.s+"/categories/", generateCategoryJSON(categoryIds[count++]))
-    .then(() => createCategory(count))
+  console.log(`Generating category record with ID '${categoryIds[count]}'`);
+  await instance.put(argv.s+"/categories/", generateCategoryJSON(categoryIds[count]))
+    .then(async function() { await createCategory(count + 1); })
     .catch(err => console.log(err));
 }
 
@@ -118,13 +145,13 @@ function createMarket(count) {
     .catch(err => console.log(err));
 }
 
-function createInstall(curr, max, listing, versions, callback) {
-  if (curr >= max) {
-    return callback();
+function createInstall(curr, maxInstall, listing, versions) {
+  if (curr >= maxInstall) {
+    return;
   }
   var json = generateInstallJSON(listing, versions);
   instance.post(`${argv.s}/installs/${json['listing_id']}/${json.version}`, json)
-    .then(createInstall(curr+1,max,listing,versions,callback))
+    .then(createInstall(curr+1,maxInstall,listing,versions))
     .catch(err => console.log(err));
 }
 
@@ -144,16 +171,21 @@ function generateJSON(id) {
     var currUuid = markets[marketIdx].uuid;
     for (var actualMarketIdx in marketIds) {
       if (marketIds[actualMarketIdx].uuid === currUuid) {
-        marketIds[actualMarketIdx].listings.push(id);
+        marketIds[actualMarketIdx].listings.push({'id':id});
         break;
       }
     }
+  }
+  
+  var catIdsRaw = splice(categoryIds).splice(0,Math.ceil(Math.random()*5)+1);
+  var cats = [];
+  for (var categoryIdIdx in catIdsRaw) {
+	  cats.push({'id': catIdsRaw[categoryIdIdx]});
   }
   return {
     "id": id,
   	"title": "Sample",
   	"url": "https://jakarta.ee",
-  	"foundation_member": false,
   	"teaser": randomWords({exactly:1, wordsPerString:Math.floor(Math.random()*100)})[0],
   	"body": randomWords({exactly:1, wordsPerString:Math.floor(Math.random()*300)})[0],
     "status": "draft",
@@ -168,17 +200,15 @@ function generateJSON(id) {
   		}
   	],
     "organization": {
-			"name": "Eclipse Foundation",
-			"id": 1
+			"name": "Eclipse Foundation"
 		},
   	"tags": [
   		{
   			"name": "Build tools",
-  			"id": "1",
   			"url": ""
   		}
   	],
-  "category_ids": splice(categoryIds).splice(0,Math.ceil(Math.random()*5)+1),
+  "categories": cats,
 	"screenshots": ["http://www.example.com/img/sample.png"]
   };
 }
@@ -220,9 +250,11 @@ function generateInstallJSON(listing,versions) {
 function generateVersionJSON(name, listingId) {
   return {
     "version": name,
+    "update_site_url": "",
     "listing_id": listingId,
     "eclipse_versions": splice(eclipseVs),
     "min_java_version": javaVs[Math.floor(Math.random()*javaVs.length)],
-    "platforms": splice(platforms)
+    "platforms": splice(platforms),
+    "feature_ids":[]
   };
 }

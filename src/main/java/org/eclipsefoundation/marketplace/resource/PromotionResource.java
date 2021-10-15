@@ -1,7 +1,6 @@
 package org.eclipsefoundation.marketplace.resource;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,23 +15,18 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
-import org.eclipsefoundation.marketplace.dao.MongoDao;
+import org.eclipsefoundation.core.helper.ResponseHelper;
+import org.eclipsefoundation.core.model.RequestWrapper;
+import org.eclipsefoundation.core.namespace.DefaultUrlParameterNames;
+import org.eclipsefoundation.core.service.CachingService;
 import org.eclipsefoundation.marketplace.dto.Promotion;
-import org.eclipsefoundation.marketplace.dto.filter.DtoFilter;
-import org.eclipsefoundation.marketplace.helper.ResponseHelper;
-import org.eclipsefoundation.marketplace.helper.StreamHelper;
-import org.eclipsefoundation.marketplace.model.Error;
-import org.eclipsefoundation.marketplace.model.MongoQuery;
-import org.eclipsefoundation.marketplace.model.RequestWrapper;
-import org.eclipsefoundation.marketplace.namespace.UrlParameterNames;
-import org.eclipsefoundation.marketplace.service.CachingService;
+import org.eclipsefoundation.persistence.dao.PersistenceDao;
+import org.eclipsefoundation.persistence.dto.filter.DtoFilter;
+import org.eclipsefoundation.persistence.model.RDBMSQuery;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.mongodb.client.result.DeleteResult;
 
 /**
  * Resource for interacting with promotions within the API.
@@ -48,7 +42,7 @@ public class PromotionResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PromotionResource.class);
 
 	@Inject
-	MongoDao dao;
+	PersistenceDao dao;
 	@Inject
 	DtoFilter<Promotion> dtoFilter;
 	@Inject
@@ -68,10 +62,9 @@ public class PromotionResource {
 	@GET
 	@RolesAllowed({ "marketplace_promotion_get", "marketplace_admin_access" })
 	public Response select() {
-		MongoQuery<Promotion> q = new MongoQuery<>(params, dtoFilter);
+		RDBMSQuery<Promotion> q = new RDBMSQuery<>(params, dtoFilter);
 		// retrieve the possible cached object
-		Optional<List<Promotion>> cachedResults = cachingService.get("all", params, Collections.emptyMap(),
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+		Optional<List<Promotion>> cachedResults = cachingService.get("all", params, () -> dao.get(q));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached promotions");
 			return Response.serverError().build();
@@ -91,11 +84,11 @@ public class PromotionResource {
 	@RolesAllowed({ "marketplace_promotion_put", "marketplace_admin_access" })
 	public Response putPromotion(Promotion promotion) {
 		if (promotion.getId() != null) {
-			params.addParam(UrlParameterNames.ID.getParameterName(), promotion.getId());
+			params.addParam(DefaultUrlParameterNames.ID, promotion.getId().toString());
 		}
-		MongoQuery<Promotion> q = new MongoQuery<>(params, null, dtoFilter);
+		RDBMSQuery<Promotion> q = new RDBMSQuery<>(params, dtoFilter);
 		// add the object, and await the result
-		StreamHelper.awaitCompletionStage(dao.add(q, Arrays.asList(promotion)));
+		dao.add(q, Arrays.asList(promotion));
 
 		// return the results as a response
 		return Response.ok().build();
@@ -112,12 +105,11 @@ public class PromotionResource {
 	@RolesAllowed({ "marketplace_promotion_get", "marketplace_admin_access" })
 	@Path("/{promotionId}")
 	public Response select(@PathParam("promotionId") String promotionId) {
-		params.addParam(UrlParameterNames.ID.getParameterName(), promotionId);
+		params.addParam(DefaultUrlParameterNames.ID.getParameterName(), promotionId);
 
-		MongoQuery<Promotion> q = new MongoQuery<>(params, null, dtoFilter);
+		RDBMSQuery<Promotion> q = new RDBMSQuery<>(params, dtoFilter);
 		// retrieve a cached version of the value for the current listing
-		Optional<List<Promotion>> cachedResults = cachingService.get(promotionId, params, Collections.emptyMap(),
-				() -> StreamHelper.awaitCompletionStage(dao.get(q)));
+		Optional<List<Promotion>> cachedResults = cachingService.get(promotionId, params, () -> dao.get(q));
 		if (!cachedResults.isPresent()) {
 			LOGGER.error("Error while retrieving cached listing for ID {}", promotionId);
 			return Response.serverError().build();
@@ -138,14 +130,11 @@ public class PromotionResource {
 	@RolesAllowed({ "marketplace_promotion_delete", "marketplace_admin_access" })
 	@Path("/{promotionId}")
 	public Response delete(@PathParam("promotionId") String promotionId) {
-		params.addParam(UrlParameterNames.ID.getParameterName(), promotionId);
-
-		MongoQuery<Promotion> q = new MongoQuery<>(params, null, dtoFilter);
+		params.addParam(DefaultUrlParameterNames.ID.getParameterName(), promotionId);
+		RDBMSQuery<Promotion> q = new RDBMSQuery<>(params, dtoFilter);
 		// delete the currently selected asset
-		DeleteResult result = StreamHelper.awaitCompletionStage(dao.delete(q));
-		if (result.getDeletedCount() == 0 || !result.wasAcknowledged()) {
-			return new Error(Status.NOT_FOUND, "Did not find an asset to delete for current call").asResponse();
-		}
+		dao.delete(q);
+		
 		// return the results as a response
 		return Response.ok().build();
 	}
